@@ -12,12 +12,12 @@ Building from source is documented in [Architecture › Build](/architecture/bui
 Pre-built packages for the latest release are on the
 [Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
 
-| Platform | Architecture            | Package   |
-|----------|-------------------------|-----------|
-| Linux    | x86_64                  | `.tar.gz` |
-| Linux    | aarch64                 | `.tar.gz` |
-| macOS    | x86_64                  | `.pkg`    |
-| macOS    | aarch64 (Apple Silicon) | `.pkg`    |
+| Platform | Architecture            | Package         |
+|----------|-------------------------|-----------------|
+| Linux    | x86_64                  | `.tar.gz`       |
+| Linux    | aarch64                 | `.tar.gz`       |
+| macOS    | x86_64                  | `.pkg`          |
+| macOS    | aarch64 (Apple Silicon) | `.pkg` + `.dmg` |
 
 ## Package managers
 
@@ -45,6 +45,12 @@ Then:
 
 ```sh
 sudo dnf install rockbox
+```
+
+### macOS (Homebrew)
+
+```sh
+brew install tsirysndr/tap/rockbox
 ```
 
 ### Arch Linux
@@ -140,6 +146,11 @@ toolchain.
   <Accordion title="Arch">
     ```sh
     sudo pacman -Rns rockbox-zig-bin
+    ```
+  </Accordion>
+  <Accordion title="macOS (Homebrew)">
+    ```sh
+    brew uninstall rockbox
     ```
   </Accordion>
   <Accordion title="macOS .pkg">

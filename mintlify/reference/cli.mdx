@@ -10,7 +10,7 @@ There are two binaries:
   library, opens the web UI, manages the systemd service, runs JS/TS
   scripts, and acts as a Bluetooth client on Linux.
 - **`rockboxd`** — the daemon itself. Linked by Zig from the C firmware
-  + Rust crates + SDL2. Lives at `zig/zig-out/bin/rockboxd` after a build,
+  + Rust crates + CPAL. Lives at `zig/zig-out/bin/rockboxd` after a build,
   or `/usr/local/bin/rockboxd` after install.
 
 Most users only ever invoke `rockbox`; `rockboxd` is the underlying
@@ -52,7 +52,7 @@ below are dispatched in `cli/src/main.rs`.
 | `login <handle>`                  | `auth`   | Log in to Rocksky (BlueSky handle)                      |
 | `whoami`                          | `me`     | Show the currently logged-in user                       |
 | `community`                       |          | Open the Discord invite                                 |
-| `setup`                           |          | Install host dependencies (SDL2, etc.)                  |
+| `setup`                           |          | Install host dependencies (CPAL, etc.)                  |
 | `bluetooth scan [--timeout S]`    |          | Linux only — scan for Bluetooth devices                 |
 | `bluetooth devices`               |          | Linux only — list known devices                         |
 | `bluetooth connect <ADDR>`        |          | Linux only — connect to a device                        |

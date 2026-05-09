@@ -8,7 +8,7 @@ Rockbox Zig is built by three tools in series:
 
 1. **Make** — compiles the Rockbox C firmware into static libraries.
 2. **Cargo** — compiles the Rust crates into static libraries (`crate-type = ["staticlib"]`).
-3. **Zig** — links everything (plus SDL2) into a single executable.
+3. **Zig** — links everything (plus CPAL) into a single executable.
 
 ## Dependencies
 
@@ -16,20 +16,20 @@ Rockbox Zig is built by three tools in series:
   <Tab title="Ubuntu / Debian">
     ```sh
     sudo apt-get install \
-      libsdl2-dev libfreetype6-dev libdbus-1-dev libunwind-dev \
+      libasound2-dev libfreetype6-dev libdbus-1-dev libunwind-dev \
       zip protobuf-compiler cmake
     ```
   </Tab>
   <Tab title="Fedora">
     ```sh
     sudo dnf install \
-      SDL2-devel freetype-devel libunwind-devel \
+      alsa-lib-devel freetype-devel libunwind-devel \
       zip protobuf-compiler cmake
     ```
   </Tab>
   <Tab title="macOS">
     ```sh
-    brew install sdl2 freetype cmake protobuf
+    brew install freetype cmake protobuf
     ```
   </Tab>
 </Tabs>
@@ -108,9 +108,34 @@ ar t target/release/librockbox_cli.a | grep airplay
 ar t target/release/librockbox_cli.a | grep slim
 ```
 
+## Headless build (CPAL / no SDL)
+
+The recommended build path for desktop use is the **headless** target, which
+uses CPAL for audio instead of SDL. A convenience script handles all three
+steps:
+
+```sh
+bash scripts/build-headless.sh
+```
+
+This configures and builds the firmware against `build-headless/`, compiles
+the Rust crates with the `cpal` feature, and links the result with Zig.
+
+## Embeddable library (`librockboxd.a`)
+
+`zig build lib` produces `zig/zig-out/lib/librockboxd.a` — a fat archive that
+desktop GUIs (GPUI, macOS Swift, Qt, …) can link against to boot the Rockbox
+daemon in-process. The public C header is `include/rockboxd.h`.
+
+```sh
+# After the headless firmware + Rust embed crate:
+cd zig && zig build lib
+# → zig/zig-out/lib/librockboxd.a
+```
+
 ## Don't re-run `tools/configure`
 
-`build-lib/` was pre-configured for the `sdlapp` target. Re-running
-`tools/configure` regenerates the Makefile and overwrites local edits. If
-you really need to reconfigure (different LCD dimensions, different target),
-do it knowingly and review the resulting diff.
+`build-lib/` is pre-configured for the `sdlapp` target; `build-headless/` is
+pre-configured for the headless target. Re-running `tools/configure`
+regenerates the Makefile and overwrites local edits. If you really need to
+reconfigure, do it knowingly and review the resulting diff.

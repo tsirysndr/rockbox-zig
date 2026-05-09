@@ -21,15 +21,16 @@ struct pcm_sink_ops {
 
 ## Built-in sinks
 
-| Enum constant            | Value | Implementation                                |
-|--------------------------|-------|-----------------------------------------------|
-| `PCM_SINK_BUILTIN`       | 0     | `firmware/target/hosted/sdl/pcm-sdl.c`        |
-| `PCM_SINK_FIFO`          | 1     | `firmware/target/hosted/pcm-fifo.c`           |
-| `PCM_SINK_AIRPLAY`       | 2     | `firmware/target/hosted/pcm-airplay.c`        |
-| `PCM_SINK_SQUEEZELITE`   | 3     | `firmware/target/hosted/pcm-squeezelite.c`    |
-| `PCM_SINK_CHROMECAST`    | 4     | `firmware/target/hosted/pcm-chromecast.c`     |
-| `PCM_SINK_SNAPCAST_TCP`  | 5     | `firmware/target/hosted/pcm-snapcast-tcp.c`   |
-| `PCM_SINK_UPNP`          | 6     | `firmware/target/hosted/pcm-upnp.c`           |
+| Enum constant            | Value | Implementation                                       |
+|--------------------------|-------|------------------------------------------------------|
+| `PCM_SINK_BUILTIN`       | 0     | `firmware/target/hosted/headless/pcm-cpal.c`         |
+| `PCM_SINK_FIFO`          | 1     | `firmware/target/hosted/pcm-fifo.c`                  |
+| `PCM_SINK_AIRPLAY`       | 2     | `firmware/target/hosted/pcm-airplay.c`               |
+| `PCM_SINK_SQUEEZELITE`   | 3     | `firmware/target/hosted/pcm-squeezelite.c`           |
+| `PCM_SINK_UPNP`          | 4     | `firmware/target/hosted/pcm-upnp.c`                  |
+| `PCM_SINK_CHROMECAST`    | 5     | `firmware/target/hosted/pcm-chromecast.c`            |
+| `PCM_SINK_SNAPCAST_TCP`  | 6     | `firmware/target/hosted/pcm-snapcast-tcp.c`          |
+| `PCM_SINK_CPAL`          | 7     | `firmware/target/hosted/headless/pcm-cpal.c`         |
 
 Selection at startup happens in `crates/settings/src/lib.rs:load_settings()`,
 which reads `audio_output` and calls `pcm::switch_sink()`. Rust-side
@@ -61,6 +62,26 @@ constants and helpers live in `crates/sys/src/sound/pcm.rs`.
   you touch this code, keep it signed.
 - The `rockbox-slim` rlib is force-included via
   `use rockbox_slim::_link_slim as _`.
+
+## CPAL sink details (headless)
+
+The built-in CPAL sink (`audio_output = "builtin"`) is the default audio
+backend for all platforms. It lives in
+`crates/cpal-sink/` on the Rust side and `firmware/target/hosted/headless/pcm-cpal.c`
+on the C side.
+
+- **Data flow:** the firmware DMA thread calls `pcm_cpal_push(data, size)`,
+  which writes into a 512 KB S16LE ring buffer. The CPAL audio callback
+  drains the ring at the device's native rate, resampling with
+  linear interpolation when `in_rate ≠ out_rate` and converting i16→f32
+  when the device requires it.
+- **Pre-warm:** on non-macOS platforms a background thread opens the ALSA /
+  PipeWire stream during `postinit` so it is ready before the first track
+  plays. `OPEN_STREAM_MTX` serialises concurrent `open_stream()` calls.
+- **Volume:** per-channel multipliers are stored as f32 bits in atomics so
+  the CPAL callback can read them lock-free.
+- **`set_freq` receives an index, not Hz** — translate via
+  `hw_freq_sampr[idx]` before passing to CPAL.
 
 ## Adding a new sink
 

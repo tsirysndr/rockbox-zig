@@ -7,19 +7,19 @@ icon: 'sitemap'
 
 <CardGroup cols={1}>
   <Card title="Clients">
-    Web UI · GTK · GPUI · TUI · REPL · MPD · MPRIS
+    Web UI · GTK · GPUI · macOS (Swift) · TUI · REPL · MPD · MPRIS
   </Card>
   <Card title="Protocols">
     gRPC :6061 · GraphQL :6062 · REST :6063 · MPD :6600
   </Card>
   <Card title="Rust services">
-    playback · library · settings · search · playlists · airplay · slim · chromecast · upnp · netstream
+    playback · library · settings · search · playlists · airplay · slim · chromecast · upnp · netstream · cpal-sink · bluetooth · discovery
   </Card>
   <Card title="Rockbox C">
     audio engine · DSP · codecs · tag database
   </Card>
   <Card title="PCM sinks">
-    builtin · fifo · airplay · squeezelite · chromecast · snapcast_tcp · upnp
+    cpal · fifo · airplay · squeezelite · chromecast · snapcast_tcp · upnp
   </Card>
 </CardGroup>
 
@@ -30,14 +30,14 @@ sidecar, no IPC.
 
 ## What links into the binary
 
-| Artifact                                | Built by | Notes                                       |
-|-----------------------------------------|----------|---------------------------------------------|
-| `build-lib/libfirmware.a`               | Make     | Rockbox C audio engine + DSP                |
-| `build-lib/librockbox.a`                | Make     | App layer (playlist, database, plugins)     |
-| Codec libraries (`librbcodec.a`, …)     | Make     | rbcodec + fixedpoint + skin parser          |
-| `target/release/librockbox_cli.a`       | Cargo    | CLI entry point + Rust output sinks         |
-| `target/release/librockbox_server.a`    | Cargo    | gRPC, GraphQL, HTTP, MPD servers            |
-| SDL2                                    | system   | Audio/event handling on hosted targets      |
+| Artifact                             | Built by | Notes                                                              |
+|--------------------------------------|----------|--------------------------------------------------------------------|
+| `build-lib/libfirmware.a`            | Make     | Rockbox C audio engine + DSP                                       |
+| `build-lib/librockbox.a`             | Make     | App layer (playlist, database, plugins)                            |
+| Codec libraries (`librbcodec.a`, …)  | Make     | rbcodec + fixedpoint + skin parser                                 |
+| `target/release/librockbox_cli.a`    | Cargo    | CLI entry point + Rust output sinks (incl. `cpal-sink`)            |
+| `target/release/librockbox_server.a` | Cargo    | gRPC, GraphQL, HTTP (Actix-web), MPD servers                       |
+| `zig/zig-out/lib/librockboxd.a`      | Zig      | Fat static archive for embedding in desktop GUIs (`zig build lib`) |
 
 The Zig build script (`zig/build.zig`) glues them together, ensuring force-included symbols stay in the staticlib through the link.
 
@@ -45,17 +45,25 @@ The Zig build script (`zig/build.zig`) glues them together, ensuring force-inclu
 
 ```text
 firmware/          Rockbox C firmware (audio engine, codecs, DSP)
+  target/hosted/
+    headless/      Headless host target — POSIX threads, CPAL audio, no SDL
+    sdl/           SDL host target (legacy; still used for the SDL rockboxd build)
 apps/              Rockbox application layer (playlist, database, plugins)
 lib/               Codec libraries (rbcodec, fixedpoint, skin_parser, tlsf)
 build-lib/         Out-of-tree Make build directory (generated; do not edit)
+build-headless/    Headless Make build directory (no SDL)
+include/           Public C header (rockboxd.h) for the embeddable library
 crates/            Rust workspace
   airplay/         ALAC encoder + RAOP/RTP sender
   slim/            Slim Protocol + HTTP broadcast (squeezelite multi-room)
   cli/             Compiled to librockbox_cli.a (staticlib)
-  server/          gRPC / HTTP server
+  embed/           Embeddable desktop library — daemon boot + C ABI rb_* exports
+  server/          gRPC / HTTP (Actix-web) server
   settings/        load_settings() — reads settings.toml, applies sinks
   sys/             FFI bindings to the C firmware
   library/         SQLite library management
+  cpal-sink/       CPAL audio sink (CoreAudio / WASAPI / ALSA)
+  fts5/            SQLite FTS5 search backend (feature-flag alternative to Typesense)
   typesense/       Typesense client for search
   netstream/       HTTP streaming (Range-request fd multiplexing)
   chromecast/      Chromecast output
@@ -63,30 +71,37 @@ crates/            Rust workspace
   graphql/         GraphQL schema and resolvers
   mpd/             MPD protocol server
   mpris/           MPRIS D-Bus integration
-  tracklist/       Playlist / tracklist management
+  playlists/       Playlist management
+  tracklist/       Tracklist management
+  bluetooth/       Bluetooth pairing and control
+  discovery/       mDNS / LAN device discovery
   upnp/            UPnP/DLNA support
+  rocksky/         Rocksky cloud sync / remote agent
   types/           Shared Rust types
   traits/          Shared Rust traits
-zig/               Zig build script and thin main.zig entry point
+zig/               Zig build script, main.zig (executable), lib.zig (embedded lib)
 sdk/               Client SDKs (TypeScript, Python, Ruby, Elixir, Clojure, Gleam)
-webui/rockbox/     React-based web UI (built into the binary)
-gpui/, gtk/        Native desktop apps
+webui/rockbox/     React web UI — Tailwind CSS, built into the binary
+gpui/              Desktop client (GPUI / Rust) — embeds daemon via librockboxd.a
+macos/             Native macOS client (Swift / Xcode) — embeds daemon via librockboxd.a
+gtk/               GTK4 desktop client
 ```
 
 ## Cross-cutting concerns
 
-### macOS SDL audio
+### macOS CPAL audio
 
-`SDL_InitSubSystem(SDL_INIT_AUDIO)` is called explicitly on macOS because
-Apple's SDL event thread doesn't do it automatically. Lives in
-`firmware/target/hosted/sdl/system-sdl.c`.
+CPAL uses CoreAudio natively on macOS. The built-in sink implementation lives
+in `firmware/target/hosted/headless/pcm-cpal.c` (C side) and `crates/cpal-sink/`
+(Rust side, ring buffer + resampler). No extra initialisation is required
+beyond what CPAL performs at stream open time.
 
 ### SIGTERM handling
 
 `crates/cli/src/lib.rs` overrides SIGTERM/SIGINT to kill the typesense
 child process and `_exit(0)`. The default Rockbox handler in
-`system-hosted.c` would otherwise loop forever waiting for an SDL quit
-event.
+`system-hosted.c` would otherwise loop forever waiting for a quit
+event from the audio subsystem.
 
 ### Typesense subprocess
 

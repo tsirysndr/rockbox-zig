@@ -16,7 +16,7 @@ audio_output = "builtin"
 ```
 
 `music_dir` is the only required field. `audio_output` defaults to `"builtin"`
-if omitted.
+(CPAL) if omitted.
 
 ## Top-level keys
 
@@ -31,7 +31,7 @@ if omitted.
 Each sink has its own configuration block. See the dedicated pages:
 
 <CardGroup cols={2}>
-  <Card title="Built-in (SDL)" icon="speaker" href="/audio-output/built-in">Default. No setup.</Card>
+  <Card title="Built-in (CPAL)" icon="speaker" href="/audio-output/built-in">Default. No setup.</Card>
   <Card title="Snapcast" icon="network-wired" href="/audio-output/snapcast">FIFO or direct TCP.</Card>
   <Card title="AirPlay" icon="apple" href="/audio-output/airplay">Single or multi-room RAOP.</Card>
   <Card title="Squeezelite" icon="boxes-stacked" href="/audio-output/squeezelite">Slim Protocol multi-room.</Card>

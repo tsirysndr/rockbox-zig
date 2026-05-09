@@ -4,19 +4,17 @@ description: "Common errors, the symptoms they produce, and how to fix them."
 icon: 'wrench'
 ---
 
-## No audio when using built-in SDL on macOS
+## No audio when using built-in CPAL on macOS
 
 **Symptom:** `rockboxd` starts cleanly, the UI shows playback progressing,
 but no audio is heard.
 
-**Cause:** the SDL audio subsystem wasn't initialised. On macOS the SDL
-event thread doesn't init audio (it's `#ifndef __APPLE__`).
+**Cause:** the CPAL audio stream failed to open, usually because the selected
+output device was disconnected or the system audio stack returned an error.
 
-**Fix:** this is handled in
-`firmware/target/hosted/sdl/system-sdl.c` — but only in recent builds.
-Update to the latest release. If you build from source, make sure
-`SDL_InitSubSystem(SDL_INIT_AUDIO)` is called from the `#else` branch of
-the platform guard.
+**Fix:** update to the latest release. Verify the correct output device is
+set in System Settings › Sound › Output. If you build from source, check that
+the CPAL-based sink compiled correctly (`nm zig/zig-out/bin/rockboxd | grep pcm_cpal`).
 
 ## Snapcast: silence, then snapserver disconnects
 
