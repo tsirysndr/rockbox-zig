@@ -38,7 +38,6 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             zig/.zig-cache
-            target
           key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ matrix.os }}-cargo-
 
@@ -46,6 +45,7 @@ jobs:
         run: |
           # llvm@22 crashes in setSymbolInRelocationInfo on Mach-O — use llvm@21
           brew install llvm@21 cmake protobuf
+          brew cleanup --prune=all
           echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -57,6 +57,8 @@ jobs:
           cd webui/rockbox
           deno install
           deno run build
+          deno clean
+          rm -rf node_modules
 
       - name: Rust flags
         run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
@@ -66,6 +68,9 @@ jobs:
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
 
+      - name: Clean incremental artifacts (post-headless)
+        run: rm -rf target/release/incremental target/release/build
+
       - name: Build librockboxd.a (embedded daemon for Swift app)
         run: |
           cargo build --release -p rockbox-embed
@@ -74,6 +79,9 @@ jobs:
           cd zig && zig build lib -Doptimize=ReleaseFast $CPU_FLAG
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
+
+      - name: Clean incremental artifacts (post-lib)
+        run: rm -rf target/release/incremental target/release/build build-headless zig/.zig-cache
 
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
@@ -129,6 +137,7 @@ jobs:
           hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO \
             Rockbox-${VERSION}-${ARCH}.dmg
           mv Rockbox-${VERSION}-${ARCH}.dmg ..
+          rm -rf ../build dmg_temp ~/Library/Developer/Xcode/DerivedData
         working-directory: macos
 
       - name: Upload to GitHub Release
