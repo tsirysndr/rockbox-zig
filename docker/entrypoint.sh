@@ -10,10 +10,10 @@ ROCKBOX_PID=$!
 # Wait until rockboxd has created and opened the FIFO (holds a writer fd so
 # snapserver never sees EOF between tracks).
 i=0
-while [ ! -p /tmp/snapfifo ]; do
+while [ ! -p /tmp/rockbox.fifo ]; do
   i=$((i + 1))
   if [ $i -ge 30 ]; then
-    echo "error: /tmp/snapfifo not created after 30 s — rockboxd may have failed" >&2
+    echo "error: /tmp/rockbox.fifo not created after 30 s — rockboxd may have failed" >&2
     exit 1
   fi
   sleep 1
