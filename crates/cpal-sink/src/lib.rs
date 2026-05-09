@@ -473,6 +473,15 @@ pub extern "C" fn pcm_cpal_stop() {
     cvar.notify_all();
 }
 
+/// Returns whether the ring is still in the running state.
+/// Called from cpal_thread after pcm_cpal_push() to detect if pcm_cpal_stop()
+/// was called while we were pushing, so we can bail before calling the
+/// firmware's pcm_play_dma_complete_callback and blocking sink_dma_stop.
+#[no_mangle]
+pub extern "C" fn pcm_cpal_is_running() -> bool {
+    ring().0.lock().unwrap().running
+}
+
 /// Force-linkage sentinel. crates/cli pulls this in so that the cpal-sink
 /// symbols are included in librockbox_cli.a even with --gc-sections.
 pub fn _link_cpal_sink() {}

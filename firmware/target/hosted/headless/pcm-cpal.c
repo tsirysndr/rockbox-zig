@@ -38,6 +38,7 @@ extern void pcm_cpal_set_volume(int vol_l, int vol_r);
 extern void pcm_cpal_start(void);
 extern void pcm_cpal_push(const void *data, size_t size);
 extern void pcm_cpal_stop(void);
+extern bool pcm_cpal_is_running(void);
 
 /* ── Writer-thread state ────────────────────────────────────────────────── */
 
@@ -68,7 +69,10 @@ static void *cpal_thread(void *arg)
         /* Push current chunk into cpal ring (blocks on back-pressure). */
         pcm_cpal_push(data, size);
 
-        if (cpal_stop) break;
+        /* Exit immediately if pcm_cpal_stop() was called (running=false) or
+         * cpal_stop was set.  This prevents blocking pthread_join in
+         * sink_dma_stop() while we wait for pcm_play_dma_complete_callback(). */
+        if (cpal_stop || !pcm_cpal_is_running()) break;
 
         /* Ask firmware for next chunk; updates pcm_data / pcm_size. */
         pthread_mutex_lock(&cpal_mtx);
