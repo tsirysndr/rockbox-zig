@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 # rockboxd creates the FIFO itself via pcm_fifo_set_path(), but it must start
