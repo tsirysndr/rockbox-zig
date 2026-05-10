@@ -45,7 +45,7 @@ jobs:
 
       - name: Install Android NDK r27
         run: |
-          sdkmanager "ndk;27.2.12479018"
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> $GITHUB_ENV
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
