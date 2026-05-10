@@ -15,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
 import { EqualizerBars } from "@/components/equalizer-bars";
+import { ArtistPlaceholder } from "@/components/artist-placeholder";
+import { artistGradientColors, gradientIconColor } from "@/components/playlist-cover";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
@@ -84,11 +86,22 @@ export default function ArtistScreen() {
           transform: [{ translateY: heroTranslate }, { scale: heroScale }],
         }}
       >
-        <Image
-          source={artist.image}
-          className="w-full h-full"
-          contentFit="cover"
-        />
+        {artist.image ? (
+          <Image
+            source={artist.image}
+            className="w-full h-full"
+            contentFit="cover"
+          />
+        ) : (
+          <LinearGradient
+            colors={artistGradientColors(artist.name)}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 90 }}
+          >
+            <ArtistPlaceholder size={88} color={gradientIconColor(artistGradientColors(artist.name))} />
+          </LinearGradient>
+        )}
         <LinearGradient
           colors={[
             "rgba(0,0,0,0)",

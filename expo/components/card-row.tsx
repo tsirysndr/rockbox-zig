@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { FlatList, Pressable, Text, View } from "react-native";
+import type { ReactNode } from "react";
 
 import { gradientColors } from "@/components/playlist-cover";
 import { Colors } from "@/constants/theme";
@@ -16,6 +17,8 @@ export type CardItem = {
   placeholderIcon?: React.ComponentProps<typeof Ionicons>["name"];
   /** When true and `image` is empty, render a colorful gradient backdrop. */
   colorfulPlaceholder?: boolean;
+  /** Custom node rendered as placeholder when `image` is empty (takes precedence over placeholderIcon). */
+  customPlaceholder?: ReactNode;
 };
 
 export function CardRow({
@@ -79,10 +82,12 @@ export function CardRow({
                     color="#FFFFFF"
                   />
                 </LinearGradient>
+              ) : item.customPlaceholder ? (
+                item.customPlaceholder
               ) : (
                 <Ionicons
                   name={item.placeholderIcon ?? "musical-notes"}
-                  size={Math.round(size * 0.35)}
+                  size={Math.round(size * 0.42)}
                   color={Colors.textMuted}
                 />
               )}

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ArtistPlaceholder } from "@/components/artist-placeholder";
 import { NotConnectedState } from "@/components/empty-state";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { EqualizerBars } from "@/components/equalizer-bars";
@@ -92,11 +93,7 @@ export default function SearchScreen() {
                     />
                   ) : (
                     <View className="w-11 h-11 bg-bg-card rounded-full items-center justify-center">
-                      <Ionicons
-                        name="person"
-                        size={18}
-                        color={Colors.textMuted}
-                      />
+                      <ArtistPlaceholder size={20} />
                     </View>
                   )}
                   <Text
@@ -129,7 +126,7 @@ export default function SearchScreen() {
                     />
                   ) : (
                     <View className="w-11 h-11 bg-bg-card rounded items-center justify-center">
-                      <Ionicons name="disc" size={18} color={Colors.textMuted} />
+                      <Ionicons name="disc" size={22} color={Colors.textMuted} />
                     </View>
                   )}
                   <View className="flex-1">

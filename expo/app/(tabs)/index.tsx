@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ArtistPlaceholder } from "@/components/artist-placeholder";
 import { CardRow } from "@/components/card-row";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { DevicePickerSheet } from "@/components/device-picker";
@@ -199,7 +200,7 @@ export default function HomeScreen() {
                   subtitle: "Artist",
                   image: a.image,
                   rounded: "full" as const,
-                  placeholderIcon: "person",
+                  customPlaceholder: <ArtistPlaceholder size={46} />,
                 }))}
                 onPress={(item) => router.push(`/artist/${item.id}`)}
               />

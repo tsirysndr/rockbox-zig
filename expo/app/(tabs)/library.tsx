@@ -15,10 +15,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ArtistPlaceholder } from "@/components/artist-placeholder";
 import { NotConnectedState } from "@/components/empty-state";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { EqualizerBars } from "@/components/equalizer-bars";
-import { PlaylistCover } from "@/components/playlist-cover";
+import { PlaylistCover, heroGradientColors, gradientIconColor } from "@/components/playlist-cover";
+import { LinearGradient } from "expo-linear-gradient";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useIsConnected } from "@/lib/connection";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
@@ -350,11 +352,26 @@ export default function LibraryScreen() {
               onPress={() => router.push(`/album/${item.id}`)}
               className="flex-1 max-w-[48%] active:opacity-80"
             >
-              <Image
-                source={item.artwork}
-                className="w-full aspect-square rounded-md"
-                contentFit="cover"
-              />
+              {item.artwork ? (
+                <Image
+                  source={item.artwork}
+                  className="w-full aspect-square rounded-md"
+                  contentFit="cover"
+                />
+              ) : (
+                <View className="w-full aspect-square rounded-md overflow-hidden">
+                  <LinearGradient
+                    colors={heroGradientColors(item.title)}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+                  >
+                    <View style={{ opacity: 0.4 }}>
+                      <Ionicons name="disc" size={88} color={gradientIconColor(heroGradientColors(item.title))} />
+                    </View>
+                  </LinearGradient>
+                </View>
+              )}
               <Text
                 numberOfLines={1}
                 className="text-text-primary text-[13px] font-semibold mt-1.5 font-sans"
@@ -401,7 +418,7 @@ export default function LibraryScreen() {
                 />
               ) : (
                 <View className="w-14 h-14 rounded-full bg-bg-card items-center justify-center">
-                  <Ionicons name="person" size={20} color={Colors.textMuted} />
+                  <ArtistPlaceholder size={24} />
                 </View>
               )}
               <View className="flex-1">

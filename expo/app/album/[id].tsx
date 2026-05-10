@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
 import { EqualizerBars } from "@/components/equalizer-bars";
+import { heroGradientColors, gradientIconColor } from "@/components/playlist-cover";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
@@ -105,12 +106,21 @@ export default function AlbumScreen() {
           className="items-center overflow-hidden pb-4"
           style={{ paddingTop: HEADER_HEIGHT + 16 }}
         >
-          <Image
-            source={album.artwork}
-            className="absolute inset-0"
-            contentFit="cover"
-            blurRadius={40}
-          />
+          {album.artwork ? (
+            <Image
+              source={album.artwork}
+              className="absolute inset-0"
+              contentFit="cover"
+              blurRadius={40}
+            />
+          ) : (
+            <LinearGradient
+              colors={heroGradientColors(album.title)}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+          )}
           <LinearGradient
             colors={[
               "rgba(0,0,0,0.35)",
@@ -130,12 +140,30 @@ export default function AlbumScreen() {
               shadowOffset: { width: 0, height: 12 },
             }}
           >
-            <Image
-              source={album.artwork}
-              className="rounded-lg"
-              style={{ width: ART_SIZE, height: ART_SIZE }}
-              contentFit="cover"
-            />
+            {album.artwork ? (
+              <Image
+                source={album.artwork}
+                className="rounded-lg"
+                style={{ width: ART_SIZE, height: ART_SIZE }}
+                contentFit="cover"
+              />
+            ) : (
+              <View
+                className="rounded-lg overflow-hidden"
+                style={{ width: Math.round(ART_SIZE * 0.82), height: Math.round(ART_SIZE * 0.82) }}
+              >
+                <LinearGradient
+                  colors={heroGradientColors(album.title)}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+                >
+                  <View style={{ opacity: 0.4 }}>
+                    <Ionicons name="disc" size={Math.round(ART_SIZE * 0.82 * 0.55)} color={gradientIconColor(heroGradientColors(album.title))} />
+                  </View>
+                </LinearGradient>
+              </View>
+            )}
           </Animated.View>
         </View>
 
