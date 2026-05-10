@@ -87,7 +87,7 @@ jobs:
 
       - name: Install Expo dependencies
         working-directory: expo
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Generate Android project (expo prebuild)
         working-directory: expo
