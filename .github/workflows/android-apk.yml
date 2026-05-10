@@ -84,6 +84,23 @@ jobs:
             android-target-${{ inputs.features }}-
             android-target-
 
+      - name: Cache Android firmware build
+        uses: actions/cache@v4
+        with:
+          path: build-android-arm64/
+          key: android-firmware-${{ hashFiles('firmware/**', 'apps/**', 'lib/**', 'tools/configure') }}
+          restore-keys: android-firmware-
+
+      - name: Build Android firmware (C static libs)
+        run: |
+          mkdir -p build-android-arm64
+          cd build-android-arm64
+          printf "205\n" | \
+            ANDROID_TARGET_ABI=arm64-v8a ANDROID_API_LEVEL=26 \
+            ARG_LCDWIDTH=320 ARG_LCDHEIGHT=480 \
+            ../tools/configure
+          make -j$(nproc) lib
+
       - name: Install Expo dependencies
         working-directory: expo
         run: bun install
