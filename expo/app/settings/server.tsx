@@ -128,14 +128,14 @@ export default function ServerPickerScreen() {
               Connected to
             </Text>
             <View className="bg-bg-card rounded-xl px-4 py-4">
-              {selected ? (
-                <View>
-                  <Text className="text-text-primary text-[15px] font-display">
-                    {selected.label}
-                  </Text>
-                  <Text className="text-text-secondary text-[13px] mt-1 font-mono">
-                    {selected.host}:{selected.grpcPort}
-                  </Text>
+              <View>
+                <Text className="text-text-primary text-[15px] font-display">
+                  {selected?.label}
+                </Text>
+                <Text className="text-text-secondary text-[13px] mt-1 font-mono">
+                  {selected?.host}:{selected?.grpcPort}
+                </Text>
+                {isRemote ? (
                   <Pressable
                     hitSlop={6}
                     onPress={onClear}
@@ -145,12 +145,8 @@ export default function ServerPickerScreen() {
                       Disconnect
                     </Text>
                   </Pressable>
-                </View>
-              ) : (
-                <Text className="text-text-secondary text-[13px] font-sans">
-                  No server selected.
-                </Text>
-              )}
+                ) : null}
+              </View>
             </View>
           </View>
 
