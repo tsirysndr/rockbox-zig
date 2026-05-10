@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
 import { EqualizerBars } from "@/components/equalizer-bars";
 import { ArtistPlaceholder } from "@/components/artist-placeholder";
-import { artistGradientColors, gradientIconColor } from "@/components/playlist-cover";
+import { artistGradientColors, heroGradientColors, gradientIconColor } from "@/components/playlist-cover";
 import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
@@ -241,11 +241,30 @@ export default function ArtistScreen() {
                     onPress={() => router.push(`/album/${item.id}`)}
                     className="w-[150px] active:opacity-85"
                   >
-                    <Image
-                      source={item.artwork}
-                      className="w-[150px] h-[150px] rounded-md"
-                      contentFit="cover"
-                    />
+                    {item.artwork ? (
+                      <Image
+                        source={item.artwork}
+                        className="w-[150px] h-[150px] rounded-md"
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View className="w-[150px] h-[150px] rounded-md overflow-hidden">
+                        <LinearGradient
+                          colors={heroGradientColors(item.title)}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+                        >
+                          <View style={{ opacity: 0.4 }}>
+                            <Ionicons
+                              name="disc"
+                              size={Math.round(150 * 0.42)}
+                              color={gradientIconColor(heroGradientColors(item.title))}
+                            />
+                          </View>
+                        </LinearGradient>
+                      </View>
+                    )}
                     <Text
                       numberOfLines={1}
                       className="text-text-primary text-sm font-semibold mt-2 font-sans"
