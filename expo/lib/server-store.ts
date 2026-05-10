@@ -18,6 +18,15 @@ const DEFAULT_GRPC_PORT = 6061;
 const DEFAULT_GRAPHQL_PORT = 6062;
 const DEFAULT_HTTP_PORT = 6063;
 
+const LOCALHOST_SERVER: ServerSelection = {
+  host: "127.0.0.1",
+  grpcPort: DEFAULT_GRPC_PORT,
+  graphqlPort: DEFAULT_GRAPHQL_PORT,
+  httpPort: DEFAULT_HTTP_PORT,
+  label: "localhost",
+  fullname: null,
+};
+
 export type ServerSelection = {
   /** Host or IP — no scheme, no port. */
   host: string;
@@ -81,6 +90,10 @@ export async function hydrateSelectedServer(): Promise<ServerSelection | null> {
       );
     }
   }
+  if (!current) {
+    current = LOCALHOST_SERVER;
+    applyToNative(current);
+  }
   hydrated = true;
   notify();
   return current;
@@ -93,9 +106,9 @@ export function getSelectedServer(): ServerSelection | null {
 export async function setSelectedServer(
   s: ServerSelection | null,
 ): Promise<void> {
-  current = s;
-  applyToNative(s);
-  await persist(s);
+  current = s ?? LOCALHOST_SERVER;
+  applyToNative(current);
+  await persist(current);
   notify();
 }
 

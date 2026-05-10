@@ -19,6 +19,7 @@ import { useDiscoveredServers } from "@/lib/queries";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { RockboxClient, type DiscoveredService } from "@/lib/rockbox-client";
 import { restartDiscovery } from "@/lib/rockbox-streams";
+import { useIsRemoteServer } from "@/lib/connection";
 import {
   isLocalDiscovery,
   manualServer,
@@ -29,6 +30,7 @@ import {
 
 export default function ServerPickerScreen() {
   const selected = useSelectedServer();
+  const isRemote = useIsRemoteServer();
   const { data: discovered = [] } = useDiscoveredServers();
   const [host, setHost] = useState("");
   const [port, setPort] = useState("6061");
