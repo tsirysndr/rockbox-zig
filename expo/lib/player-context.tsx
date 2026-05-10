@@ -26,6 +26,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Alert } from "react-native";
 
 import { useIsConnected } from "@/lib/connection";
 import {
@@ -72,6 +73,7 @@ type PlayerActions = {
   toggleLike: (trackId: string) => void;
   jumpTo: (idx: number) => void;
   removeFromQueue: (idx: number) => void;
+  clearQueue: () => void;
   playTrack: (track: Track) => void;
   playQueue: (
     tracks: Track[],
@@ -369,9 +371,30 @@ function useRealPlayer(slice: SharedSlice): PlayerContextValue {
     RockboxClient.removeFromQueue(idx).catch(() => {});
   }, []);
 
-  const playTrack = useCallback((track: Track) => {
-    if (track.path) RockboxClient.playTrack(track.path).catch(() => {});
-  }, []);
+  // Remove all tracks after the current position, iterating from the end so
+  // indices don't shift as items are deleted.
+  const clearQueue = useCallback(() => {
+    for (let i = queue.length - 1; i > currentIdx; i--) {
+      RockboxClient.removeFromQueue(i).catch(() => {});
+    }
+  }, [queue.length, currentIdx]);
+
+  const playTrack = useCallback(
+    (track: Track) => {
+      const doPlay = () => {
+        if (track.path) RockboxClient.playTrack(track.path).catch(() => {});
+      };
+      if (queue.length > 0) {
+        Alert.alert("Replace Queue", "This will clear the current queue.", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Play", style: "destructive", onPress: doPlay },
+        ]);
+      } else {
+        doPlay();
+      }
+    },
+    [queue.length],
+  );
 
   const playQueue = useCallback(
     (
@@ -382,13 +405,23 @@ function useRealPlayer(slice: SharedSlice): PlayerContextValue {
       if (paths.length === 0) return;
       const startIdx = opts?.startIdx ?? 0;
       const shouldShuffle = opts?.shuffle === true;
-      // Insert + start. Position 0 replaces queue head; rockbox's playlist
-      // service handles the rest. After insert, jump to `startIdx`.
-      RockboxClient.insertTracks(paths, 0, shouldShuffle)
-        .then(() => RockboxClient.jumpToQueuePosition(startIdx))
-        .catch(() => {});
+      const doPlay = () => {
+        // Insert + start. Position 0 replaces queue head; rockbox's playlist
+        // service handles the rest. After insert, jump to `startIdx`.
+        RockboxClient.insertTracks(paths, 0, shouldShuffle)
+          .then(() => RockboxClient.jumpToQueuePosition(startIdx))
+          .catch(() => {});
+      };
+      if (queue.length > 0) {
+        Alert.alert("Replace Queue", "This will clear the current queue.", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Play", style: "destructive", onPress: doPlay },
+        ]);
+      } else {
+        doPlay();
+      }
     },
-    [],
+    [queue.length],
   );
 
   const playNext = useCallback((track: Track) => {
@@ -424,6 +457,7 @@ function useRealPlayer(slice: SharedSlice): PlayerContextValue {
     toggleLike,
     jumpTo,
     removeFromQueue,
+    clearQueue,
     playTrack,
     playQueue,
     playNext,
@@ -465,6 +499,7 @@ function useIdlePlayer(slice: IdleSlice): PlayerContextValue {
     toggleLike: noop,
     jumpTo: noop,
     removeFromQueue: noop,
+    clearQueue: noop,
     playTrack: noop,
     playQueue: noop,
     playNext: noop,

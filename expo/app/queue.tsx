@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EqualizerBars } from "@/components/equalizer-bars";
@@ -18,7 +18,7 @@ import type { Track } from "@/lib/types";
 type Tab = "next" | "history";
 
 export default function QueueScreen() {
-  const { queue, currentTrack, currentIdx, jumpTo, removeFromQueue, isPlaying } =
+  const { queue, currentTrack, currentIdx, jumpTo, removeFromQueue, clearQueue, isPlaying } =
     usePlayer();
   const [tab, setTab] = useState<Tab>("next");
   const bottomPad = useBottomSpacing(24);
@@ -46,9 +46,24 @@ export default function QueueScreen() {
         <Text className="text-text-primary text-base font-display">
           Queue
         </Text>
-        <Text className="text-text-secondary text-xs font-sans">
-          {safeIdx + 1} / {queue.length}
-        </Text>
+        <View className="flex-row items-center gap-3">
+          <Text className="text-text-secondary text-xs font-sans">
+            {safeIdx + 1} / {queue.length}
+          </Text>
+          {playingNext.length > 0 && (
+            <Pressable
+              hitSlop={8}
+              onPress={() =>
+                Alert.alert("Clear Queue", "Remove all upcoming tracks?", [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Clear", style: "destructive", onPress: clearQueue },
+                ])
+              }
+            >
+              <Ionicons name="trash-outline" size={20} color={Colors.textMuted} />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {/* Now playing strip */}
