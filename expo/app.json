@@ -20,7 +20,24 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tsirysndr.Rockbox"
+      "package": "com.tsirysndr.Rockbox",
+      "permissions": [
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_AUDIO",
+        "MANAGE_EXTERNAL_STORAGE",
+        "SYSTEM_ALERT_WINDOW",
+        "VIBRATE",
+        "ACCESS_NETWORK_STATE",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "POST_NOTIFICATIONS",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_MULTICAST_STATE",
+        "WAKE_LOCK",
+        "MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "output": "static",
