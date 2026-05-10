@@ -121,6 +121,8 @@ jobs:
       - name: Show built .so files
         run: find expo/modules/rockbox-rpc/android/src/main/jniLibs -name '*.so' -exec ls -lh {} \;
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Build APK
         working-directory: expo/android
         run: |
