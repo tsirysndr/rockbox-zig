@@ -411,30 +411,39 @@ fn spawn_library_scan(force_arg: bool) {
                     .map(|t| t.len())
                     .unwrap_or(0);
                 if count > 0 && !force {
-                    tracing::info!("scan: library has {} tracks, skipping (force=false)", count);
-                    return;
+                    tracing::info!(
+                        "scan: library has {} tracks, skipping file scan (force=false)",
+                        count
+                    );
+                } else {
+                    tracing::info!("scan: scanning {} ...", path);
+                    match rockbox_library::audio_scan::scan_audio_files(pool.clone(), path.into())
+                        .await
+                    {
+                        Ok(files) => tracing::info!("scan: done, {} files", files.len()),
+                        Err(e) => tracing::error!("scan: failed: {e}"),
+                    }
                 }
 
-                tracing::info!("scan: scanning {} ...", path);
-                match rockbox_library::audio_scan::scan_audio_files(pool.clone(), path.into()).await
-                {
-                    Ok(files) => tracing::info!("scan: done, {} files", files.len()),
-                    Err(e) => tracing::error!("scan: failed: {e}"),
-                }
-
-                // Rocksky enrichment populates `artist_genres` (and per-artist
-                // pictures). Without this step the genre service returns an
-                // empty list because `repo::genre::all` joins through that
-                // table — the macOS / Linux desktop builds get this for free
-                // via the HTTP `scan_audio` handler, but the embedded daemon
-                // bypasses that handler so we have to call it directly.
-                // Best-effort: a network failure (offline / Rocksky down)
-                // shouldn't fail the boot path.
+                // Rocksky enrichment runs on every boot (not just after a file
+                // scan) so that artists/genres get populated even when the
+                // library DB already has tracks. update_metadata() filters to
+                // artists with no image, so it's cheap when everything is
+                // already enriched. Uses webpki-roots so TLS works on Android
+                // without relying on the system cert store.
                 if let Err(e) = rockbox_library::artists::update_metadata(pool.clone()).await {
                     tracing::warn!("scan: rocksky enrichment skipped: {e}");
                 } else {
                     tracing::info!("scan: rocksky enrichment done");
                 }
+
+                // Signal gRPC StreamLibrary subscribers so the UI can
+                // invalidate and refetch all library queries (tracks, artists,
+                // albums, playlists, genres).
+                rockbox_graphql::simplebroker::SimpleBroker::publish(
+                    rockbox_graphql::types::ScanCompleted,
+                );
+                tracing::info!("scan: ScanCompleted published");
             });
         })
         .expect("spawn rockbox-library-scan thread");

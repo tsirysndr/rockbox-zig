@@ -47,6 +47,7 @@
     },
     "plugins": [
       "./plugins/withNetworkSecurityConfig",
+      "./plugins/withKillOnTaskRemoved",
       "expo-router",
       [
         "expo-splash-screen",

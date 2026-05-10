@@ -37,7 +37,10 @@ export const qk = {
 
   tracks: () => [...qk.all, "tracks"] as const,
   artists: () => [...qk.all, "artists"] as const,
+  albums: () => [...qk.all, "albums"] as const,
+  likedAlbums: () => [...qk.all, "likedAlbums"] as const,
   album: (id: string) => [...qk.all, "album", id] as const,
+  genres: () => [...qk.all, "genres"] as const,
   liked: () => [...qk.all, "liked"] as const,
   search: (term: string) => [...qk.all, "search", term] as const,
 

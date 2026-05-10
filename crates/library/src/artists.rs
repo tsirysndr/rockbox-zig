@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use anyhow::Error;
 use cuid::cuid1;
-use owo_colors::OwoColorize;
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 
@@ -62,14 +61,14 @@ pub async fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
     let artists = response.artists;
 
     for artist in artists.clone() {
-        println!("Loading artist: {}", artist.name.bright_green());
+        tracing::info!("Loading artist: {}", artist.name);
         artist_map.insert(artist.name.clone(), artist);
     }
 
-    println!("Loaded {} artists", artists.len());
+    tracing::info!("Loaded {} artists from Rocksky", artists.len());
 
     for artist in local_artists {
-        println!("Updating artist: {}", artist.name.bright_green());
+        tracing::info!("Updating artist: {}", artist.name);
         let artist_id = artist.id;
         if let Some(artist) = artist_map.get(&artist.name) {
             repo::artist::update_genres(&pool, &artist_id, &artist.genres.join(", ")).await?;
@@ -77,7 +76,7 @@ pub async fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
                 repo::artist::update_picture(&pool, &artist_id, &picture).await?;
             }
             for genre in &artist.genres {
-                println!("Saving genre: {}", genre.bright_green());
+                tracing::info!("Saving genre: {}", genre);
                 let new_id = cuid1()?;
                 let genre_id = repo::genre::save(&pool, &new_id, genre).await?;
                 repo::artist::save_artist_genre(&pool, &cuid1()?, &artist_id, &genre_id).await?;

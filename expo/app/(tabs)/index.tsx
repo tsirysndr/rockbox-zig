@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { IconCast, IconDevices } from "@tabler/icons-react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CardRow } from "@/components/card-row";
@@ -19,6 +20,7 @@ import {
   useLibraryTracks,
 } from "@/lib/library-source";
 import type { Album, Track } from "@/lib/types";
+import { qk } from "@/lib/queries";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 
 export default function HomeScreen() {
@@ -33,6 +35,18 @@ export default function HomeScreen() {
   const { data: artists } = useLibraryArtists();
   const { data: playlists } = useLibraryPlaylists();
   const bottomPad = useBottomSpacing(24);
+  const qc = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: qk.tracks() }),
+      qc.invalidateQueries({ queryKey: qk.artists() }),
+      qc.invalidateQueries({ queryKey: qk.savedPlaylists() }),
+      qc.invalidateQueries({ queryKey: qk.smartPlaylists() }),
+    ]);
+    setRefreshing(false);
+  }, [qc]);
 
   const { recentlyPlayed, popularAlbums } = useMemo(
     () => aggregateAlbums(tracks),
@@ -52,6 +66,14 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={Colors.accent}
+            colors={[Colors.accent]}
+          />
+        }
       >
         <View className="px-4 pt-2 pb-4 flex-row items-center justify-between">
           <Text className="text-text-primary text-[26px] font-display-extra">

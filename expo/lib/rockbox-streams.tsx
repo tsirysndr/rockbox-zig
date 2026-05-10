@@ -227,8 +227,16 @@ export function RockboxStreams() {
       }),
     );
     unsubs.push(
-      RockboxClient.subscribeLibrary((snapshot) => {
-        qc.setQueryData([...qk.all, "libraryStream"], snapshot);
+      RockboxClient.subscribeLibrary(() => {
+        // Scan finished — invalidate all library data so every screen
+        // refetches tracks, artists, albums, playlists and genres.
+        qc.invalidateQueries({ queryKey: qk.tracks() });
+        qc.invalidateQueries({ queryKey: qk.artists() });
+        qc.invalidateQueries({ queryKey: qk.albums() });
+        qc.invalidateQueries({ queryKey: qk.likedAlbums() });
+        qc.invalidateQueries({ queryKey: qk.genres() });
+        qc.invalidateQueries({ queryKey: qk.savedPlaylists() });
+        qc.invalidateQueries({ queryKey: qk.smartPlaylists() });
       }),
     );
 
