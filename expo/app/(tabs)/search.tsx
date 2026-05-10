@@ -6,6 +6,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NotConnectedState } from "@/components/empty-state";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { EqualizerBars } from "@/components/equalizer-bars";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useIsConnected } from "@/lib/connection";
@@ -30,6 +31,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+      <RemoteServerBanner />
       <View className="px-4 pt-2 pb-4">
         <Text className="text-text-primary text-[26px] mb-4 font-display-extra">
           Search

@@ -15,7 +15,7 @@ import { usePlayer } from "@/lib/player-context";
  * either own the playback UI directly or are full-screen modals.
  */
 const HIDE_ON = new Set(["/player", "/playlist/new"]);
-const TAB_PATHS = new Set(["/", "/search", "/library"]);
+const TAB_PATHS = new Set(["/", "/search", "/library", "/files"]);
 
 /** Approximate height the floating bar reserves at the bottom of the screen. */
 export const FLOATING_MINIPLAYER_HEIGHT = 72;

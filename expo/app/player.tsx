@@ -11,6 +11,7 @@ import {
   DevicePickerSheet,
   useCurrentDeviceLabel,
 } from "@/components/device-picker";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { SeekBar } from "@/components/seek-bar";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
@@ -41,6 +42,7 @@ export default function PlayerScreen() {
   if (!currentTrack) {
     return (
       <SafeAreaView className="flex-1 bg-bg">
+        <RemoteServerBanner />
         <View className="flex-1 items-center justify-center">
           <Text className="text-text-secondary">No track loaded</Text>
         </View>
@@ -76,6 +78,7 @@ export default function PlayerScreen() {
         </>
       ) : null}
       <SafeAreaView className="flex-1">
+        <RemoteServerBanner />
         <View className="flex-row items-center justify-between px-5 py-3">
           <Pressable hitSlop={10} onPress={() => router.back()}>
             <Ionicons name="chevron-down" size={28} color={Colors.textPrimary} />

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
 import { EqualizerBars } from "@/components/equalizer-bars";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
@@ -297,6 +298,7 @@ export default function ArtistScreen() {
         className="absolute top-0 left-0 right-0"
         pointerEvents="box-none"
       >
+        <RemoteServerBanner />
         <Animated.View
           pointerEvents="none"
           className="absolute top-0 left-0 right-0 bg-bg"

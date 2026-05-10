@@ -46,6 +46,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "./plugins/withNetworkSecurityConfig",
       "expo-router",
       [
         "expo-splash-screen",

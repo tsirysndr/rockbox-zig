@@ -116,6 +116,16 @@ public class RockboxRpcModule: Module {
     private var pollTokens: [Int32: Bool] = [:]   // subId → keepRunning
     private let pollLock = NSLock()
 
+    deinit {
+        // Stop all poll loops and abort Rust streaming tasks so no worker
+        // thread slots are leaked into the next module lifecycle.
+        pollLock.lock()
+        let ids = Array(pollTokens.keys)
+        for id in ids { pollTokens[id] = false }
+        pollLock.unlock()
+        for id in ids { _ = rb_unsubscribe(id) }
+    }
+
     public func definition() -> ModuleDefinition {
         Name("RockboxRpc")
 

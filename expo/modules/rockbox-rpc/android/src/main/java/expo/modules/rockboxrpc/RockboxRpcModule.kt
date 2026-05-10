@@ -522,8 +522,14 @@ class RockboxRpcModule : Module() {
     }
 
     OnDestroy {
+      // Cancel Kotlin poll coroutines first, then abort Rust streaming tasks.
+      // rb_unsubscribe must be called while rb_poll_event loops may still be
+      // in progress; the ABORTS map fix in Rust makes it safe to call here
+      // even if rb_poll_event has temporarily moved the receiver out of SUBS.
+      val ids = pollJobs.keys().toList()
       pollJobs.values.forEach { it.cancel() }
       pollJobs.clear()
+      ids.forEach { rb_unsubscribe(it) }
       // Drop every outstanding discovery hold so we don't leak the lock
       // beyond the module's lifetime.
       while (discoveryJobs.isNotEmpty()) {

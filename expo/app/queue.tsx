@@ -6,6 +6,7 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EqualizerBars } from "@/components/equalizer-bars";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { MiniPlayer } from "@/components/mini-player";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { Colors } from "@/constants/theme";
@@ -37,6 +38,7 @@ export default function QueueScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg">
+      <RemoteServerBanner />
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-divider">
         <Pressable hitSlop={8} onPress={() => router.back()}>
           <Ionicons name="chevron-down" size={26} color={Colors.textPrimary} />

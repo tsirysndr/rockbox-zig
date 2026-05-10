@@ -6,6 +6,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CardRow } from "@/components/card-row";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { DevicePickerSheet } from "@/components/device-picker";
 import { NotConnectedState } from "@/components/empty-state";
 import { PlaylistCover } from "@/components/playlist-cover";
@@ -47,6 +48,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+      <RemoteServerBanner />
       <ScrollView
         contentContainerStyle={{ paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}

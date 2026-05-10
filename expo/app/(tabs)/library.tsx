@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NotConnectedState } from "@/components/empty-state";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { EqualizerBars } from "@/components/equalizer-bars";
 import { PlaylistCover } from "@/components/playlist-cover";
 import { TrackMenuButton } from "@/components/track-menu-button";
@@ -136,6 +137,7 @@ export default function LibraryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+      <RemoteServerBanner />
       <View className="px-4 pt-2 pb-3 flex-row items-center justify-between">
         <Text className="text-text-primary text-[26px] font-display-extra">
           Your Library

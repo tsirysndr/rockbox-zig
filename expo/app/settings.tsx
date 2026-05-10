@@ -13,6 +13,7 @@ import {
   DevicePickerSheet,
   useCurrentDeviceLabel,
 } from "@/components/device-picker";
+import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { Colors } from "@/constants/theme";
 import { useSelectedServer } from "@/lib/server-store";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
@@ -44,7 +45,6 @@ type Row =
 
 export default function SettingsScreen() {
   const [crossfade, setCrossfade] = useState(true);
-  const [normalize, setNormalize] = useState(true);
   const selectedServer = useSelectedServer();
   const serverLabel = selectedServer
     ? `${selectedServer.label} (${selectedServer.host}:${selectedServer.grpcPort})`
@@ -63,13 +63,6 @@ export default function SettingsScreen() {
           icon: "swap-horizontal-outline",
           value: crossfade,
           onChange: setCrossfade,
-        },
-        {
-          kind: "switch",
-          label: "Normalize volume",
-          icon: "stats-chart-outline",
-          value: normalize,
-          onChange: setNormalize,
         },
         { kind: "link", label: "Equalizer", icon: "options-outline" },
       ],
@@ -118,6 +111,7 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+        <RemoteServerBanner />
         <View className="flex-row items-center px-4 py-3 gap-3">
           <Pressable hitSlop={10} onPress={() => router.back()}>
             <Ionicons

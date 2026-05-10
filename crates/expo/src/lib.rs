@@ -180,9 +180,7 @@ pub unsafe extern "C" fn rb_set_http_url(url_ptr: *const c_char) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_ping() -> c_int {
     let res: Result<(), tonic::Status> = RT.block_on(async {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.status(StatusRequest {}).await?;
         Ok(())
     });
@@ -199,9 +197,7 @@ macro_rules! simple_call {
         #[no_mangle]
         pub extern "C" fn $fn_name() -> c_int {
             let res: Result<(), tonic::Status> = RT.block_on(async {
-                let mut c = $client::connect(url())
-                    .await
-                    .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+                let mut c = $client::new(timed_endpoint(&url()).connect_lazy());
                 c.$method($req).await?;
                 Ok(())
             });
@@ -228,9 +224,7 @@ simple_call!(rb_prev, PlaybackServiceClient, previous, PreviousRequest {});
 #[no_mangle]
 pub extern "C" fn rb_seek(position_ms: i32) -> c_int {
     let res: Result<(), tonic::Status> = RT.block_on(async {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.fast_forward_rewind(FastForwardRewindRequest {
             new_time: position_ms,
         })
@@ -256,9 +250,7 @@ struct StatusJson {
 #[no_mangle]
 pub extern "C" fn rb_status_json() -> *mut c_char {
     let res: Result<StatusJson, tonic::Status> = RT.block_on(async {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         let resp = c.status(StatusRequest {}).await?.into_inner();
         Ok(StatusJson {
             status: resp.status,
@@ -287,9 +279,7 @@ struct TrackJson {
 #[no_mangle]
 pub extern "C" fn rb_current_track_json() -> *mut c_char {
     let res: Result<TrackJson, tonic::Status> = RT.block_on(async {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         let resp = c.current_track(CurrentTrackRequest {}).await?.into_inner();
         let album_art: Option<String> = resp.album_art.filter(|s: &String| !s.is_empty());
         Ok(TrackJson {
@@ -325,9 +315,7 @@ pub unsafe extern "C" fn rb_like_track(track_id_ptr: *const c_char) -> c_int {
     };
     let track_id = track_id.to_string();
     let res: Result<(), tonic::Status> = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.like_track(LikeTrackRequest { id: track_id }).await?;
         Ok(())
     });
@@ -347,9 +335,7 @@ pub unsafe extern "C" fn rb_unlike_track(track_id_ptr: *const c_char) -> c_int {
     };
     let track_id = track_id.to_string();
     let res: Result<(), tonic::Status> = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.unlike_track(UnlikeTrackRequest { id: track_id }).await?;
         Ok(())
     });
@@ -447,9 +433,7 @@ pub unsafe extern "C" fn rb_play_track(path_ptr: *const c_char) -> c_int {
     };
     let path = path.to_string();
     run_unit(async move {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_track(PlayTrackRequest { path }).await?;
         Ok(())
     })
@@ -465,9 +449,7 @@ pub unsafe extern "C" fn rb_play_album(album_id_ptr: *const c_char, shuffle: c_i
     let album_id = album_id.to_string();
     let shuffle = b(shuffle);
     run_unit(async move {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_album(PlayAlbumRequest {
             album_id,
             shuffle: Some(shuffle),
@@ -491,9 +473,7 @@ pub unsafe extern "C" fn rb_play_artist_tracks(
     let artist_id = artist_id.to_string();
     let shuffle = b(shuffle);
     run_unit(async move {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_artist_tracks(PlayArtistTracksRequest {
             artist_id,
             shuffle: Some(shuffle),
@@ -519,9 +499,7 @@ pub unsafe extern "C" fn rb_play_directory(
     let shuffle = b(shuffle);
     let pos = if position < 0 { None } else { Some(position) };
     run_unit(async move {
-        let mut c = PlaybackServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaybackServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_directory(PlayDirectoryRequest {
             path,
             shuffle: Some(shuffle),
@@ -539,9 +517,7 @@ pub unsafe extern "C" fn rb_play_directory(
 #[no_mangle]
 pub extern "C" fn rb_jump_to_queue_position(pos: c_int) -> c_int {
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.start(StartRequest {
             start_index: Some(pos),
             elapsed: Some(0),
@@ -578,9 +554,7 @@ pub unsafe extern "C" fn rb_insert_tracks(
     };
     let shuffle = b(shuffle);
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.insert_tracks(InsertTracksRequest {
             playlist_id: None,
             position,
@@ -603,9 +577,7 @@ pub unsafe extern "C" fn rb_insert_track_next(path_ptr: *const c_char) -> c_int 
     };
     let path = p.to_string();
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.insert_tracks(InsertTracksRequest {
             playlist_id: None,
             position: -4, // INSERT_FIRST
@@ -628,9 +600,7 @@ pub unsafe extern "C" fn rb_insert_track_last(path_ptr: *const c_char) -> c_int 
     };
     let path = p.to_string();
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.insert_tracks(InsertTracksRequest {
             playlist_id: None,
             position: -3, // INSERT_LAST
@@ -651,9 +621,7 @@ pub unsafe extern "C" fn rb_insert_directory(path_ptr: *const c_char, position: 
     };
     let directory = p.to_string();
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.insert_directory(InsertDirectoryRequest {
             playlist_id: None,
             position,
@@ -669,9 +637,7 @@ pub unsafe extern "C" fn rb_insert_directory(path_ptr: *const c_char, position: 
 #[no_mangle]
 pub extern "C" fn rb_remove_from_queue(position: c_int) -> c_int {
     run_unit(async move {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.remove_tracks(RemoveTracksRequest {
             positions: vec![position],
         })
@@ -684,9 +650,7 @@ pub extern "C" fn rb_remove_from_queue(position: c_int) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_get_playlist_current_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = PlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = PlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_current(GetCurrentRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -697,9 +661,7 @@ pub extern "C" fn rb_get_playlist_current_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_get_tracks_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_tracks(GetTracksRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -708,9 +670,7 @@ pub extern "C" fn rb_get_tracks_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_get_artists_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_artists(GetArtistsRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -719,9 +679,7 @@ pub extern "C" fn rb_get_artists_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_get_albums_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_albums(GetAlbumsRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -730,9 +688,7 @@ pub extern "C" fn rb_get_albums_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_get_liked_albums_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_liked_albums(GetLikedAlbumsRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -747,9 +703,7 @@ pub unsafe extern "C" fn rb_get_artist_json(id_ptr: *const c_char) -> *mut c_cha
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_artist(GetArtistRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -764,9 +718,7 @@ pub unsafe extern "C" fn rb_get_album_json(id_ptr: *const c_char) -> *mut c_char
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_album(GetAlbumRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -775,9 +727,7 @@ pub unsafe extern "C" fn rb_get_album_json(id_ptr: *const c_char) -> *mut c_char
 #[no_mangle]
 pub extern "C" fn rb_get_liked_tracks_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_liked_tracks(GetLikedTracksRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -792,9 +742,7 @@ pub unsafe extern "C" fn rb_search_json(term_ptr: *const c_char) -> *mut c_char 
     };
     let term = term.to_string();
     let res = RT.block_on(async {
-        let mut c = LibraryServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = LibraryServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.search(SearchRequest { term })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -805,9 +753,7 @@ pub unsafe extern "C" fn rb_search_json(term_ptr: *const c_char) -> *mut c_char 
 #[no_mangle]
 pub extern "C" fn rb_get_genres_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = GenreServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = GenreServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_genres(GetGenresRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -822,9 +768,7 @@ pub unsafe extern "C" fn rb_get_genre_json(id_ptr: *const c_char) -> *mut c_char
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = GenreServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = GenreServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_genre(GetGenreRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -839,9 +783,7 @@ pub unsafe extern "C" fn rb_get_genre_tracks_json(id_ptr: *const c_char) -> *mut
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = GenreServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = GenreServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_genre_tracks(GetGenreTracksRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -856,9 +798,7 @@ pub unsafe extern "C" fn rb_get_genre_albums_json(id_ptr: *const c_char) -> *mut
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = GenreServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = GenreServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_genre_albums(GetGenreAlbumsRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -873,9 +813,7 @@ pub unsafe extern "C" fn rb_get_genre_artists_json(id_ptr: *const c_char) -> *mu
     };
     let id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = GenreServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = GenreServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_genre_artists(GetGenreArtistsRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -886,9 +824,7 @@ pub unsafe extern "C" fn rb_get_genre_artists_json(id_ptr: *const c_char) -> *mu
 #[no_mangle]
 pub extern "C" fn rb_adjust_volume(steps: c_int) -> c_int {
     run_unit(async move {
-        let mut c = SoundServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SoundServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.adjust_volume(AdjustVolumeRequest { steps }).await?;
         Ok(())
     })
@@ -898,9 +834,7 @@ pub extern "C" fn rb_adjust_volume(steps: c_int) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_sound_current_json(setting: c_int) -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = SoundServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SoundServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.sound_current(SoundCurrentRequest { setting })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -912,9 +846,7 @@ pub extern "C" fn rb_sound_current_json(setting: c_int) -> *mut c_char {
 pub extern "C" fn rb_save_shuffle(enabled: c_int) -> c_int {
     let enabled = b(enabled);
     run_unit(async move {
-        let mut c = SettingsServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SettingsServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.save_settings(SaveSettingsRequest {
             playlist_shuffle: Some(enabled),
             ..Default::default()
@@ -927,9 +859,7 @@ pub extern "C" fn rb_save_shuffle(enabled: c_int) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_save_repeat(repeat_mode: c_int) -> c_int {
     run_unit(async move {
-        let mut c = SettingsServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SettingsServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.save_settings(SaveSettingsRequest {
             repeat_mode: Some(repeat_mode),
             ..Default::default()
@@ -942,9 +872,7 @@ pub extern "C" fn rb_save_repeat(repeat_mode: c_int) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_get_global_settings_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = SettingsServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SettingsServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_global_settings(GetGlobalSettingsRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -955,9 +883,7 @@ pub extern "C" fn rb_get_global_settings_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_get_global_status_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = SystemServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SystemServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_global_status(GetGlobalStatusRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -977,9 +903,7 @@ pub unsafe extern "C" fn rb_tree_get_entries_json(path_ptr: *const c_char) -> *m
         cstr_to_str(path_ptr).map(|s| s.to_string())
     };
     let res = RT.block_on(async {
-        let mut c = BrowseServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = BrowseServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.tree_get_entries(TreeGetEntriesRequest { path })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -990,9 +914,7 @@ pub unsafe extern "C" fn rb_tree_get_entries_json(path_ptr: *const c_char) -> *m
 #[no_mangle]
 pub extern "C" fn rb_get_saved_playlists_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -1029,9 +951,7 @@ pub unsafe extern "C" fn rb_create_saved_playlist(
         }
     };
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.create_saved_playlist(CreateSavedPlaylistRequest {
             name,
             description,
@@ -1067,9 +987,7 @@ pub unsafe extern "C" fn rb_update_saved_playlist(
         cstr_to_str(description_ptr).map(|s| s.to_string())
     };
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.update_saved_playlist(UpdateSavedPlaylistRequest {
             id,
             name,
@@ -1091,9 +1009,7 @@ pub unsafe extern "C" fn rb_delete_saved_playlist(id_ptr: *const c_char) -> c_in
     };
     let id = id.to_string();
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.delete_saved_playlist(DeleteSavedPlaylistRequest { id })
             .await?;
         Ok(())
@@ -1116,9 +1032,7 @@ pub unsafe extern "C" fn rb_add_track_to_playlist(
     let playlist_id = playlist_id.to_string();
     let track_id = track_id.to_string();
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.add_tracks_to_saved_playlist(AddTracksToSavedPlaylistRequest {
             playlist_id,
             track_ids: vec![track_id],
@@ -1144,9 +1058,7 @@ pub unsafe extern "C" fn rb_remove_track_from_playlist(
     let playlist_id = playlist_id.to_string();
     let track_id = track_id.to_string();
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.remove_track_from_saved_playlist(RemoveTrackFromSavedPlaylistRequest {
             playlist_id,
             track_id,
@@ -1165,9 +1077,7 @@ pub unsafe extern "C" fn rb_get_saved_playlist_tracks_json(id_ptr: *const c_char
     };
     let playlist_id = id.to_string();
     let res = RT.block_on(async {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_saved_playlist_tracks(GetSavedPlaylistTracksRequest { playlist_id }))
             .await
     });
@@ -1183,9 +1093,7 @@ pub unsafe extern "C" fn rb_play_saved_playlist(id_ptr: *const c_char) -> c_int 
     };
     let playlist_id = playlist_id.to_string();
     run_unit(async move {
-        let mut c = SavedPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SavedPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_saved_playlist(PlaySavedPlaylistRequest { playlist_id })
             .await?;
         Ok(())
@@ -1197,9 +1105,7 @@ pub unsafe extern "C" fn rb_play_saved_playlist(id_ptr: *const c_char) -> c_int 
 #[no_mangle]
 pub extern "C" fn rb_get_smart_playlists_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = SmartPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SmartPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_smart_playlists(GetSmartPlaylistsRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -1214,9 +1120,7 @@ pub unsafe extern "C" fn rb_get_smart_playlist_tracks_json(id_ptr: *const c_char
     };
     let id = id_s.to_string();
     let res = RT.block_on(async {
-        let mut c = SmartPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = SmartPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_smart_playlist_tracks(GetSmartPlaylistTracksRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -1231,9 +1135,7 @@ pub unsafe extern "C" fn rb_play_smart_playlist(id_ptr: *const c_char) -> c_int 
     };
     let id = id_s.to_string();
     run_unit(async move {
-        let mut c = SmartPlaylistServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = SmartPlaylistServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.play_smart_playlist(PlaySmartPlaylistRequest { id })
             .await?;
         Ok(())
@@ -1322,9 +1224,7 @@ pub unsafe extern "C" fn rb_disconnect_device(id_ptr: *const c_char) -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_scan_bluetooth() -> c_int {
     let res: Result<(), tonic::Status> = RT.block_on(async {
-        let mut c = BluetoothServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = BluetoothServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.scan(ScanBluetoothRequest { timeout_secs: 8 }).await?;
         Ok(())
     });
@@ -1339,9 +1239,7 @@ pub extern "C" fn rb_scan_bluetooth() -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_bluetooth_available() -> c_int {
     let ok = RT.block_on(async {
-        let Ok(mut c) = BluetoothServiceClient::connect(url()).await else {
-            return false;
-        };
+        let mut c = BluetoothServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.get_devices(GetBluetoothDevicesRequest {}).await.is_ok()
     });
     if ok {
@@ -1354,9 +1252,7 @@ pub extern "C" fn rb_bluetooth_available() -> c_int {
 #[no_mangle]
 pub extern "C" fn rb_get_bluetooth_devices_json() -> *mut c_char {
     let res = RT.block_on(async {
-        let mut c = BluetoothServiceClient::connect(url())
-            .await
-            .map_err(|e| e.to_string())?;
+        let mut c = BluetoothServiceClient::new(timed_endpoint(&url()).connect_lazy());
         connect_err(c.get_devices(GetBluetoothDevicesRequest {})).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
@@ -1371,9 +1267,7 @@ pub unsafe extern "C" fn rb_connect_bluetooth(addr_ptr: *const c_char) -> c_int 
     };
     let address = s.to_string();
     run_unit(async move {
-        let mut c = BluetoothServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = BluetoothServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.connect_device(ConnectBluetoothDeviceRequest { address })
             .await?;
         Ok(())
@@ -1389,9 +1283,7 @@ pub unsafe extern "C" fn rb_disconnect_bluetooth(addr_ptr: *const c_char) -> c_i
     };
     let address = s.to_string();
     run_unit(async move {
-        let mut c = BluetoothServiceClient::connect(url())
-            .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        let mut c = BluetoothServiceClient::new(timed_endpoint(&url()).connect_lazy());
         c.disconnect(DisconnectBluetoothDeviceRequest { address })
             .await?;
         Ok(())
@@ -1409,13 +1301,27 @@ pub unsafe extern "C" fn rb_disconnect_bluetooth(addr_ptr: *const c_char) -> c_i
 // stream. `rb_unsubscribe` aborts the task and removes the entry.
 
 const EVENT_BUFFER: usize = 64;
+/// 3-second TCP connect timeout for every streaming subscription reconnect.
+/// Without this, a leaked streaming task whose connect() hangs (server not
+/// yet ready on resume) consumes a Tokio worker thread slot until the OS
+/// TCP retransmit timer fires (~75 s on Linux, ~30 s on iOS). With
+/// worker_threads(2), two such leaked tasks starve the I/O reactor and make
+/// every subsequent block_on RPC call hang indefinitely.
+const STREAM_CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 
-struct Subscription {
-    rx: mpsc::Receiver<String>,
-    abort: AbortHandle,
-}
+// ── Subscription state ────────────────────────────────────────────────────────
+//
+// SUBS holds the mpsc Receiver and is *temporarily removed* from the map by
+// rb_poll_event while it is blocking in RT.block_on. ABORTS is NEVER removed
+// during polling — it stays in the map for the full lifetime of the
+// subscription. This separation fixes the race where rb_unsubscribe is called
+// while rb_poll_event holds the Receiver outside the map: without a separate
+// ABORTS map, rb_unsubscribe silently fails (sub not found), the Tokio task is
+// never aborted, and leaked tasks accumulate until they starve the I/O reactor.
 
-static SUBS: Lazy<RwLock<HashMap<i32, Subscription>>> = Lazy::new(|| RwLock::new(HashMap::new()));
+static SUBS: Lazy<RwLock<HashMap<i32, mpsc::Receiver<String>>>> =
+    Lazy::new(|| RwLock::new(HashMap::new()));
+static ABORTS: Lazy<RwLock<HashMap<i32, AbortHandle>>> = Lazy::new(|| RwLock::new(HashMap::new()));
 static NEXT_SUB_ID: AtomicI32 = AtomicI32::new(1);
 
 #[derive(Serialize)]
@@ -1429,10 +1335,21 @@ fn next_sub_id() -> i32 {
 
 fn register_sub(rx: mpsc::Receiver<String>, abort: AbortHandle) -> i32 {
     let id = next_sub_id();
+    if let Ok(mut aborts) = ABORTS.write() {
+        aborts.insert(id, abort);
+    }
     if let Ok(mut map) = SUBS.write() {
-        map.insert(id, Subscription { rx, abort });
+        map.insert(id, rx);
     }
     id
+}
+
+/// Build a tonic endpoint with connect + request timeouts applied.
+fn timed_endpoint(url: &str) -> tonic::transport::Endpoint {
+    tonic::transport::Endpoint::from_shared(url.to_string())
+        .expect("invalid gRPC URL")
+        .connect_timeout(STREAM_CONNECT_TIMEOUT)
+        .timeout(Duration::from_secs(30))
 }
 
 /// Spawns `task_factory` on the runtime, where it should drain a tonic stream
@@ -1456,8 +1373,8 @@ pub extern "C" fn rb_subscribe_status() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
         loop {
-            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
-                Ok(c) => c,
+            let mut c = match timed_endpoint(&server_url).connect().await {
+                Ok(ch) => PlaybackServiceClient::new(ch),
                 Err(_) => {
                     tokio::time::sleep(Duration::from_secs(2)).await;
                     continue;
@@ -1490,8 +1407,8 @@ pub extern "C" fn rb_subscribe_current_track() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
         loop {
-            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
-                Ok(c) => c,
+            let mut c = match timed_endpoint(&server_url).connect().await {
+                Ok(ch) => PlaybackServiceClient::new(ch),
                 Err(_) => {
                     tokio::time::sleep(Duration::from_secs(2)).await;
                     continue;
@@ -1539,8 +1456,8 @@ pub extern "C" fn rb_subscribe_playlist() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
         loop {
-            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
-                Ok(c) => c,
+            let mut c = match timed_endpoint(&server_url).connect().await {
+                Ok(ch) => PlaybackServiceClient::new(ch),
                 Err(_) => {
                     tokio::time::sleep(Duration::from_secs(2)).await;
                     continue;
@@ -1660,14 +1577,29 @@ pub extern "C" fn rb_chromecast_service_name() -> *mut c_char {
 pub extern "C" fn rb_subscribe_library() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
-        match LibraryServiceClient::connect(server_url).await {
-            Ok(mut c) => match c.stream_library(StreamLibraryRequest {}).await {
+        loop {
+            let mut c = match timed_endpoint(&server_url).connect().await {
+                Ok(ch) => LibraryServiceClient::new(ch),
+                Err(e) => {
+                    let _ = tx
+                        .send(
+                            serde_json::to_string(&StreamErrorJson {
+                                error: format!("connect: {e}"),
+                            })
+                            .unwrap_or_default(),
+                        )
+                        .await;
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
+                }
+            };
+            match c.stream_library(StreamLibraryRequest {}).await {
                 Ok(resp) => {
                     let mut s = resp.into_inner();
                     while let Ok(Some(msg)) = s.message().await {
                         let payload = serde_json::to_string(&msg).unwrap_or_else(|_| "{}".into());
                         if tx.send(payload).await.is_err() {
-                            break;
+                            return;
                         }
                     }
                 }
@@ -1681,17 +1613,8 @@ pub extern "C" fn rb_subscribe_library() -> c_int {
                         )
                         .await;
                 }
-            },
-            Err(e) => {
-                let _ = tx
-                    .send(
-                        serde_json::to_string(&StreamErrorJson {
-                            error: format!("connect: {e}"),
-                        })
-                        .unwrap_or_default(),
-                    )
-                    .await;
             }
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     })
 }
@@ -1720,7 +1643,7 @@ pub extern "C" fn rb_poll_event(sub_id: c_int, timeout_ms: c_int) -> *mut c_char
         Duration::from_millis(timeout_ms as u64)
     };
 
-    let received = RT.block_on(async { tokio::time::timeout(timeout, rx.rx.recv()).await });
+    let received = RT.block_on(async { tokio::time::timeout(timeout, rx.recv()).await });
 
     let payload = match received {
         Ok(Some(msg)) => Some(msg),
@@ -1728,14 +1651,19 @@ pub extern "C" fn rb_poll_event(sub_id: c_int, timeout_ms: c_int) -> *mut c_char
         Err(_) => Some(String::new()), // marker: timeout, sub still alive
     };
 
-    // Re-insert if the stream is still alive (any non-None payload).
+    // Re-insert the receiver if the stream is still alive (any non-None payload).
+    // ABORTS is left untouched — rb_unsubscribe uses it independently.
     if payload.is_some() {
         if let Ok(mut map) = SUBS.write() {
             map.insert(sub_id, rx);
         }
     } else {
-        // Stream closed — make sure the task is gone too.
-        rx.abort.abort();
+        // Stream closed — abort the task and clean up both maps.
+        if let Ok(mut aborts) = ABORTS.write() {
+            if let Some(h) = aborts.remove(&sub_id) {
+                h.abort();
+            }
+        }
     }
 
     match payload {
@@ -1748,18 +1676,24 @@ pub extern "C" fn rb_poll_event(sub_id: c_int, timeout_ms: c_int) -> *mut c_char
 }
 
 /// Cancels and removes a subscription. Returns 0 if found, -1 otherwise.
+/// Uses ABORTS (never temporarily removed) so it works correctly even when
+/// rb_poll_event has temporarily taken the receiver out of SUBS.
 #[no_mangle]
 pub extern "C" fn rb_unsubscribe(sub_id: c_int) -> c_int {
-    let removed = match SUBS.write() {
-        Ok(mut m) => m.remove(&sub_id),
+    let aborted = match ABORTS.write() {
+        Ok(mut m) => m.remove(&sub_id).map(|h| {
+            h.abort();
+        }),
         Err(_) => return -1,
     };
-    match removed {
-        Some(s) => {
-            s.abort.abort();
-            0
-        }
-        None => -1,
+    // Also remove the receiver if it's still sitting in SUBS.
+    if let Ok(mut m) = SUBS.write() {
+        m.remove(&sub_id);
+    }
+    if aborted.is_some() {
+        0
+    } else {
+        -1
     }
 }
 

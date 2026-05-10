@@ -1,4 +1,4 @@
-import type { Album, Artist, Playlist, Track } from "./types";
+import type { Album, Artist, FileEntry, Playlist, Track } from "./types";
 
 const cover = (seed: string, size = 600) =>
   `https://picsum.photos/seed/${encodeURIComponent(seed)}/${size}/${size}`;
@@ -231,6 +231,119 @@ export const GENRES = [
   { id: "g9", name: "Country", color: "#777777" },
   { id: "g10", name: "Latin", color: "#E91429" },
 ];
+
+// ── Files / filesystem mock data ─────────────────────────────────────────────
+
+const MUSIC_ROOT = "/storage/emulated/0/Music";
+
+const LOCAL_FS: Record<string, FileEntry[]> = {
+  [MUSIC_ROOT]: [
+    { name: "Lumen", path: `${MUSIC_ROOT}/Lumen`, is_dir: true },
+    { name: "Aerialist", path: `${MUSIC_ROOT}/Aerialist`, is_dir: true },
+    { name: "Midnight Bloom", path: `${MUSIC_ROOT}/Midnight Bloom`, is_dir: true },
+    { name: "Halo Drift", path: `${MUSIC_ROOT}/Halo Drift`, is_dir: true },
+    { name: "Northern Lights", path: `${MUSIC_ROOT}/Northern Lights`, is_dir: true },
+    { name: "Glasswave", path: `${MUSIC_ROOT}/Glasswave`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Lumen`]: [
+    { name: "Neon Tides", path: `${MUSIC_ROOT}/Lumen/Neon Tides`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Lumen/Neon Tides`]: [
+    { name: "01 - Glass Cathedral.flac", path: `${MUSIC_ROOT}/Lumen/Neon Tides/01 - Glass Cathedral.flac`, is_dir: false },
+    { name: "02 - Aurora.flac", path: `${MUSIC_ROOT}/Lumen/Neon Tides/02 - Aurora.flac`, is_dir: false },
+    { name: "03 - Underneath.flac", path: `${MUSIC_ROOT}/Lumen/Neon Tides/03 - Underneath.flac`, is_dir: false },
+    { name: "04 - Tideline.flac", path: `${MUSIC_ROOT}/Lumen/Neon Tides/04 - Tideline.flac`, is_dir: false },
+    { name: "05 - Phosphor.flac", path: `${MUSIC_ROOT}/Lumen/Neon Tides/05 - Phosphor.flac`, is_dir: false },
+  ],
+  [`${MUSIC_ROOT}/Aerialist`]: [
+    { name: "Sapphire", path: `${MUSIC_ROOT}/Aerialist/Sapphire`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Aerialist/Sapphire`]: [
+    { name: "01 - Slow Burn.mp3", path: `${MUSIC_ROOT}/Aerialist/Sapphire/01 - Slow Burn.mp3`, is_dir: false },
+    { name: "02 - Cobalt.mp3", path: `${MUSIC_ROOT}/Aerialist/Sapphire/02 - Cobalt.mp3`, is_dir: false },
+    { name: "03 - Indigo.mp3", path: `${MUSIC_ROOT}/Aerialist/Sapphire/03 - Indigo.mp3`, is_dir: false },
+    { name: "04 - Marine Bloom.mp3", path: `${MUSIC_ROOT}/Aerialist/Sapphire/04 - Marine Bloom.mp3`, is_dir: false },
+  ],
+  [`${MUSIC_ROOT}/Midnight Bloom`]: [
+    { name: "After Hours", path: `${MUSIC_ROOT}/Midnight Bloom/After Hours`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Midnight Bloom/After Hours`]: [
+    { name: "01 - Silver Lining.mp3", path: `${MUSIC_ROOT}/Midnight Bloom/After Hours/01 - Silver Lining.mp3`, is_dir: false },
+    { name: "02 - Kerosene.mp3", path: `${MUSIC_ROOT}/Midnight Bloom/After Hours/02 - Kerosene.mp3`, is_dir: false },
+    { name: "03 - Postcards.mp3", path: `${MUSIC_ROOT}/Midnight Bloom/After Hours/03 - Postcards.mp3`, is_dir: false },
+  ],
+  [`${MUSIC_ROOT}/Halo Drift`]: [
+    { name: "Velvet Sky", path: `${MUSIC_ROOT}/Halo Drift/Velvet Sky`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Halo Drift/Velvet Sky`]: [
+    { name: "01 - Drift.flac", path: `${MUSIC_ROOT}/Halo Drift/Velvet Sky/01 - Drift.flac`, is_dir: false },
+    { name: "02 - Cloudbank.flac", path: `${MUSIC_ROOT}/Halo Drift/Velvet Sky/02 - Cloudbank.flac`, is_dir: false },
+    { name: "03 - Sundown.flac", path: `${MUSIC_ROOT}/Halo Drift/Velvet Sky/03 - Sundown.flac`, is_dir: false },
+  ],
+  [`${MUSIC_ROOT}/Northern Lights`]: [
+    { name: "Polaris", path: `${MUSIC_ROOT}/Northern Lights/Polaris`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Northern Lights/Polaris`]: [
+    { name: "01 - Stargazer.flac", path: `${MUSIC_ROOT}/Northern Lights/Polaris/01 - Stargazer.flac`, is_dir: false },
+    { name: "02 - North.flac", path: `${MUSIC_ROOT}/Northern Lights/Polaris/02 - North.flac`, is_dir: false },
+    { name: "03 - Compass.flac", path: `${MUSIC_ROOT}/Northern Lights/Polaris/03 - Compass.flac`, is_dir: false },
+  ],
+  [`${MUSIC_ROOT}/Glasswave`]: [
+    { name: "Crystalline", path: `${MUSIC_ROOT}/Glasswave/Crystalline`, is_dir: true },
+  ],
+  [`${MUSIC_ROOT}/Glasswave/Crystalline`]: [
+    { name: "01 - Refractions.mp3", path: `${MUSIC_ROOT}/Glasswave/Crystalline/01 - Refractions.mp3`, is_dir: false },
+    { name: "02 - Prism.mp3", path: `${MUSIC_ROOT}/Glasswave/Crystalline/02 - Prism.mp3`, is_dir: false },
+    { name: "03 - Mosaic.mp3", path: `${MUSIC_ROOT}/Glasswave/Crystalline/03 - Mosaic.mp3`, is_dir: false },
+  ],
+};
+
+export const MOCK_MUSIC_ROOT = MUSIC_ROOT;
+
+export function getLocalEntries(path: string): FileEntry[] {
+  return LOCAL_FS[path] ?? [];
+}
+
+// UPnP / DLNA mock data
+export const UPNP_DEVICES: FileEntry[] = [
+  { name: "Living Room NAS (Plex)", path: "upnp://uuid:a1b2c3d4-plex/browse", is_dir: true },
+  { name: "Bedroom Pi (Jellyfin)", path: "upnp://uuid:e5f6a7b8-jelly/browse", is_dir: true },
+  { name: "NAS (miniDLNA)", path: "upnp://uuid:c9d0e1f2-dlna/browse", is_dir: true },
+];
+
+const UPNP_CONTENT: Record<string, FileEntry[]> = {
+  "upnp://uuid:a1b2c3d4-plex/browse": [
+    { name: "Music", path: "upnp://uuid:a1b2c3d4-plex/music", is_dir: true },
+    { name: "Playlists", path: "upnp://uuid:a1b2c3d4-plex/playlists", is_dir: true },
+  ],
+  "upnp://uuid:a1b2c3d4-plex/music": [
+    { name: "Albums", path: "upnp://uuid:a1b2c3d4-plex/music/albums", is_dir: true },
+    { name: "Artists", path: "upnp://uuid:a1b2c3d4-plex/music/artists", is_dir: true },
+  ],
+  "upnp://uuid:a1b2c3d4-plex/music/albums": [
+    { name: "Neon Tides — Lumen", path: "upnp://uuid:a1b2c3d4-plex/music/albums/neon-tides", is_dir: true },
+    { name: "Sapphire — Aerialist", path: "upnp://uuid:a1b2c3d4-plex/music/albums/sapphire", is_dir: true },
+  ],
+  "upnp://uuid:a1b2c3d4-plex/music/albums/neon-tides": [
+    { name: "Glass Cathedral.flac", path: "upnp://uuid:a1b2c3d4-plex/track/nt-01", is_dir: false },
+    { name: "Aurora.flac", path: "upnp://uuid:a1b2c3d4-plex/track/nt-02", is_dir: false },
+    { name: "Underneath.flac", path: "upnp://uuid:a1b2c3d4-plex/track/nt-03", is_dir: false },
+  ],
+  "upnp://uuid:e5f6a7b8-jelly/browse": [
+    { name: "Music Library", path: "upnp://uuid:e5f6a7b8-jelly/music", is_dir: true },
+  ],
+  "upnp://uuid:e5f6a7b8-jelly/music": [
+    { name: "After Hours — Midnight Bloom", path: "upnp://uuid:e5f6a7b8-jelly/music/after-hours", is_dir: true },
+    { name: "Velvet Sky — Halo Drift", path: "upnp://uuid:e5f6a7b8-jelly/music/velvet-sky", is_dir: true },
+  ],
+  "upnp://uuid:c9d0e1f2-dlna/browse": [
+    { name: "All Music", path: "upnp://uuid:c9d0e1f2-dlna/all", is_dir: true },
+  ],
+};
+
+export function getUpnpEntries(path: string): FileEntry[] {
+  return UPNP_CONTENT[path] ?? [];
+}
 
 export function formatDuration(secs: number): string {
   const m = Math.floor(secs / 60);

@@ -16,12 +16,14 @@ const TAB_ICONS: Record<
   index: { family: "mci", active: "home-variant", inactive: "home-variant-outline" },
   search: { family: "ion", active: "search", inactive: "search-outline" },
   library: { family: "ion", active: "albums", inactive: "albums-outline" },
+  files: { family: "ion", active: "folder-open", inactive: "folder-open-outline" },
 };
 
 const TAB_LABELS: Record<string, string> = {
   index: "Home",
   search: "Search",
   library: "Your Library",
+  files: "Files",
 };
 
 function TabIcon({
@@ -107,10 +109,12 @@ export default function TabLayout() {
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
+      backBehavior="none"
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="search" options={{ title: "Search" }} />
       <Tabs.Screen name="library" options={{ title: "Your Library" }} />
+      <Tabs.Screen name="files" options={{ title: "Files" }} />
     </Tabs>
   );
 }

@@ -59,3 +59,15 @@ export type LibrarySection =
   | "liked";
 
 export type RepeatMode = "off" | "all" | "one";
+
+export type FileEntry = {
+  name: string;
+  path: string;
+  is_dir: boolean;
+};
+
+export type FilesMode =
+  | "root"
+  | "local"
+  | "upnp-devices"
+  | "upnp-browse";
