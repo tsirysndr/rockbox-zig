@@ -127,7 +127,10 @@ export function DevicePickerSheet({
   const { data, isLoading } = useOutputDevices<DeviceItem[]>({
     enabled: isConnected && visible,
   });
-  const list: DeviceItem[] = Array.isArray(data) ? data : [];
+  const list = (Array.isArray(data) ? data : []).filter((d: DeviceItem) => {
+    const svc = d.service?.toLowerCase() ?? "";
+    return !svc.includes("snapcast") && !svc.includes("fifo");
+  });
   const connect = useConnectDevice();
   const disconnect = useDisconnectDevice();
 
