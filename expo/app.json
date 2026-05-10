@@ -21,6 +21,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.tsirysndr.Rockbox",
+      "usesCleartextTraffic": true,
       "permissions": [
         "INTERNET",
         "READ_EXTERNAL_STORAGE",
