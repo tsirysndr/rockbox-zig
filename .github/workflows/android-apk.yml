@@ -41,9 +41,7 @@ jobs:
             protobuf-compiler cmake ninja-build
 
       - name: Set up Android SDK
-        run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > expo/android/local.properties
+        run: echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
 
       - name: Install Android NDK r27
         run: |
@@ -90,6 +88,13 @@ jobs:
       - name: Install Expo dependencies
         working-directory: expo
         run: bun install --frozen-lockfile
+
+      - name: Generate Android project (expo prebuild)
+        working-directory: expo
+        run: bunx expo prebuild --platform android --no-install
+
+      - name: Write local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > expo/android/local.properties
 
       - name: Build Rust cdylib (rockbox-expo)
         env:
