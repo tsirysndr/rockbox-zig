@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   BackHandler,
   FlatList,
   Modal,
@@ -18,6 +19,7 @@ import { RemoteServerBanner } from "@/components/remote-server-banner";
 import { useIsConnected } from "@/lib/connection";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
+import { usePlayer } from "@/lib/player-context";
 import { RockboxClient } from "@/lib/rockbox-client";
 import type { FileEntry, FilesMode } from "@/lib/types";
 
@@ -151,9 +153,22 @@ function FileActionsSheet({
 
   const { entry, currentDir, entryIndex } = menu;
   const isDir = entry.is_dir;
+  const { queue } = usePlayer();
 
   const run = (action: () => Promise<unknown>) => {
     action().catch(() => {});
+    onClose();
+  };
+
+  const confirmPlay = (action: () => void) => {
+    if (queue.length > 0) {
+      Alert.alert("Replace Queue", "This will clear the current queue.", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Play", style: "destructive", onPress: action },
+      ]);
+    } else {
+      action();
+    }
     onClose();
   };
 
@@ -169,10 +184,11 @@ function FileActionsSheet({
       icon: "play-circle-outline",
       label: "Play",
       onPress: () =>
-        run(() =>
-          isDir
+        confirmPlay(() =>
+          (isDir
             ? RockboxClient.playDirectory(entry.path, false)
-            : RockboxClient.playDirectory(currentDir ?? entry.path, false, entryIndex),
+            : RockboxClient.playDirectory(currentDir ?? entry.path, false, entryIndex)
+          ).catch(() => {}),
         ),
     },
     {
@@ -219,7 +235,9 @@ function FileActionsSheet({
             icon: "play-circle",
             label: "Play Shuffled",
             onPress: () =>
-              run(() => RockboxClient.playDirectory(entry.path, true)),
+              confirmPlay(() =>
+                RockboxClient.playDirectory(entry.path, true).catch(() => {}),
+              ),
           },
         ] as MenuItem[])
       : []),
@@ -393,6 +411,7 @@ export default function FilesScreen() {
   const [menu, setMenu] = useState<MenuEntry | null>(null);
   const bottomPad = useBottomSpacing(16);
   const isConnected = useIsConnected();
+  const { queue } = usePlayer();
   const fetchSeq = useRef(0);
   // Persistent cache keyed by "mode:path" — survives back/forward navigation
   const cache = useRef<Map<string, FileEntry[]>>(new Map());
@@ -487,13 +506,18 @@ export default function FilesScreen() {
   const handlePlay = useCallback(
     (entry: FileEntry, index: number, dir: string | null) => {
       const currentDir = dir ?? inferCurrentDir(entries);
-      RockboxClient.playDirectory(
-        currentDir ?? entry.path,
-        false,
-        index,
-      ).catch(() => {});
+      const doPlay = () =>
+        RockboxClient.playDirectory(currentDir ?? entry.path, false, index).catch(() => {});
+      if (queue.length > 0) {
+        Alert.alert("Replace Queue", "This will clear the current queue.", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Play", style: "destructive", onPress: doPlay },
+        ]);
+      } else {
+        doPlay();
+      }
     },
-    [entries],
+    [entries, queue.length],
   );
 
   const openMenu = useCallback(
