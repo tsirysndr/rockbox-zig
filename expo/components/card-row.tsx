@@ -39,11 +39,8 @@ export function CardRow({
         return (
           <Pressable
             onPress={() => onPress?.(item)}
-            style={({ pressed }) => ({
-              width: size,
-              opacity: pressed ? 0.85 : 1,
-            })}
-            className={round ? "items-center" : undefined}
+            style={{ width: size }}
+            className={`active:opacity-80 ${round ? "items-center" : ""}`}
           >
             <View
               className="bg-bg-card overflow-hidden items-center justify-center"

@@ -1,7 +1,7 @@
 import "../global.css";
 import "@/lib/nativewind-setup";
 import { ThemeProvider } from "@react-navigation/native";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -9,6 +9,15 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { Alert, AppState, Platform } from "react-native";
 import "react-native-reanimated";
+
+// Wire TanStack Query's focus manager to React Native's AppState so that
+// refetchOnWindowFocus (app foreground) works correctly on iOS / Android.
+focusManager.setEventListener((handleFocus) => {
+  const sub = AppState.addEventListener("change", (state) =>
+    handleFocus(state === "active"),
+  );
+  return () => sub.remove();
+});
 
 import { PersistentMiniPlayer } from "@/components/persistent-mini-player";
 import { TrackContextMenu } from "@/components/track-context-menu";
@@ -59,7 +68,11 @@ export default function RootLayout() {
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000,
-            retry: 1,
+            // Retry up to 3× with exponential backoff (1s, 2s, 4s) so a
+            // brief gRPC hiccup on JS reload or app foreground doesn't leave
+            // screens permanently empty.
+            retry: 3,
+            retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30_000),
           },
         },
       }),

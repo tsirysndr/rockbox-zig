@@ -123,7 +123,11 @@ export function RockboxStreams() {
   // ── Discovery + initial hydration (mount-only) ──────────────────────────
   useEffect(() => {
     if (!RockboxClient.isAvailable) return;
-    void hydrateSelectedServer();
+    // After hydration (including JS reload), invalidate all per-server query
+    // data so screens refetch immediately rather than staying empty.
+    void hydrateSelectedServer().then((server) => {
+      if (server) qc.invalidateQueries({ queryKey: qk.all });
+    });
     startDiscovery();
     // Expose the restart handle for callers outside React.
     // Note: we deliberately DO NOT clear the cache here — mdns-sd takes a
@@ -138,7 +142,7 @@ export function RockboxStreams() {
       discoveryUnsubRef.current?.();
       discoveryUnsubRef.current = null;
     };
-  }, [startDiscovery]);
+  }, [startDiscovery, qc]);
 
   // ── Playback streams (re-runs whenever the active server changes) ───────
   // The Rust-side `rb_subscribe_*` fns capture the server URL at spawn time
@@ -146,6 +150,9 @@ export function RockboxStreams() {
   // re-subscribing to point the new tonic stream at the new endpoint.
   useEffect(() => {
     if (!RockboxClient.isAvailable) return;
+    // No server yet (e.g. right after JS reload, before AsyncStorage hydrates).
+    // Skip — the effect re-runs once serverUrlKey becomes non-empty.
+    if (!serverUrlKey) return;
 
     const unsubs: Array<() => void> = [];
 
