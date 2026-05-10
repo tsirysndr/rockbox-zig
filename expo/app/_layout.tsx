@@ -1,5 +1,27 @@
 import "../global.css";
 import "@/lib/nativewind-setup";
+
+// expo's withDevTools calls useKeepAwake() in dev builds. On Android, the brief
+// window between Activity A destruction and Activity B initialization leaves
+// activityProvider.currentActivity === null, so ExpoKeepAwakeManager.activate()
+// throws CurrentActivityNotFoundException → unhandled rejection → red error
+// overlay that blocks all interaction until dismissed. Suppress it here: the
+// screen-keep-on re-activates harmlessly on the next render, and this code
+// path is dead in production builds.
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const EU = (globalThis as any).ErrorUtils as
+    | { getGlobalHandler(): (e: Error, f: boolean) => void; setGlobalHandler(h: (e: Error, f: boolean) => void): void }
+    | undefined;
+  if (EU) {
+    const _prevEH = EU.getGlobalHandler();
+    EU.setGlobalHandler((error: Error, isFatal: boolean) => {
+      if (error?.message?.includes("Unable to activate keep awake")) return;
+      _prevEH(error, isFatal);
+    });
+  }
+}
+
 import { ThemeProvider } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-query";
 import { useFonts } from "expo-font";

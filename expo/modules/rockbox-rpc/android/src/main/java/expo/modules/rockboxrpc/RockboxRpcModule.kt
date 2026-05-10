@@ -8,6 +8,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -138,7 +139,7 @@ class RockboxRpcModule : Module() {
     @JvmStatic external fun rb_rescan_library(): Int
   }
 
-  private val scope = CoroutineScope(Dispatchers.IO)
+  private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
   private val pollJobs = ConcurrentHashMap<Int, Job>()
   private val discoveryJobs = java.util.concurrent.ConcurrentHashMap.newKeySet<Int>()
 
@@ -519,6 +520,26 @@ class RockboxRpcModule : Module() {
       // If this was a discovery subscription, drop our multicast hold.
       if (discoveryJobs.remove(subId)) releaseMulticastLock()
       rb_unsubscribe(subId)
+    }
+
+    // Fires when the Activity is destroyed but the process stays alive (e.g.
+    // the user swipes away while audio plays via NowPlayingService foreground
+    // service). OnDestroy is NOT called in this scenario — only here.
+    // We cancel all poll coroutines and abort the Rust streaming tasks, then
+    // immediately recreate the scope so that when the user reopens the app and
+    // new subscriptions are started, scope.launch { } works correctly again.
+    OnActivityDestroys {
+      val ids = pollJobs.keys().toList()
+      pollJobs.values.forEach { it.cancel() }
+      pollJobs.clear()
+      ids.forEach { rb_unsubscribe(it) }
+      while (discoveryJobs.isNotEmpty()) {
+        discoveryJobs.iterator().next().let { discoveryJobs.remove(it) }
+        releaseMulticastLock()
+      }
+      scope.cancel()
+      // Fresh scope — ready for subscriptions when the Activity is recreated.
+      scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     OnDestroy {

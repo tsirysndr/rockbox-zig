@@ -111,6 +111,15 @@ class NowPlayingService : Service() {
 
   override fun onBind(intent: Intent?): IBinder? = null
 
+  override fun onTaskRemoved(rootIntent: Intent?) {
+    // User swiped the app away — stop the foreground service so Android can
+    // kill the process cleanly. Every reopen is then a fresh process with
+    // clean gRPC state. Without this the service keeps the process alive,
+    // the old Rust streaming tasks compete with new ones on reopen, and
+    // the UI can't make gRPC calls until a second swipe kills the process.
+    stopSelf()
+  }
+
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
@@ -168,7 +177,7 @@ class NowPlayingService : Service() {
         return START_NOT_STICKY
       }
     }
-    return START_STICKY
+    return START_NOT_STICKY
   }
 
   override fun onDestroy() {
