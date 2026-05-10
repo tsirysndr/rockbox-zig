@@ -364,6 +364,90 @@ pub extern "C" fn rb_rescan_library() -> c_int {
     0
 }
 
+/// Fetch pictures for every artist whose `image` column is NULL, querying the
+/// Rocksky API in the background. Returns 0 immediately; watch logcat for
+/// "pictures: ..." progress. Returns -1 if the daemon isn't running.
+/// Called explicitly from Kotlin's OnCreate so enrichment always runs at
+/// startup even when no library scan is needed.
+#[no_mangle]
+pub extern "C" fn rb_update_artist_pictures() -> c_int {
+    if STATE.load(Ordering::Acquire) != STATE_RUNNING {
+        return -1;
+    }
+    thread::Builder::new()
+        .name("rockbox-artist-pictures".into())
+        .stack_size(2 * 1024 * 1024)
+        .spawn(move || {
+            let rt = match tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+            {
+                Ok(rt) => rt,
+                Err(e) => {
+                    tracing::error!("pictures: tokio runtime build failed: {e}");
+                    return;
+                }
+            };
+            rt.block_on(async move {
+                let pool = match rockbox_library::create_connection_pool().await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::error!("pictures: open library DB failed: {e}");
+                        return;
+                    }
+                };
+                match rockbox_library::artists::update_metadata(pool).await {
+                    Ok(()) => tracing::info!("pictures: artist enrichment done"),
+                    Err(e) => tracing::warn!("pictures: artist enrichment skipped: {e}"),
+                }
+            });
+        })
+        .expect("spawn rockbox-artist-pictures thread");
+    0
+}
+
+/// Fetch descriptions for every genre whose `description` column is NULL,
+/// querying the Wikipedia summary API in the background. Returns 0
+/// immediately; watch logcat for "genre-info: ..." progress. Returns -1 if
+/// the daemon isn't running. Called from Kotlin's OnCreate after artist
+/// enrichment so genres are fully associated before descriptions are fetched.
+#[no_mangle]
+pub extern "C" fn rb_update_genre_infos() -> c_int {
+    if STATE.load(Ordering::Acquire) != STATE_RUNNING {
+        return -1;
+    }
+    thread::Builder::new()
+        .name("rockbox-genre-infos".into())
+        .stack_size(2 * 1024 * 1024)
+        .spawn(move || {
+            let rt = match tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+            {
+                Ok(rt) => rt,
+                Err(e) => {
+                    tracing::error!("genre-info: tokio runtime build failed: {e}");
+                    return;
+                }
+            };
+            rt.block_on(async move {
+                let pool = match rockbox_library::create_connection_pool().await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::error!("genre-info: open library DB failed: {e}");
+                        return;
+                    }
+                };
+                match rockbox_library::genres::update_metadata(pool).await {
+                    Ok(()) => tracing::info!("genre-info: enrichment done"),
+                    Err(e) => tracing::warn!("genre-info: enrichment skipped: {e}"),
+                }
+            });
+        })
+        .expect("spawn rockbox-genre-infos thread");
+    0
+}
+
 /// Mirror what the desktop `crates/cli` does at boot: open the library DB
 /// and run `scan_audio_files($ROCKBOX_LIBRARY)`. With `force=false` we skip
 /// the scan when the DB already has tracks (startup path); `force=true`
@@ -435,6 +519,15 @@ fn spawn_library_scan(force_arg: bool) {
                     tracing::warn!("scan: rocksky enrichment skipped: {e}");
                 } else {
                     tracing::info!("scan: rocksky enrichment done");
+                }
+
+                // Wikipedia enrichment: fill genre descriptions for any genre
+                // whose description column is still NULL. Runs after artist
+                // enrichment so genres are fully associated first.
+                if let Err(e) = rockbox_library::genres::update_metadata(pool.clone()).await {
+                    tracing::warn!("scan: genre enrichment skipped: {e}");
+                } else {
+                    tracing::info!("scan: genre enrichment done");
                 }
 
                 // Signal gRPC StreamLibrary subscribers so the UI can

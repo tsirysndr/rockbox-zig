@@ -137,6 +137,8 @@ class RockboxRpcModule : Module() {
      *  builds. The scan runs on a background thread; tail logcat for
      *  "scan: ..." progress lines. */
     @JvmStatic external fun rb_rescan_library(): Int
+    @JvmStatic external fun rb_update_artist_pictures(): Int
+    @JvmStatic external fun rb_update_genre_infos(): Int
   }
 
   private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -215,6 +217,11 @@ class RockboxRpcModule : Module() {
             rc == -114 -> android.util.Log.i("RockboxRpc", "embedded daemon already running")
             else -> android.util.Log.w("RockboxRpc", "embedded daemon start failed rc=$rc")
           }
+          // Background enrichment: fill null artist pictures (Rocksky API)
+          // and genre descriptions (Wikipedia API). Both calls return
+          // immediately — actual network work happens on Rust threads.
+          rb_update_artist_pictures()
+          rb_update_genre_infos()
         } catch (t: Throwable) {
           android.util.Log.e("RockboxRpc",
             "embedded daemon threw: ${t.javaClass.simpleName}: ${t.message}", t)

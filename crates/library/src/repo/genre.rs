@@ -122,3 +122,20 @@ pub async fn update_picture(pool: &Pool<Sqlite>, id: &str, image: &str) -> Resul
     .await?;
     Ok(())
 }
+
+pub async fn update_description(
+    pool: &Pool<Sqlite>,
+    id: &str,
+    description: &str,
+) -> Result<(), Error> {
+    sqlx::query(
+        r#"
+        UPDATE genre SET description = $2 WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .bind(description)
+    .execute(pool)
+    .await?;
+    Ok(())
+}

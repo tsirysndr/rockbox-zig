@@ -11,6 +11,7 @@ pub mod artists;
 pub mod audio_scan;
 pub mod copyright_message;
 pub mod entity;
+pub mod genres;
 pub mod label;
 pub mod repo;
 
