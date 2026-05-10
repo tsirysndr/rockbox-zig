@@ -29,11 +29,11 @@ and Squeezelite.
 ## ✨ Features
 
 ### Audio output
-- [x] Built-in CPAL audio
-- [x] AirPlay (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
-- [x] Snapcast — synchronised multi-room via snapserver (FIFO/pipe **and** direct TCP with mDNS auto-discovery)
-- [x] Squeezelite (Slim Protocol + HTTP broadcast) — synchronised multi-room
-- [x] Chromecast
+- [x] Built-in [CPAL](https://github.com/RustAudio/cpal) audio
+- [x] [AirPlay](https://en.wikipedia.org/wiki/AirPlay) (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
+- [x] [Snapcast](https://github.com/snapcast/snapcast) — synchronised multi-room via snapserver (FIFO/pipe **and** direct TCP with mDNS auto-discovery)
+- [x] [Squeezelite](https://github.com/ralph-irving/squeezelite) (Slim Protocol + HTTP broadcast) — synchronised multi-room
+- [x] [Chromecast](https://developers.google.com/cast)
 - [x] Gapless playback and crossfading
 - [x] Supports 20+ codecs: MP3, OGG, FLAC, WAV, AAC, Opus, and more
 
@@ -79,7 +79,7 @@ docker run -v $HOME/Music:/root/Music \
   tsiry/rockbox
 ```
 
-In a second terminal, connect a [Snapcast](https://github.com/badaix/snapcast) client for audio output:
+In a second terminal, connect a [Snapcast](https://github.com/snapcast/snapcast) client for audio output:
 
 ```sh
 snapclient tcp://localhost
@@ -227,11 +227,11 @@ music_dir    = "/path/to/Music"
 audio_output = "builtin"
 ```
 
-Uses CPAL — plays through the OS default device. No extra setup needed.
+Uses [CPAL](https://github.com/RustAudio/cpal) — plays through the OS default device. No extra setup needed.
 
 ### Snapcast
 
-Rockbox supports two ways to feed [Snapcast](https://github.com/badaix/snapcast)
+Rockbox supports two ways to feed [Snapcast](https://github.com/snapcast/snapcast)
 for synchronised multi-room playback. Both write raw **S16LE stereo 44100 Hz**
 PCM to snapserver.
 
@@ -606,7 +606,7 @@ flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.
 
 The Rockbox C firmware (audio engine, codecs, DSP) is compiled into
 `libfirmware.a` and linked with two Rust static libraries
-(`librockbox_cli.a`, `librockbox_server.a`) and CPAL by the Zig build script.
+(`librockbox_cli.a`, `librockbox_server.a`) and [CPAL](https://github.com/RustAudio/cpal) by the Zig build script.
 The result is a single `rockboxd` binary. Rust crates expose the firmware over
 gRPC, GraphQL, HTTP, and MPD, and implement output sinks (AirPlay, Squeezelite,
 Snapcast) and the Typesense search integration.
@@ -654,7 +654,7 @@ SDK docs are published at:
 The Mintlify source lives in [`mintlify/`](./mintlify/). Topics covered:
 
 - **Getting started** — install, quickstart, configuration
-- **Audio output** — built-in CPAL, Snapcast, AirPlay, Squeezelite, Chromecast, UPnP
+- **Audio output** — built-in [CPAL](https://github.com/RustAudio/cpal), [Snapcast](https://github.com/snapcast/snapcast), [AirPlay](https://en.wikipedia.org/wiki/AirPlay), [Squeezelite](https://github.com/ralph-irving/squeezelite), [Chromecast](https://developers.google.com/cast), [UPnP](https://en.wikipedia.org/wiki/Universal_Plug_and_Play)
 - **Audio settings** — parametric EQ, DSP, ReplayGain, crossfade
 - **Clients** — web UI, desktop apps, MPD, MPRIS
 - **API reference** — HTTP REST (auto-generated from OpenAPI), GraphQL, gRPC, MPD
