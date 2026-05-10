@@ -239,6 +239,12 @@ $(CODECDIR)/aac_bsf.codec : $(CODECDIR)/libfaad.a
 
 ifndef CODECS_STATIC
 $(CODECS): $(CODEC_LIBS) # this must be last in codec dependency list
+else
+# In CODECS_STATIC mode there is no per-codec link step, so CODEC_LIBS is not
+# linked into each .a archive. But libcodec.a (CODECLIB) must still be built
+# so cargo can link it into the final cdylib. Add it as an order-only dep of
+# the per-codec archives so 'make lib' builds it as a side-effect.
+$(CODECS): $(CODECLIB)
 endif
 
 # pattern rule for compiling codecs

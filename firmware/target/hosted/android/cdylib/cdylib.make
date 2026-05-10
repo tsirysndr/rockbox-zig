@@ -27,6 +27,7 @@ ANDROID_CDYLIB_LIBS := \
     $(FIRMLIB)               \
     $(RBCODECLIB)            \
     $(CORE_LIBS)             \
+    $(CODECLIB)              \
     $(CODECS)
 
 $(BUILDDIR)/$(BINARY): $(ANDROID_CDYLIB_LIBS)
