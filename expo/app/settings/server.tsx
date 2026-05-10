@@ -20,6 +20,7 @@ import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { RockboxClient, type DiscoveredService } from "@/lib/rockbox-client";
 import { restartDiscovery } from "@/lib/rockbox-streams";
 import {
+  isLocalDiscovery,
   manualServer,
   serverFromDiscovery,
   setSelectedServer,
@@ -44,7 +45,10 @@ export default function ServerPickerScreen() {
   // browser sometimes loses a flavor's `ServiceResolved` to a transient
   // network blip; if we filtered to grpc-only the user would just see an
   // empty list. Dedupe by host:port so we still get one row per machine.
-  const grpcServices = useMemo(() => dedupeByHost(discovered), [discovered]);
+  const grpcServices = useMemo(
+    () => dedupeByHost(discovered).filter((svc) => !isLocalDiscovery(svc)),
+    [discovered],
+  );
 
   // Soft "scanning" indicator — true for ~3 s after entering the screen, then
   // hides so users see a stable list. Discovery itself runs continuously.

@@ -148,13 +148,26 @@ export function coverUrl(albumArtId: string | null | undefined): string | null {
  * sharing the same hostname; we prefer the gRPC service for the primary URL
  * and merge the graphql port in when the matching event arrives.
  */
+/**
+ * True when a discovered service resolves to the device itself (embedded daemon).
+ * Used by the server-picker UI to hide the local entry from the "discovered"
+ * list, and by autoSelectFromDiscovery to force 127.0.0.1 as the host.
+ */
+export function isLocalDiscovery(svc: DiscoveredService): boolean {
+  const label = pretty(svc.hostname || "");
+  return label.toLowerCase() === "localhost";
+}
+
 export async function autoSelectFromDiscovery(
   svc: DiscoveredService,
 ): Promise<ServerSelection | null> {
   await hydrateSelectedServer();
 
-  const host = preferredHost(svc);
-  if (!host) return null;
+  const rawHost = preferredHost(svc);
+  if (!rawHost) return null;
+  // Embedded daemon advertises its LAN IP but its hostname resolves to
+  // "localhost" — always connect via loopback so the address is stable.
+  const host = isLocalDiscovery(svc) ? "127.0.0.1" : rawHost;
   const flavor = serviceFlavor(svc);
 
   // Already have a selection? Just merge in extra port info if it's the same host.

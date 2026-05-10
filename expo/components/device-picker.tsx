@@ -12,7 +12,7 @@ import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 
 import { Colors } from "@/constants/theme";
-import { useIsConnected } from "@/lib/connection";
+import { useIsConnected, useIsRemoteServer } from "@/lib/connection";
 import {
   useConnectDevice,
   useDisconnectDevice,
@@ -124,10 +124,12 @@ export function DevicePickerSheet({
   onClose: () => void;
 }) {
   const isConnected = useIsConnected();
+  const isRemote = useIsRemoteServer();
   const { data, isLoading } = useOutputDevices<DeviceItem[]>({
     enabled: isConnected && visible,
   });
   const list = (Array.isArray(data) ? data : []).filter((d: DeviceItem) => {
+    if (isRemote) return true;
     const svc = d.service?.toLowerCase() ?? "";
     return !svc.includes("snapcast") && !svc.includes("fifo");
   });
