@@ -40,17 +40,15 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             protobuf-compiler cmake ninja-build
 
-      - name: Set up Android SDK
-        run: echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-
-      - name: Install Android NDK r27
+      - name: Set up Android SDK and NDK
         run: |
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Add Android Rust targets
+        run: rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
 
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
