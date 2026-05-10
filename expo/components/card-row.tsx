@@ -92,13 +92,15 @@ export function CardRow({
             </View>
             <Text
               numberOfLines={1}
+              ellipsizeMode="tail"
               className={`text-text-primary text-sm font-semibold mt-2 font-sans ${round ? "text-center" : ""}`}
             >
               {item.title}
             </Text>
             {item.subtitle ? (
               <Text
-                numberOfLines={2}
+                numberOfLines={1}
+                ellipsizeMode="tail"
                 className={`text-text-secondary text-xs mt-0.5 font-sans ${round ? "text-center" : ""}`}
               >
                 {item.subtitle}

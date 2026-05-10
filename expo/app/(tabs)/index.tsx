@@ -112,7 +112,8 @@ export default function HomeScreen() {
                   iconSize={22}
                 />
                 <Text
-                  numberOfLines={2}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                   className="flex-1 text-text-primary text-[13px] font-semibold px-2.5 font-sans"
                 >
                   {p.name}

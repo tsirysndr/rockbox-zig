@@ -9441,6 +9441,7 @@ dependencies = [
  "rockbox-slim",
  "rockbox-sys",
  "rockbox-upnp",
+ "rockbox-webui",
  "serde",
  "serde_json",
  "tokio",

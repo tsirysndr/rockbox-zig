@@ -23,6 +23,7 @@ embedded-daemon = [
     "dep:rockbox-settings",
     "dep:rockbox-library",
     "dep:rockbox-sys",
+    "dep:rockbox-webui",
     "dep:rbnetstream",            # for the #[used] keepalives in daemon.rs
     # PCM sink crates — each provides a `_link_<name>()` fn that we call
     # from the keepalive so rustc keeps the rlib in the cdylib link.
@@ -56,6 +57,7 @@ rockbox-server   = { path = "../server",   optional = true, default-features = f
 rockbox-settings = { path = "../settings", optional = true, default-features = false }
 rockbox-library  = { path = "../library",  optional = true, default-features = false }
 rockbox-sys      = { path = "../sys",      optional = true, default-features = false }
+rockbox-webui    = { path = "../../webui", optional = true, default-features = false }
 # netstream's lib is named "rbnetstream"; we depend on it directly so the
 # #[used] keepalives in daemon.rs can take addresses of its C ABI exports.
 rbnetstream        = { path = "../netstream",   package = "netstream", optional = true }

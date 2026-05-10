@@ -1,0 +1,121 @@
+name: android-apk
+
+on:
+  workflow_dispatch:
+    inputs:
+      features:
+        description: "Cargo features for rockbox-expo cdylib (space-separated)"
+        default: "embedded-daemon"
+        required: false
+        type: string
+      architectures:
+        description: "React Native architectures to include in the APK"
+        default: "arm64-v8a"
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -A warnings
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            protobuf-compiler cmake ninja-build
+
+      - name: Set up Android SDK
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > expo/android/local.properties
+
+      - name: Install Android NDK r27
+        run: |
+          sdkmanager "ndk;27.2.12479018"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> $GITHUB_ENV
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: denoland/setup-deno@v2
+
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+          deno clean
+          rm -rf node_modules
+
+      - name: Cache Cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: android-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: android-cargo-
+
+      - name: Cache Cargo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: target/
+          key: android-target-${{ inputs.features }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            android-target-${{ inputs.features }}-
+            android-target-
+
+      - name: Install Expo dependencies
+        working-directory: expo
+        run: bun install --frozen-lockfile
+
+      - name: Build Rust cdylib (rockbox-expo)
+        env:
+          FEATURES: ${{ inputs.features }}
+          PROFILE: release
+        run: bash expo/modules/rockbox-rpc/scripts/build-android.sh
+
+      - name: Show built .so files
+        run: find expo/modules/rockbox-rpc/android/src/main/jniLibs -name '*.so' -exec ls -lh {} \;
+
+      - name: Build APK
+        working-directory: expo/android
+        run: |
+          ./gradlew assembleRelease \
+            -PreactNativeArchitectures=${{ inputs.architectures }} \
+            --no-daemon \
+            --stacktrace
+
+      - name: Show APK
+        run: |
+          find expo/android/app/build/outputs/apk -name '*.apk' -exec ls -lh {} \;
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockbox-android-apk-${{ github.run_number }}
+          path: expo/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+          if-no-files-found: error
