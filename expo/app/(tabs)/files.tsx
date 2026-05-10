@@ -361,20 +361,13 @@ function FileRow({
 function DeviceRow({
   entry,
   onPress,
-  onLongPress,
-  index,
-  currentDir,
 }: {
   entry: FileEntry;
-  index: number;
-  currentDir: string | null;
   onPress: (entry: FileEntry) => void;
-  onLongPress: (entry: FileEntry, index: number, dir: string | null) => void;
 }) {
   return (
     <Pressable
       onPress={() => onPress(entry)}
-      onLongPress={() => onLongPress(entry, index, currentDir)}
       className="flex-row items-center px-4 py-3 gap-3 active:bg-bg-card"
     >
       <View className="w-9 h-9 rounded-lg bg-bg-card items-center justify-center shrink-0">
@@ -386,12 +379,6 @@ function DeviceRow({
       >
         {entry.name}
       </Text>
-      <Pressable
-        hitSlop={8}
-        onPress={() => onLongPress(entry, index, currentDir)}
-      >
-        <Ionicons name="ellipsis-horizontal" size={18} color={Colors.textMuted} />
-      </Pressable>
     </Pressable>
   );
 }
@@ -590,10 +577,7 @@ export default function FilesScreen() {
             isUpnpMode && browse.mode === "upnp-devices" ? (
               <DeviceRow
                 entry={item}
-                index={index}
-                currentDir={browse.path}
                 onPress={handleNavigate}
-                onLongPress={openMenu}
               />
             ) : (
               <FileRow
