@@ -4938,7 +4938,7 @@ if [ "$app_type" = "sdl-sim" -o "$app_type" = "sdl-app" -o "$app_type" = "checkw
 fi
 
 if [ -z "$arch" ]; then
-    cpp_defines=$(echo "" | $CPP $GCCOPTS -dD)
+    cpp_defines=$(echo "" | $CPP $GCCOPTS -dD 2>/dev/null)
     if [ -n "$(echo $cpp_defines | grep -w __m68k__)" ]; then
         arch="m68k"
     elif [ -n "$(echo $cpp_defines | grep -w __arm__)" ]; then
