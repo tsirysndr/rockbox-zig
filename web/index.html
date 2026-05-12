@@ -114,6 +114,36 @@
       flex: 1;
       cursor: pointer;
     }
+
+    /* Settings panel */
+    #settings {
+      width: 100%;
+      max-width: 640px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    #settings h2 { font-size: .95rem; font-weight: 600; }
+    .settings-section { display: flex; flex-direction: column; gap: .6rem; }
+    .settings-section h3 { font-size: .8rem; color: #888; text-transform: uppercase; letter-spacing: .05em; }
+    .setting-row { display: flex; align-items: center; gap: .75rem; font-size: .85rem; }
+    .setting-row label { min-width: 130px; color: #aaa; }
+    .setting-row input[type=range] { flex: 1; }
+    .setting-row span.val { min-width: 3.5rem; text-align: right; color: #ccc; }
+    .eq-bands { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+    .eq-band { display: flex; flex-direction: column; align-items: center; gap: .25rem; font-size: .7rem; color: #888; }
+    .eq-band input[type=range] { writing-mode: vertical-lr; direction: rtl; width: 24px; height: 80px; cursor: pointer; }
+    .eq-band .eq-val { font-size: .72rem; color: #ccc; min-width: 3ch; text-align: center; }
+    .persist-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    #restore-banner {
+      background: #14532d; border: 1px solid #16a34a; color: #86efac;
+      border-radius: 8px; padding: .6rem 1rem; font-size: .85rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -164,6 +194,67 @@
 
 </div>
 
+<!-- Restore banner (shown when a saved playlist is found) -->
+<div id="restore-banner" style="display:none; width:100%; max-width:640px;">
+  <span id="restore-msg"></span>
+  <div style="display:flex;gap:.5rem;">
+    <button id="btn-restore-yes" class="primary">Resume</button>
+    <button id="btn-restore-no">Dismiss</button>
+  </div>
+</div>
+
+<!-- Settings panel -->
+<div id="settings">
+  <h2>Settings</h2>
+
+  <!-- Persist -->
+  <div class="persist-row">
+    <button id="btn-save-state" disabled>💾 Save state</button>
+    <span style="font-size:.75rem;color:#555;">Saves queue + settings to localStorage</span>
+  </div>
+
+  <!-- Equalizer -->
+  <div class="settings-section">
+    <h3>Equalizer</h3>
+    <div class="setting-row">
+      <label for="eq-enabled">Enable EQ</label>
+      <input id="eq-enabled" type="checkbox" disabled>
+    </div>
+    <div class="setting-row">
+      <label for="eq-precut">Pre-cut</label>
+      <input id="eq-precut" type="range" min="0" max="240" value="0" step="5" disabled>
+      <span id="eq-precut-val" class="val">0</span>
+    </div>
+    <div class="eq-bands" id="eq-bands">
+      <!-- 10 band sliders injected by JS -->
+    </div>
+  </div>
+
+  <!-- Replaygain -->
+  <div class="settings-section">
+    <h3>Replay Gain</h3>
+    <div class="setting-row">
+      <label for="rg-type">Mode</label>
+      <select id="rg-type" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+        <option value="0">Track</option>
+        <option value="1">Album</option>
+        <option value="2">Shuffle-aware</option>
+        <option value="3" selected>Off</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="rg-preamp">Pre-amp</label>
+      <input id="rg-preamp" type="range" min="-120" max="120" value="0" step="5" disabled>
+      <span id="rg-preamp-val" class="val">0.0 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="rg-noclip">Prevent clipping</label>
+      <input id="rg-noclip" type="checkbox" disabled>
+    </div>
+  </div>
+
+</div>
+
 <script type="module">
 import { RockboxPlayer } from './rockbox.js';
 
@@ -181,6 +272,26 @@ function setEnabled(...ids) {
   for (const id of ids) $(id).disabled = false;
 }
 
+// ── EQ band sliders ───────────────────────────────────────────────────────────
+
+const EQ_BAND_LABELS = ['60Hz','200Hz','500Hz','1kHz','2kHz','4kHz','7kHz','10kHz','14kHz','20kHz'];
+
+function buildEqBands() {
+  const container = $('eq-bands');
+  EQ_BAND_LABELS.forEach((label, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'eq-band';
+    wrap.innerHTML = `
+      <span>${label}</span>
+      <input id="eq-band-${i}" type="range" min="-24" max="24" value="0" step="1" disabled
+             title="Band ${i}: ${label}">
+      <span id="eq-band-val-${i}" class="eq-val">0</span>
+    `;
+    container.appendChild(wrap);
+  });
+}
+buildEqBands();
+
 // ── Player setup ─────────────────────────────────────────────────────────────
 
 const player = new RockboxPlayer({ wasmUrl: 'rockboxd.js' });
@@ -188,8 +299,8 @@ const player = new RockboxPlayer({ wasmUrl: 'rockboxd.js' });
 log('Loading WASM module…');
 try {
   await player.init(
-    '/config',  // config dir (MEMFS path used as HOME inside WASM)
-    '/music',   // music dir  (not used at runtime for URL-based playback)
+    '/config',
+    '/music',
   );
   log('Rockbox engine running.');
 } catch (err) {
@@ -202,9 +313,8 @@ setInterval(() => {
   const mod = player._mod;
   if (!mod) return;
   try {
-    const wiPtr  = player._wiPtr;
-    const wi     = wiPtr ? new Int32Array(player._wasmMemory, wiPtr, 1)[0] : '?';
-    const ctx    = player._audioCtx;
+    const wi  = player._wiPtr ? new Int32Array(player._wasmMemory, player._wiPtr, 1)[0] : '?';
+    const ctx = player._audioCtx;
     console.log('[Rockbox debug] ring.wi=' + wi +
                 ' audioCtx=' + (ctx ? ctx.state : 'none'));
   } catch(e) { console.warn('[Rockbox debug] error:', e); }
@@ -215,7 +325,64 @@ setEnabled(
   'btn-play-url', 'btn-enqueue',
   'btn-prev', 'btn-play', 'btn-pause', 'btn-next', 'btn-stop',
   'btn-shuffle', 'btn-clear', 'vol-slider',
+  'btn-save-state',
+  'eq-enabled', 'eq-precut',
+  'rg-type', 'rg-preamp', 'rg-noclip',
 );
+EQ_BAND_LABELS.forEach((_, i) => setEnabled(`eq-band-${i}`));
+
+// ── Restore persisted state ───────────────────────────────────────────────────
+
+const resumeInfo = player.restoreState();
+if (resumeInfo && resumeInfo.resumeElapsed > 0) {
+  const mins = Math.floor(resumeInfo.resumeElapsed / 60000);
+  const secs = Math.floor((resumeInfo.resumeElapsed % 60000) / 1000);
+  $('restore-msg').textContent =
+    `Saved queue restored. Resume from ${mins}:${secs.toString().padStart(2,'0')}?`;
+  $('restore-banner').style.display = 'flex';
+  $('btn-restore-yes').addEventListener('click', async () => {
+    await player.resumeAudio();
+    player.jumpTo(resumeInfo.resumeIndex);
+    setTimeout(() => player.seek(resumeInfo.resumeElapsed), 400);
+    player.play();
+    $('restore-banner').style.display = 'none';
+    log('▶ Resumed from saved position.');
+  });
+  $('btn-restore-no').addEventListener('click', () => {
+    $('restore-banner').style.display = 'none';
+  });
+} else if (resumeInfo) {
+  // Queue restored but no meaningful elapsed position — just show log.
+  log('Playlist restored from saved state.');
+}
+
+// ── Load current settings into UI ────────────────────────────────────────────
+
+function syncSettingsUi() {
+  const s = player.getSettings();
+  if (!s) return;
+
+  if (s.eq) {
+    $('eq-enabled').checked = !!s.eq.enabled;
+    $('eq-precut').value    = s.eq.precut ?? 0;
+    $('eq-precut-val').textContent = (s.eq.precut ?? 0) / 10 + ' dB';
+    (s.eq.bands ?? []).forEach((b, i) => {
+      const el = $(`eq-band-${i}`);
+      if (el && b != null) {
+        el.value = b.gain;
+        $(`eq-band-val-${i}`).textContent = (b.gain >= 0 ? '+' : '') + b.gain;
+      }
+    });
+  }
+
+  if (s.replaygain) {
+    $('rg-type').value       = s.replaygain.type  ?? 3;
+    $('rg-preamp').value     = s.replaygain.preamp ?? 0;
+    $('rg-preamp-val').textContent = ((s.replaygain.preamp ?? 0) / 10).toFixed(1) + ' dB';
+    $('rg-noclip').checked   = !!s.replaygain.noclip;
+  }
+}
+syncSettingsUi();
 
 // ── Transport bindings ────────────────────────────────────────────────────────
 
@@ -242,8 +409,7 @@ $('btn-stop').addEventListener('click',    () => player.stop());
 $('btn-shuffle').addEventListener('click', () => player.shuffleQueue());
 $('btn-clear').addEventListener('click',   () => player.clearQueue());
 
-// Volume: the slider value maps to steps from the current volume.
-// We track the last committed value and send delta steps.
+// Volume: track last committed value and send delta steps.
 let lastVol = 0;
 $('vol-slider').addEventListener('input', (e) => {
   const next  = parseInt(e.target.value, 10);
@@ -252,6 +418,62 @@ $('vol-slider').addEventListener('input', (e) => {
   $('vol-label').textContent = `${next} dB`;
   player.adjustVolume(steps);
 });
+
+// ── Settings bindings ─────────────────────────────────────────────────────────
+
+$('eq-enabled').addEventListener('change', (e) => {
+  player.setEqEnabled(e.target.checked);
+});
+
+$('eq-precut').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('eq-precut-val').textContent = (v / 10).toFixed(1) + ' dB';
+  player.setEqPrecut(v);
+});
+
+EQ_BAND_LABELS.forEach((_, i) => {
+  $(`eq-band-${i}`).addEventListener('input', (e) => {
+    const gain = parseInt(e.target.value, 10);
+    $(`eq-band-val-${i}`).textContent = (gain >= 0 ? '+' : '') + gain;
+    // q=70 is Rockbox's default Q factor (7.0 × 10)
+    const defaultCutoffs = [60,200,500,1000,2000,4000,7000,10000,14000,20000];
+    player.setEqBand(i, defaultCutoffs[i], 70, gain);
+  });
+});
+
+$('rg-type').addEventListener('change', (e) => {
+  player.setReplaygain({
+    type:   parseInt(e.target.value, 10),
+    preamp: parseInt($('rg-preamp').value, 10),
+    noclip: $('rg-noclip').checked,
+  });
+});
+
+$('rg-preamp').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('rg-preamp-val').textContent = (v / 10).toFixed(1) + ' dB';
+  player.setReplaygain({
+    type:   parseInt($('rg-type').value, 10),
+    preamp: v,
+    noclip: $('rg-noclip').checked,
+  });
+});
+
+$('rg-noclip').addEventListener('change', () => {
+  player.setReplaygain({
+    type:   parseInt($('rg-type').value, 10),
+    preamp: parseInt($('rg-preamp').value, 10),
+    noclip: $('rg-noclip').checked,
+  });
+});
+
+$('btn-save-state').addEventListener('click', () => {
+  player.persistState();
+  log('State saved.');
+});
+
+// Auto-persist when user navigates away.
+window.addEventListener('beforeunload', () => player.persistState());
 
 // ── Status polling ────────────────────────────────────────────────────────────
 
@@ -262,19 +484,15 @@ function poll() {
   const track      = player.currentTrack() ?? {};
   const queue      = player.playlist()     ?? {};
 
-  // Status pill
   const pill = $('status-pill');
-  pill.textContent  = STATE_LABEL[status] ?? 'unknown';
+  pill.textContent   = STATE_LABEL[status] ?? 'unknown';
   pill.dataset.state = STATE_LABEL[status] ?? '';
 
-  // Track info
   $('track-title').textContent  = track.title  || (status ? '(unknown title)' : '—');
   $('track-artist').textContent = [track.artist, track.album].filter(Boolean).join(' · ');
 
-  // Queue info
   if (queue.amount > 0) {
-    $('queue-info').textContent =
-      `track ${queue.index ?? 1} / ${queue.amount}`;
+    $('queue-info').textContent = `track ${queue.index ?? 1} / ${queue.amount}`;
   } else {
     $('queue-info').textContent = '';
   }

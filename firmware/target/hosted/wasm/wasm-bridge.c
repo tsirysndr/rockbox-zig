@@ -25,6 +25,9 @@
 #include "rtc.h"
 #include "kernel.h"
 #include "thread.h"
+#include "settings.h"
+#include "eq.h"
+#include "dsp_misc.h"
 
 /* Escape a string for JSON: replace " → \" and \ → \\. */
 static void json_escape(char *dst, size_t dsz, const char *src)
@@ -59,10 +62,81 @@ static void json_escape(char *dst, size_t dsz, const char *src)
 
 #define TRACK_JSON_BUFSZ    1200
 #define PLAYLIST_JSON_BUFSZ   64
+#define SETTINGS_JSON_BUFSZ 1600
 
-static char            s_track_json[TRACK_JSON_BUFSZ]    = "{\"error\":\"not ready\"}";
-static char            s_playlist_json[PLAYLIST_JSON_BUFSZ] = "{\"index\":0,\"amount\":0}";
+static char            s_track_json[TRACK_JSON_BUFSZ]       = "{\"error\":\"not ready\"}";
+static char            s_playlist_json[PLAYLIST_JSON_BUFSZ]  = "{\"index\":0,\"amount\":0}";
+static char            s_settings_json[SETTINGS_JSON_BUFSZ]  = "{}";
+static char           *s_playlist_state_json                 = NULL; /* dynamic: URLs + resume info */
 static pthread_mutex_t s_info_mtx = PTHREAD_MUTEX_INITIALIZER;
+
+/* Build settings JSON into buf (must be SETTINGS_JSON_BUFSZ bytes). */
+static void build_settings_json(char *buf, size_t sz)
+{
+    int n = snprintf(buf, sz,
+        "{\"eq\":{\"enabled\":%s,\"precut\":%u,\"bands\":[",
+        global_settings.eq_enabled ? "true" : "false",
+        global_settings.eq_precut);
+
+    for (int i = 0; i < EQ_NUM_BANDS && n < (int)sz - 2; i++) {
+        n += snprintf(buf + n, sz - n,
+            "%s{\"cutoff\":%d,\"q\":%d,\"gain\":%d}",
+            i > 0 ? "," : "",
+            global_settings.eq_band_settings[i].cutoff,
+            global_settings.eq_band_settings[i].q,
+            global_settings.eq_band_settings[i].gain);
+    }
+    n += snprintf(buf + n, sz - n, "]}");
+
+#ifdef HAVE_CROSSFADE
+    n += snprintf(buf + n, sz - n,
+        ",\"crossfade\":{\"mode\":%d,\"fade_in_delay\":%d,\"fade_out_delay\":%d,"
+        "\"fade_in_duration\":%d,\"fade_out_duration\":%d,\"mixmode\":%d}",
+        global_settings.crossfade,
+        global_settings.crossfade_fade_in_delay,
+        global_settings.crossfade_fade_out_delay,
+        global_settings.crossfade_fade_in_duration,
+        global_settings.crossfade_fade_out_duration,
+        global_settings.crossfade_fade_out_mixmode);
+#endif
+
+    snprintf(buf + n, sz - n,
+        ",\"replaygain\":{\"noclip\":%s,\"type\":%d,\"preamp\":%d}}",
+        global_settings.replaygain_settings.noclip ? "true" : "false",
+        global_settings.replaygain_settings.type,
+        global_settings.replaygain_settings.preamp);
+}
+
+/* Build a JSON object containing every URL in the current playlist plus the
+ * resume position.  Returns a malloc'd string; caller must free(). */
+static char *build_playlist_state_json(unsigned long elapsed)
+{
+    struct playlist_info *pl = playlist_get_current();
+    int amount = playlist_amount();
+    int display_idx = playlist_get_display_index();
+    int idx_0based  = (display_idx > 0) ? (display_idx - 1) : 0;
+
+    /* Generous upper bound: header + per-track (escaped URL ≤ 2*MAX_PATH) */
+    size_t per_track = (size_t)MAX_PATH * 2 + 8;
+    size_t total     = 96 + (size_t)amount * per_track + 8;
+    char  *buf       = malloc(total);
+    if (!buf) return NULL;
+
+    int n = snprintf(buf, total,
+        "{\"index\":%d,\"elapsed\":%lu,\"amount\":%d,\"urls\":[",
+        idx_0based, elapsed, amount);
+
+    for (int i = 0; i < amount && n < (int)total - 4; i++) {
+        struct playlist_track_info info;
+        if (playlist_get_track_info(pl, i, &info) < 0) continue;
+        char escaped[MAX_PATH * 2 + 4];
+        json_escape(escaped, sizeof(escaped), info.filename);
+        n += snprintf(buf + n, total - n,
+            "%s\"%s\"", i > 0 ? "," : "", escaped);
+    }
+    snprintf(buf + n, total - n, "]}");
+    return buf;
+}
 
 /* Called only from rb_wasm_cmd_thread — a proper Rockbox kernel thread that
  * may safely acquire id3_mutex via the cooperative scheduler. */
@@ -70,10 +144,12 @@ static void rb_wasm_refresh_cache(void)
 {
     /* ── track ── */
     char track_buf[TRACK_JSON_BUFSZ];
+    unsigned long elapsed = 0;
     struct mp3entry *e = audio_current_track();
     if (!e) {
         snprintf(track_buf, sizeof(track_buf), "{\"error\":\"no track\"}");
     } else {
+        elapsed = (unsigned long)e->elapsed;
         char title[256]  = "";
         char artist[256] = "";
         char album[256]  = "";
@@ -86,20 +162,29 @@ static void rb_wasm_refresh_cache(void)
             "{\"title\":\"%s\",\"artist\":\"%s\",\"album\":\"%s\","
             "\"path\":\"%s\",\"duration_ms\":%lu,\"elapsed_ms\":%lu}",
             title, artist, album, path,
-            (unsigned long)e->length,
-            (unsigned long)e->elapsed);
+            (unsigned long)e->length, elapsed);
     }
 
-    /* ── playlist ── */
+    /* ── playlist (compact) ── */
     char playlist_buf[PLAYLIST_JSON_BUFSZ];
     snprintf(playlist_buf, sizeof(playlist_buf),
              "{\"index\":%d,\"amount\":%d}",
              playlist_get_display_index(), playlist_amount());
 
+    /* ── settings ── */
+    char settings_buf[SETTINGS_JSON_BUFSZ];
+    build_settings_json(settings_buf, sizeof(settings_buf));
+
+    /* ── playlist state (full URLs + resume info; dynamic alloc) ── */
+    char *new_playlist_state = build_playlist_state_json(elapsed);
+
     /* ── atomic store ── */
     pthread_mutex_lock(&s_info_mtx);
     memcpy(s_track_json,    track_buf,    sizeof(track_buf));
     memcpy(s_playlist_json, playlist_buf, sizeof(playlist_buf));
+    memcpy(s_settings_json, settings_buf, sizeof(settings_buf));
+    free(s_playlist_state_json);
+    s_playlist_state_json = new_playlist_state;
     pthread_mutex_unlock(&s_info_mtx);
 }
 
@@ -129,6 +214,35 @@ char *rb_wasm_playlist_json(void)
     }
     char *r = malloc(strlen(s_playlist_json) + 1);
     if (r) strcpy(r, s_playlist_json);
+    pthread_mutex_unlock(&s_info_mtx);
+    return r;
+}
+
+char *rb_wasm_settings_json(void)
+{
+    if (pthread_mutex_trylock(&s_info_mtx) != 0) {
+        char *r = malloc(4);
+        if (r) strcpy(r, "{}");
+        return r;
+    }
+    char *r = malloc(strlen(s_settings_json) + 1);
+    if (r) strcpy(r, s_settings_json);
+    pthread_mutex_unlock(&s_info_mtx);
+    return r;
+}
+
+char *rb_wasm_playlist_state_json(void)
+{
+    static const char *fallback =
+        "{\"urls\":[],\"index\":0,\"elapsed\":0,\"amount\":0}";
+    if (pthread_mutex_trylock(&s_info_mtx) != 0) {
+        char *r = malloc(strlen(fallback) + 1);
+        if (r) strcpy(r, fallback);
+        return r;
+    }
+    const char *src = s_playlist_state_json ? s_playlist_state_json : fallback;
+    char *r = malloc(strlen(src) + 1);
+    if (r) strcpy(r, src);
     pthread_mutex_unlock(&s_info_mtx);
     return r;
 }
@@ -175,17 +289,30 @@ static volatile int rb_firmware_ready_flag = 0;
  * Emscripten main thread.
  */
 
-#define WASM_CMD_NEXT        0L
-#define WASM_CMD_PREV        1L
-#define WASM_CMD_PAUSE       2L
-#define WASM_CMD_RESUME      3L
-#define WASM_CMD_STOP        4L
-#define WASM_CMD_SEEK        5L
-#define WASM_CMD_PLAY_AT     6L  /* data = playlist index */
-#define WASM_CMD_PLAY_URL    7L  /* data = malloc'd NUL-terminated URL; thread must free */
-#define WASM_CMD_ENQUEUE_URL 8L  /* data = malloc'd NUL-terminated URL; thread must free */
-#define WASM_CMD_CLEAR_QUEUE 9L
-#define WASM_CMD_SHUFFLE     10L
+#define WASM_CMD_NEXT            0L
+#define WASM_CMD_PREV            1L
+#define WASM_CMD_PAUSE           2L
+#define WASM_CMD_RESUME          3L
+#define WASM_CMD_STOP            4L
+#define WASM_CMD_SEEK            5L
+#define WASM_CMD_PLAY_AT         6L  /* data = playlist index (0-based) */
+#define WASM_CMD_PLAY_URL        7L  /* data = malloc'd NUL-terminated URL; thread frees */
+#define WASM_CMD_ENQUEUE_URL     8L  /* data = malloc'd NUL-terminated URL; thread frees */
+#define WASM_CMD_CLEAR_QUEUE     9L
+#define WASM_CMD_SHUFFLE         10L
+#define WASM_CMD_SET_EQ_ENABLED  11L /* data = 0 or 1 */
+#define WASM_CMD_SET_EQ_PRECUT   12L /* data = precut value (0..240) */
+#define WASM_CMD_SET_EQ_BAND     13L /* data = malloc'd wasm_eq_band_cmd_t*; thread frees */
+#define WASM_CMD_SET_CROSSFADE   14L /* data = malloc'd wasm_crossfade_cmd_t*; thread frees */
+#define WASM_CMD_SET_REPLAYGAIN  15L /* data = malloc'd wasm_replaygain_cmd_t*; thread frees */
+#define WASM_CMD_SAVE_SETTINGS   16L /* calls settings_save() */
+
+/* Payload structs for complex settings commands. */
+typedef struct { int band; int cutoff; int q; int gain; } wasm_eq_band_cmd_t;
+typedef struct {
+    int mode; int fi_delay; int fo_delay; int fi_dur; int fo_dur; int mixmode;
+} wasm_crossfade_cmd_t;
+typedef struct { int noclip; int type; int preamp; } wasm_replaygain_cmd_t;
 
 static struct event_queue rb_wasm_cmd_q;
 static long               rb_wasm_cmd_stack[8192 / sizeof(long)];
@@ -226,6 +353,68 @@ static void rb_wasm_cmd_thread(void)
                 break;
             case WASM_CMD_SHUFFLE:
                 playlist_shuffle(0, 0);
+                break;
+            case WASM_CMD_SET_EQ_ENABLED: {
+                bool en = (bool)(int)ev.data;
+                global_settings.eq_enabled = en;
+                dsp_eq_enable(en);
+                settings_save();
+                break;
+            }
+            case WASM_CMD_SET_EQ_PRECUT: {
+                unsigned int precut = (unsigned int)(int)ev.data;
+                global_settings.eq_precut = precut;
+                dsp_set_eq_precut(precut);
+                settings_save();
+                break;
+            }
+            case WASM_CMD_SET_EQ_BAND: {
+                wasm_eq_band_cmd_t *cmd =
+                    (wasm_eq_band_cmd_t *)(uintptr_t)ev.data;
+                if (cmd && cmd->band >= 0 && cmd->band < EQ_NUM_BANDS) {
+                    global_settings.eq_band_settings[cmd->band].cutoff = cmd->cutoff;
+                    global_settings.eq_band_settings[cmd->band].q      = cmd->q;
+                    global_settings.eq_band_settings[cmd->band].gain   = cmd->gain;
+                    dsp_set_eq_coefs(cmd->band,
+                        &global_settings.eq_band_settings[cmd->band]);
+                }
+                free(cmd);
+                settings_save();
+                break;
+            }
+            case WASM_CMD_SET_CROSSFADE: {
+                wasm_crossfade_cmd_t *cmd =
+                    (wasm_crossfade_cmd_t *)(uintptr_t)ev.data;
+#ifdef HAVE_CROSSFADE
+                if (cmd) {
+                    global_settings.crossfade                   = cmd->mode;
+                    global_settings.crossfade_fade_in_delay     = cmd->fi_delay;
+                    global_settings.crossfade_fade_out_delay    = cmd->fo_delay;
+                    global_settings.crossfade_fade_in_duration  = cmd->fi_dur;
+                    global_settings.crossfade_fade_out_duration = cmd->fo_dur;
+                    global_settings.crossfade_fade_out_mixmode  = cmd->mixmode;
+                }
+#endif
+                free(cmd);
+                settings_save();
+                break;
+            }
+            case WASM_CMD_SET_REPLAYGAIN: {
+                wasm_replaygain_cmd_t *cmd =
+                    (wasm_replaygain_cmd_t *)(uintptr_t)ev.data;
+                if (cmd) {
+                    global_settings.replaygain_settings.noclip = (bool)cmd->noclip;
+                    global_settings.replaygain_settings.type   = cmd->type;
+                    global_settings.replaygain_settings.preamp = cmd->preamp;
+                    dsp_replaygain_set_settings(
+                        &global_settings.replaygain_settings);
+                }
+                free(cmd);
+                settings_save();
+                break;
+            }
+            case WASM_CMD_SAVE_SETTINGS:
+                settings_save();
                 break;
             }
         }

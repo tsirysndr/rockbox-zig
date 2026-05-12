@@ -30,6 +30,16 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
           echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
 
+      - uses: denoland/setup-deno@v2
+
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+          deno clean
+          rm -rf node_modules
+
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Add Android Rust target

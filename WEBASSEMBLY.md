@@ -169,6 +169,24 @@ player.soundCurrent(0);     // read SOUND_VOLUME (returns integer)
 player.status();            // → { status: 0|1|2 }  0=stopped 1=playing 2=paused
 player.currentTrack();      // → { title, artist, album, path, duration_ms, elapsed_ms }
 player.playlist();          // → { index, amount }
+
+// Settings — synchronous reads
+player.getSettings();       // → { eq, crossfade?, replaygain }
+player.getPlaylistState();  // → { urls, index, elapsed, amount }
+
+// Settings — writes (routed through the wasm_cmd thread; apply immediately + persist)
+player.setEqEnabled(true);
+player.setEqPrecut(0);                        // 0–240 (tenths of dB)
+player.setEqBand(band, cutoff, q, gain);      // band 0–9
+player.setCrossfade(mode, { fadeInDelay, fadeOutDelay, fadeInDuration,
+                             fadeOutDuration, mixmode });
+player.setReplaygain({ noclip, type, preamp });
+player.saveSettings();                        // explicit flush (normally auto-called)
+
+// Persistence — localStorage helpers
+player.persistState();      // save settings + full playlist to localStorage
+player.restoreState();      // → { resumeIndex, resumeElapsed } | null
+                            //   re-enqueues saved URLs; call play() afterwards
 ```
 
 ---
@@ -197,9 +215,17 @@ them; use these only if you're integrating without the JS helper.
 | `rb_jump_to_queue_position`       | `(index) → i32`                     | 0-based                                     |
 | `rb_adjust_volume`                | `(steps) → i32`                     | ±1 per hardware step                        |
 | `rb_sound_current`                | `(setting) → i32`                   | 0 = SOUND_VOLUME                            |
-| `rb_status_json`                  | `() → *char`                        | `{"status":0\|1\|2}` — free with `rb_free_string` |
-| `rb_current_track_json`           | `() → *char`                        | Track metadata JSON — free with `rb_free_string`  |
-| `rb_playlist_json`                | `() → *char`                        | `{"index":n,"amount":n}` — free with `rb_free_string` |
+| `rb_status_json`                  | `() → *char`                        | `{"status":0\|1\|2}` — free with `rb_free_string`                   |
+| `rb_current_track_json`           | `() → *char`                        | Track metadata JSON — free with `rb_free_string`                     |
+| `rb_playlist_json`                | `() → *char`                        | `{"index":n,"amount":n}` — free with `rb_free_string`                |
+| `rb_settings_json`                | `() → *char`                        | EQ + crossfade + replaygain JSON — free with `rb_free_string`        |
+| `rb_playlist_state_json`          | `() → *char`                        | `{"urls":[…],"index":n,"elapsed":n,"amount":n}` — free with `rb_free_string` |
+| `rb_set_eq_enabled`               | `(enabled) → i32`                   | 0=off, 1=on; persists                                                |
+| `rb_set_eq_precut`                | `(precut) → i32`                    | 0–240 (tenths of dB); persists                                       |
+| `rb_set_eq_band`                  | `(band, cutoff, q, gain) → i32`     | band 0–9; persists                                                   |
+| `rb_set_crossfade`                | `(mode,fi_delay,fo_delay,fi_dur,fo_dur,mixmode) → i32` | persists         |
+| `rb_set_replaygain`               | `(noclip, type, preamp) → i32`      | persists                                                             |
+| `rb_save_settings`                | `() → i32`                          | Explicit flush (called automatically by every set_* command)         |
 
 String arguments (`url`, `configDir`, `musicDir`) must be WASM heap pointers
 to NUL-terminated UTF-8. Use `Module.stringToUTF8` / `Module._malloc` /
@@ -244,7 +270,7 @@ ADX, MOD, MPC, RA-AAC, MP2, VOX, WAV64, SMAF.
 | `firmware/export/config/wasmapp.h`                      | Per-target config header (PLATFORM_WASM, no SDL, BINFMT_STATIC) |
 | `firmware/target/hosted/wasm/system-wasm.c`             | System init — boot marker, `EM_ASM` log redirect  |
 | `firmware/target/hosted/wasm/pcm-webapi.c`              | PCM sink — writer pthread → `EM_JS` → `Module.onPcmData` |
-| `firmware/target/hosted/wasm/wasm-bridge.c`             | C-level JSON helpers for track/playlist/status    |
+| `firmware/target/hosted/wasm/wasm-bridge.c`             | Command dispatcher (`wasm_cmd` thread + `queue_post` API); track/playlist/settings/playlist-state JSON cache; HTTP netstream layer |
 | `firmware/target/hosted/wasm/debug-wasm.c`              | `debugf()` → `emscripten_log(EM_LOG_CONSOLE)`     |
 | `firmware/target/hosted/wasm/kernel-wasm.c`             | Kernel tick + timers (nanosleep-based, no timer_create) |
 | `firmware/target/hosted/wasm/lc-wasm.c`                 | Static codec table loader (mirrors `lc-android.c`) |
@@ -256,8 +282,8 @@ ADX, MOD, MPC, RA-AAC, MP2, VOX, WAV64, SMAF.
 | `firmware/target/hosted/wasm/SOURCES`                   | Lists all WASM-target `.c` files for Make         |
 | `firmware/target/hosted/wasm/wasm.make`                 | Make glue — included by `tools/root.make` for `wasm_app` |
 | `crates/wasm/Cargo.toml`                                | `staticlib` crate; no tokio, no gRPC              |
-| `crates/wasm/src/lib.rs`                                | All `rb_*` Rust exports; firmware FFI with kernel lock |
-| `web/rockbox.js`                                        | `RockboxPlayer` JS class (WASM loader + AudioWorklet wiring) |
+| `crates/wasm/src/lib.rs`                                | All `rb_*` Rust exports; routes all firmware calls through `wasm_cmd` thread; settings + playlist-state exports |
+| `web/rockbox.js`                                        | `RockboxPlayer` JS class — playback, settings get/set, `persistState` / `restoreState` localStorage helpers |
 | `web/rockbox-audio-worklet.js`                          | `RockboxProcessor` — ring buffer consumer         |
 | `scripts/build-wasm.sh`                                 | Full WASM build pipeline                          |
 | `scripts/wasm-dev-server.mjs`                           | Dev HTTP server with COOP/COEP headers            |
@@ -296,12 +322,25 @@ into the `.wasm` binary using the same `BINFMT_STATIC` mechanism as the Android
 cdylib build. Per-codec `__header_*` symbols are renamed with `llvm-objcopy
 --redefine-sym` to keep them distinct at link time.
 
-### Kernel lock serialisation
+### Command-thread serialisation
 
-Every firmware FFI call in `crates/wasm/src/lib.rs` is wrapped in `with_lock`
-(`rb_kernel_lock` / `rb_kernel_unlock`) to serialise JS-driven calls against
-the firmware's internal threads. This is the same pattern as the Android
-`fw_bus` but simpler because WASM has no actix worker pool.
+Rockbox's cooperative scheduler tracks the "current thread" via a global
+`__cores[0].running` pointer (not TLS).  Any firmware function that acquires a
+blocking mutex (`id3_mutex`, `playlist->mutex`) internally calls
+`switch_thread()`, which reads that global.  The Emscripten main JS thread is
+not a registered Rockbox kernel thread, so calling such functions from it
+corrupts the scheduler and produces "memory access out of bounds" traps.
+
+Fix: a dedicated Rockbox kernel thread (`wasm_cmd`) receives all
+mutex-acquiring commands via `queue_post()` — a spinlock + condvar operation
+that is safe to call from any OS thread — and executes them from a valid
+Rockbox context.  Covered operations include audio transport, playlist mutation,
+DSP setting changes (`dsp_eq_enable`, `dsp_set_eq_coefs`,
+`dsp_replaygain_set_settings`), and `settings_save()`.
+
+The main JS thread only calls `queue_post` and reads from a
+`pthread_mutex_trylock`-protected cache.  `pthread_mutex_trylock` never blocks;
+reads return immediately (possibly stale by ≤100 ms).
 
 ### `sink_set_freq` receives an INDEX, not Hz
 

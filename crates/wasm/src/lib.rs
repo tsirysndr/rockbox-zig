@@ -40,20 +40,57 @@ extern "C" {
     fn rb_wasm_current_track_json() -> *mut c_char;
     fn rb_wasm_playlist_json() -> *mut c_char;
     fn rb_wasm_audio_status() -> c_int;
+    fn rb_wasm_settings_json() -> *mut c_char;
+    fn rb_wasm_playlist_state_json() -> *mut c_char;
 }
 
-// Command IDs — must match WASM_CMD_* in wasm-bridge.c
-const WASM_CMD_NEXT: c_long = 0;
-const WASM_CMD_PREV: c_long = 1;
-const WASM_CMD_PAUSE: c_long = 2;
-const WASM_CMD_RESUME: c_long = 3;
-const WASM_CMD_STOP: c_long = 4;
-const WASM_CMD_SEEK: c_long = 5;
-const WASM_CMD_PLAY_AT: c_long = 6;
-const WASM_CMD_PLAY_URL: c_long = 7;
-const WASM_CMD_ENQUEUE_URL: c_long = 8;
-const WASM_CMD_CLEAR_QUEUE: c_long = 9;
-const WASM_CMD_SHUFFLE: c_long = 10;
+// ── Command IDs — must match WASM_CMD_* in wasm-bridge.c ─────────────────────
+
+const WASM_CMD_NEXT:           c_long = 0;
+const WASM_CMD_PREV:           c_long = 1;
+const WASM_CMD_PAUSE:          c_long = 2;
+const WASM_CMD_RESUME:         c_long = 3;
+const WASM_CMD_STOP:           c_long = 4;
+const WASM_CMD_SEEK:           c_long = 5;
+const WASM_CMD_PLAY_AT:        c_long = 6;
+const WASM_CMD_PLAY_URL:       c_long = 7;
+const WASM_CMD_ENQUEUE_URL:    c_long = 8;
+const WASM_CMD_CLEAR_QUEUE:    c_long = 9;
+const WASM_CMD_SHUFFLE:        c_long = 10;
+const WASM_CMD_SET_EQ_ENABLED: c_long = 11;
+const WASM_CMD_SET_EQ_PRECUT:  c_long = 12;
+const WASM_CMD_SET_EQ_BAND:    c_long = 13;
+const WASM_CMD_SET_CROSSFADE:  c_long = 14;
+const WASM_CMD_SET_REPLAYGAIN: c_long = 15;
+const WASM_CMD_SAVE_SETTINGS:  c_long = 16;
+
+// ── Payload structs for complex settings commands ─────────────────────────────
+// Layouts must match the C typedefs in wasm-bridge.c.
+
+#[repr(C)]
+struct WasmEqBandCmd {
+    band:   c_int,
+    cutoff: c_int,
+    q:      c_int,
+    gain:   c_int,
+}
+
+#[repr(C)]
+struct WasmCrossfadeCmd {
+    mode:     c_int,
+    fi_delay: c_int,
+    fo_delay: c_int,
+    fi_dur:   c_int,
+    fo_dur:   c_int,
+    mixmode:  c_int,
+}
+
+#[repr(C)]
+struct WasmReplaygainCmd {
+    noclip: c_int,
+    type_:  c_int,
+    preamp: c_int,
+}
 
 // ── Daemon state ──────────────────────────────────────────────────────────────
 
@@ -322,4 +359,92 @@ pub extern "C" fn rb_current_track_json() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rb_playlist_json() -> *mut c_char {
     unsafe { rb_wasm_playlist_json() }
+}
+
+// ── Settings (JSON read + command-thread writes) ──────────────────────────────
+
+/// Returns current settings as JSON.
+/// Shape: `{eq: {enabled, precut, bands: [{cutoff,q,gain}×10]},
+///          crossfade?: {...}, replaygain: {noclip, type, preamp}}`.
+/// Caller must free with `rb_free_string`.
+#[no_mangle]
+pub extern "C" fn rb_settings_json() -> *mut c_char {
+    unsafe { rb_wasm_settings_json() }
+}
+
+/// Returns the full playlist state as JSON — every queued URL plus resume info.
+/// Shape: `{urls: [string], index: number, elapsed: number, amount: number}`.
+/// Use this to persist the queue across page reloads (store to localStorage /
+/// IndexedDB, then restore via `rb_enqueue_url` + `rb_jump_to_queue_position`
+/// + `rb_seek`).
+/// Caller must free with `rb_free_string`.
+#[no_mangle]
+pub extern "C" fn rb_playlist_state_json() -> *mut c_char {
+    unsafe { rb_wasm_playlist_state_json() }
+}
+
+/// Enable or disable the equalizer.  `enabled` = 0 (off) or 1 (on).
+/// Applies immediately and persists to the Rockbox config file.
+#[no_mangle]
+pub extern "C" fn rb_set_eq_enabled(enabled: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_EQ_ENABLED, enabled as isize) };
+    0
+}
+
+/// Set the EQ pre-cut (0–240, in tenths of a dB).
+/// Applies immediately and persists.
+#[no_mangle]
+pub extern "C" fn rb_set_eq_precut(precut: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_EQ_PRECUT, precut as isize) };
+    0
+}
+
+/// Set one EQ band (`band` 0–9, `cutoff` in Hz, `q` Q-factor, `gain` in dB).
+/// Applies immediately and persists.
+#[no_mangle]
+pub extern "C" fn rb_set_eq_band(band: c_int, cutoff: c_int, q: c_int, gain: c_int) -> c_int {
+    let cmd = Box::new(WasmEqBandCmd { band, cutoff, q, gain });
+    // Transfer ownership to the command thread; it calls free().
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_EQ_BAND, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Set crossfade parameters.
+/// `mode`: 0=off, 1=shuffle, 2=trackskip, 3=both, 4=always.
+/// All delay/duration values are in seconds (0–15).
+/// `mixmode`: 0=crossfade, 1=mix.
+/// Applies on the next track transition and persists.
+#[no_mangle]
+pub extern "C" fn rb_set_crossfade(
+    mode: c_int,
+    fi_delay: c_int,
+    fo_delay: c_int,
+    fi_dur: c_int,
+    fo_dur: c_int,
+    mixmode: c_int,
+) -> c_int {
+    let cmd = Box::new(WasmCrossfadeCmd { mode, fi_delay, fo_delay, fi_dur, fo_dur, mixmode });
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_CROSSFADE, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Set replaygain parameters.
+/// `noclip`: 0 = allow clipping, 1 = scale to prevent clipping.
+/// `type_`: 0=track, 1=album, 2=shuffle (track if shuffle on), 3=off.
+/// `preamp`: additional gain in tenths of a dB (-120 to 120).
+/// Applies immediately and persists.
+#[no_mangle]
+pub extern "C" fn rb_set_replaygain(noclip: c_int, type_: c_int, preamp: c_int) -> c_int {
+    let cmd = Box::new(WasmReplaygainCmd { noclip, type_, preamp });
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_REPLAYGAIN, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Flush all current settings to the Rockbox config file (MEMFS).
+/// Call this explicitly if you want to ensure persistence without changing any
+/// individual setting.
+#[no_mangle]
+pub extern "C" fn rb_save_settings() -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SAVE_SETTINGS, 0) };
+    0
 }
