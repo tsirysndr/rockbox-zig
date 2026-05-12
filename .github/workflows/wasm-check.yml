@@ -60,7 +60,7 @@ jobs:
           restore-keys: wasm-check-firmware-
 
       - name: Build WASM
-        run: bash scripts/build-wasm.sh
+        run: bash scripts/build-wasm.sh --debug
 
       - name: Show artifacts
         run: ls -lh web/rockboxd.js web/rockboxd.wasm

@@ -27,7 +27,6 @@
 #include "thread.h"
 #include "settings.h"
 #include "eq.h"
-#include "dsp_misc.h"
 
 /* Escape a string for JSON: replace " → \" and \ → \\. */
 static void json_escape(char *dst, size_t dsz, const char *src)
@@ -355,16 +354,14 @@ static void rb_wasm_cmd_thread(void)
                 playlist_shuffle(0, 0);
                 break;
             case WASM_CMD_SET_EQ_ENABLED: {
-                bool en = (bool)(int)ev.data;
-                global_settings.eq_enabled = en;
-                dsp_eq_enable(en);
+                global_settings.eq_enabled = (bool)(int)ev.data;
+                settings_apply(false);
                 settings_save();
                 break;
             }
             case WASM_CMD_SET_EQ_PRECUT: {
-                unsigned int precut = (unsigned int)(int)ev.data;
-                global_settings.eq_precut = precut;
-                dsp_set_eq_precut(precut);
+                global_settings.eq_precut = (unsigned int)(int)ev.data;
+                settings_apply(false);
                 settings_save();
                 break;
             }
@@ -375,10 +372,9 @@ static void rb_wasm_cmd_thread(void)
                     global_settings.eq_band_settings[cmd->band].cutoff = cmd->cutoff;
                     global_settings.eq_band_settings[cmd->band].q      = cmd->q;
                     global_settings.eq_band_settings[cmd->band].gain   = cmd->gain;
-                    dsp_set_eq_coefs(cmd->band,
-                        &global_settings.eq_band_settings[cmd->band]);
                 }
                 free(cmd);
+                settings_apply(false);
                 settings_save();
                 break;
             }
@@ -396,6 +392,7 @@ static void rb_wasm_cmd_thread(void)
                 }
 #endif
                 free(cmd);
+                settings_apply(false);
                 settings_save();
                 break;
             }
@@ -406,14 +403,14 @@ static void rb_wasm_cmd_thread(void)
                     global_settings.replaygain_settings.noclip = (bool)cmd->noclip;
                     global_settings.replaygain_settings.type   = cmd->type;
                     global_settings.replaygain_settings.preamp = cmd->preamp;
-                    dsp_replaygain_set_settings(
-                        &global_settings.replaygain_settings);
                 }
                 free(cmd);
+                settings_apply(false);
                 settings_save();
                 break;
             }
             case WASM_CMD_SAVE_SETTINGS:
+                settings_apply(false);
                 settings_save();
                 break;
             }

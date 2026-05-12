@@ -230,6 +230,48 @@
     </div>
   </div>
 
+  <!-- Crossfade -->
+  <div class="settings-section">
+    <h3>Crossfade</h3>
+    <div class="setting-row">
+      <label for="cf-mode">Mode</label>
+      <select id="cf-mode" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+        <option value="0" selected>Off</option>
+        <option value="1">Shuffle only</option>
+        <option value="2">Track skip only</option>
+        <option value="3">Shuffle + skip</option>
+        <option value="4">Always</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="cf-fi-dur">Fade-in duration</label>
+      <input id="cf-fi-dur" type="range" min="0" max="15" value="8" step="1" disabled>
+      <span id="cf-fi-dur-val" class="val">8 s</span>
+    </div>
+    <div class="setting-row">
+      <label for="cf-fo-dur">Fade-out duration</label>
+      <input id="cf-fo-dur" type="range" min="0" max="15" value="8" step="1" disabled>
+      <span id="cf-fo-dur-val" class="val">8 s</span>
+    </div>
+    <div class="setting-row">
+      <label for="cf-fi-delay">Fade-in delay</label>
+      <input id="cf-fi-delay" type="range" min="0" max="7" value="0" step="1" disabled>
+      <span id="cf-fi-delay-val" class="val">0 s</span>
+    </div>
+    <div class="setting-row">
+      <label for="cf-fo-delay">Fade-out delay</label>
+      <input id="cf-fo-delay" type="range" min="0" max="7" value="0" step="1" disabled>
+      <span id="cf-fo-delay-val" class="val">0 s</span>
+    </div>
+    <div class="setting-row">
+      <label for="cf-mixmode">Fade-out type</label>
+      <select id="cf-mixmode" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+        <option value="0" selected>Crossfade</option>
+        <option value="1">Mix</option>
+      </select>
+    </div>
+  </div>
+
   <!-- Replaygain -->
   <div class="settings-section">
     <h3>Replay Gain</h3>
@@ -327,6 +369,7 @@ setEnabled(
   'btn-shuffle', 'btn-clear', 'vol-slider',
   'btn-save-state',
   'eq-enabled', 'eq-precut',
+  'cf-mode', 'cf-fi-dur', 'cf-fo-dur', 'cf-fi-delay', 'cf-fo-delay', 'cf-mixmode',
   'rg-type', 'rg-preamp', 'rg-noclip',
 );
 EQ_BAND_LABELS.forEach((_, i) => setEnabled(`eq-band-${i}`));
@@ -360,27 +403,37 @@ if (resumeInfo && resumeInfo.resumeElapsed > 0) {
 
 function syncSettingsUi() {
   const s = player.getSettings();
-  if (!s) return;
 
-  if (s.eq) {
-    $('eq-enabled').checked = !!s.eq.enabled;
-    $('eq-precut').value    = s.eq.precut ?? 0;
-    $('eq-precut-val').textContent = (s.eq.precut ?? 0) / 10 + ' dB';
-    (s.eq.bands ?? []).forEach((b, i) => {
-      const el = $(`eq-band-${i}`);
-      if (el && b != null) {
-        el.value = b.gain;
-        $(`eq-band-val-${i}`).textContent = (b.gain >= 0 ? '+' : '') + b.gain;
-      }
-    });
-  }
+  // EQ
+  $('eq-enabled').checked = !!s.eq?.enabled;
+  const precut = s.eq?.precut ?? 0;
+  $('eq-precut').value = precut;
+  $('eq-precut-val').textContent = (precut / 10).toFixed(1) + ' dB';
+  (s.eq?.bands ?? []).forEach((b, i) => {
+    if (!b) return;
+    $(`eq-band-${i}`).value = b.gain;
+    $(`eq-band-val-${i}`).textContent = (b.gain >= 0 ? '+' : '') + b.gain;
+  });
 
-  if (s.replaygain) {
-    $('rg-type').value       = s.replaygain.type  ?? 3;
-    $('rg-preamp').value     = s.replaygain.preamp ?? 0;
-    $('rg-preamp-val').textContent = ((s.replaygain.preamp ?? 0) / 10).toFixed(1) + ' dB';
-    $('rg-noclip').checked   = !!s.replaygain.noclip;
-  }
+  // Crossfade
+  const cf = s.crossfade ?? {};
+  $('cf-mode').value     = cf.mode ?? 0;
+  $('cf-fi-dur').value   = cf.fade_in_duration  ?? 8;
+  $('cf-fo-dur').value   = cf.fade_out_duration ?? 8;
+  $('cf-fi-delay').value = cf.fade_in_delay  ?? 0;
+  $('cf-fo-delay').value = cf.fade_out_delay ?? 0;
+  $('cf-mixmode').value  = cf.mixmode ?? 0;
+  $('cf-fi-dur-val').textContent   = (cf.fade_in_duration  ?? 8) + ' s';
+  $('cf-fo-dur-val').textContent   = (cf.fade_out_duration ?? 8) + ' s';
+  $('cf-fi-delay-val').textContent = (cf.fade_in_delay  ?? 0) + ' s';
+  $('cf-fo-delay-val').textContent = (cf.fade_out_delay ?? 0) + ' s';
+
+  // Replaygain
+  const rg = s.replaygain ?? {};
+  $('rg-type').value   = rg.type   ?? 3;
+  $('rg-preamp').value = rg.preamp ?? 0;
+  $('rg-preamp-val').textContent = ((rg.preamp ?? 0) / 10).toFixed(1) + ' dB';
+  $('rg-noclip').checked = !!rg.noclip;
 }
 syncSettingsUi();
 
@@ -441,38 +494,66 @@ EQ_BAND_LABELS.forEach((_, i) => {
   });
 });
 
-$('rg-type').addEventListener('change', (e) => {
+// ── Crossfade bindings ────────────────────────────────────────────────────────
+
+function applyCrossfade() {
+  player.setCrossfade(parseInt($('cf-mode').value, 10), {
+    fadeInDuration:  parseInt($('cf-fi-dur').value, 10),
+    fadeOutDuration: parseInt($('cf-fo-dur').value, 10),
+    fadeInDelay:     parseInt($('cf-fi-delay').value, 10),
+    fadeOutDelay:    parseInt($('cf-fo-delay').value, 10),
+    mixmode:         parseInt($('cf-mixmode').value, 10),
+  });
+}
+
+$('cf-mode').addEventListener('change', applyCrossfade);
+$('cf-mixmode').addEventListener('change', applyCrossfade);
+
+$('cf-fi-dur').addEventListener('input', (e) => {
+  $('cf-fi-dur-val').textContent = e.target.value + ' s';
+  applyCrossfade();
+});
+$('cf-fo-dur').addEventListener('input', (e) => {
+  $('cf-fo-dur-val').textContent = e.target.value + ' s';
+  applyCrossfade();
+});
+$('cf-fi-delay').addEventListener('input', (e) => {
+  $('cf-fi-delay-val').textContent = e.target.value + ' s';
+  applyCrossfade();
+});
+$('cf-fo-delay').addEventListener('input', (e) => {
+  $('cf-fo-delay-val').textContent = e.target.value + ' s';
+  applyCrossfade();
+});
+
+// ── Replaygain bindings ───────────────────────────────────────────────────────
+
+function applyReplaygain() {
   player.setReplaygain({
-    type:   parseInt(e.target.value, 10),
+    type:   parseInt($('rg-type').value, 10),
     preamp: parseInt($('rg-preamp').value, 10),
     noclip: $('rg-noclip').checked,
   });
-});
+}
+
+$('rg-type').addEventListener('change', applyReplaygain);
+$('rg-noclip').addEventListener('change', applyReplaygain);
 
 $('rg-preamp').addEventListener('input', (e) => {
-  const v = parseInt(e.target.value, 10);
-  $('rg-preamp-val').textContent = (v / 10).toFixed(1) + ' dB';
-  player.setReplaygain({
-    type:   parseInt($('rg-type').value, 10),
-    preamp: v,
-    noclip: $('rg-noclip').checked,
-  });
+  $('rg-preamp-val').textContent = (parseInt(e.target.value, 10) / 10).toFixed(1) + ' dB';
+  applyReplaygain();
 });
 
-$('rg-noclip').addEventListener('change', () => {
-  player.setReplaygain({
-    type:   parseInt($('rg-type').value, 10),
-    preamp: parseInt($('rg-preamp').value, 10),
-    noclip: $('rg-noclip').checked,
-  });
-});
+// ── Save state ────────────────────────────────────────────────────────────────
 
+// Settings auto-save on every set*() call — btn-save-state only needs to
+// capture the current playlist.
 $('btn-save-state').addEventListener('click', () => {
   player.persistState();
-  log('State saved.');
+  log('Playlist saved.');
 });
 
-// Auto-persist when user navigates away.
+// Auto-persist playlist when user navigates away.
 window.addEventListener('beforeunload', () => player.persistState());
 
 // ── Status polling ────────────────────────────────────────────────────────────
