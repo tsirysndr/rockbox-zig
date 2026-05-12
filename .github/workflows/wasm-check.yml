@@ -1,0 +1,74 @@
+name: wasm-check
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -A warnings
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            protobuf-compiler cmake ninja-build
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Add wasm32-unknown-emscripten Rust target
+        run: rustup target add wasm32-unknown-emscripten
+
+      - name: Cache Cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: wasm-check-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: wasm-check-cargo-
+
+      - name: Cache Cargo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: target/
+          key: wasm-check-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: wasm-check-target-
+
+      - name: Cache WASM firmware build
+        uses: actions/cache@v4
+        with:
+          path: build-wasm/
+          key: wasm-check-firmware-${{ hashFiles('firmware/**', 'apps/**', 'lib/**', 'tools/configure') }}
+          restore-keys: wasm-check-firmware-
+
+      - name: Build WASM
+        run: bash scripts/build-wasm.sh
+
+      - name: Show artifacts
+        run: ls -lh web/rockboxd.js web/rockboxd.wasm
+
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockbox-wasm-${{ github.run_number }}
+          path: web/
+          retention-days: 30
+          if-no-files-found: error
