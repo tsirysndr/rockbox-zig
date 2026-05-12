@@ -21,7 +21,7 @@ target/hosted/cpuinfo-linux.c
 target/hosted/cpufreq-linux.c
 #endif
 
-#if !defined(SAMSUNG_YPR0) || defined(SIMULATOR) /* uses as3514 rtc */
+#if (!defined(SAMSUNG_YPR0) || defined(SIMULATOR)) && !(CONFIG_PLATFORM & PLATFORM_WASM) /* uses as3514 rtc; rtc.c uses linux/rtc.h unavailable in Emscripten */
 target/hosted/rtc.c
 #endif
 
@@ -542,17 +542,17 @@ pcm_sampr.c
 pcm.c
 pcm_mixer.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
-/* All hosted-platform PCM sinks ship on every hosted target including the
- * Android cdylib — multi-room (Snapcast / Squeezelite), AirPlay, UPnP,
- * Chromecast all available so the phone-as-server can stream out to any
- * sink JS picks. SDL is the only sink we exclude on Android (no SDL on
- * the cdylib build). */
+/* Network PCM sinks — excluded on WASM because raw TCP/UDP sockets are
+ * not available in the browser. All media reaches the WASM build via
+ * HTTP URLs handled by netstream. */
+#ifndef PLATFORM_WASM
 target/hosted/pcm-fifo.c
 target/hosted/pcm-airplay.c
 target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
+#endif /* !PLATFORM_WASM */
 pcm_normalizer.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
@@ -2014,7 +2014,7 @@ target/hosted/android/app/button-application.c
 #endif /* !CODECS_STATIC */
 #endif /* PLATFORM_ANDROID */
 
-#if (CONFIG_PLATFORM & PLATFORM_HOSTED) && defined(CODECS_STATIC) && !defined(__ANDROID__)
+#if (CONFIG_PLATFORM & PLATFORM_HOSTED) && defined(CODECS_STATIC) && !defined(__ANDROID__) && !(CONFIG_PLATFORM & PLATFORM_WASM)
 /* headless host build — no SDL, pthreads, cpal PCM sink, BINFMT_STATIC.
  * Shared kernel/fs shims come from the hosted layer below; target-specific
  * files are in firmware/target/hosted/headless/.
@@ -2030,6 +2030,25 @@ target/hosted/headless/cpuinfo-noop.c
 target/hosted/headless/audiohw-noop.c
 target/hosted/headless/debug-headless.c
 #endif /* headless host */
+
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
+/* WASM browser build — headless, Web Audio API, BINFMT_STATIC.
+ * No SDL, no network sinks, no gRPC server. JS calls rb_* exports directly.
+ * kernel-wasm.c is identical to kernel-headless.c (nanosleep-based tick,
+ * no timer_create). */
+target/hosted/wasm/kernel-wasm.c
+target/hosted/filesystem-unix.c
+target/hosted/wasm/system-wasm.c
+target/hosted/wasm/pcm-webapi.c
+target/hosted/wasm/lc-wasm.c
+target/hosted/wasm/rb_zig_compat.c
+target/hosted/wasm/wasm-bridge.c
+target/hosted/wasm/lcd-noop.c
+target/hosted/wasm/button-noop.c
+target/hosted/wasm/cpuinfo-noop.c
+target/hosted/wasm/audiohw-noop.c
+target/hosted/wasm/debug-wasm.c
+#endif /* PLATFORM_WASM */
 
 #if defined(DX50) || defined(DX90)
 drivers/lcd-memframe.c

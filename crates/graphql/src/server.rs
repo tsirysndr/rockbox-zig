@@ -108,7 +108,8 @@ pub async fn start() -> Result<(), Error> {
         let covers_path = format!("{}/covers", rockbox_data_dir);
         std::fs::create_dir_all(&covers_path).unwrap();
 
-        let cors = Cors::permissive();
+        let cors =
+            Cors::permissive().expose_headers(["Content-Range", "Accept-Ranges", "Content-Length"]);
         App::new()
             .app_data(pool.clone())
             .app_data(Data::new(schema.clone()))

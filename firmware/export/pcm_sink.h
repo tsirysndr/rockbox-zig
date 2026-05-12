@@ -62,8 +62,11 @@ enum pcm_sink_ids {
 #if defined(__ANDROID__) && defined(CODECS_STATIC)
     PCM_SINK_AAUDIO,    /* AAudio output (also wired as BUILTIN on Android) */
 #endif
-#if defined(CODECS_STATIC) && !defined(__ANDROID__)
+#if defined(CODECS_STATIC) && !defined(__ANDROID__) && !defined(PLATFORM_WASM)
     PCM_SINK_CPAL,      /* cpal output (also wired as BUILTIN on headless host) */
+#endif
+#if defined(PLATFORM_WASM)
+    PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
 #endif
 #endif
     PCM_SINK_NUM
@@ -105,9 +108,15 @@ void pcm_tcp_set_port(uint16_t port);
 extern struct pcm_sink aaudio_pcm_sink;
 #endif
 
-#if defined(CODECS_STATIC) && !defined(__ANDROID__)
+#if defined(CODECS_STATIC) && !defined(__ANDROID__) && !defined(PLATFORM_WASM)
 /* cpal sink — also wired as the BUILTIN sink on headless macOS/Linux builds,
  * so rockboxd produces sound out of the box without any settings.toml entry. */
 extern struct pcm_sink cpal_pcm_sink;
+#endif
+
+#if defined(PLATFORM_WASM)
+/* Web Audio API sink — BUILTIN on the WASM build. JS page receives PCM buffers
+ * via Module.onPcmData(ptr, bytes, sampleRate) callback. */
+extern struct pcm_sink webapi_pcm_sink;
 #endif
 #endif

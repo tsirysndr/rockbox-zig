@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rockbox WASM — example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100dvh;
+      padding: 2rem 1rem;
+      gap: 2rem;
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: .03em; }
+
+    /* ── Log ── */
+    #log {
+      width: 100%;
+      max-width: 640px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      font-family: monospace;
+      font-size: .8rem;
+      color: #aaa;
+      height: 6rem;
+      overflow-y: auto;
+    }
+
+    /* ── Player card ── */
+    #player {
+      width: 100%;
+      max-width: 640px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* URL row */
+    .url-row {
+      display: flex;
+      gap: .5rem;
+    }
+    .url-row input {
+      flex: 1;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e8e8e8;
+      font-size: .9rem;
+      padding: .5rem .75rem;
+      outline: none;
+    }
+    .url-row input:focus { border-color: #555; }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      color: #e8e8e8;
+      cursor: pointer;
+      font-size: .85rem;
+      padding: .45rem .9rem;
+      transition: background .15s;
+    }
+    button:hover:not(:disabled)  { background: #333; }
+    button:active:not(:disabled) { background: #444; }
+    button:disabled               { opacity: .4; cursor: not-allowed; }
+    button.primary {
+      background: #2563eb;
+      border-color: #3b82f6;
+    }
+    button.primary:hover:not(:disabled) { background: #1d4ed8; }
+
+    /* Now-playing */
+    #track-title  { font-size: 1rem; font-weight: 600; min-height: 1.4em; }
+    #track-artist { font-size: .85rem; color: #888; min-height: 1.2em; }
+
+    /* Status pill */
+    #status-pill {
+      display: inline-block;
+      font-size: .75rem;
+      padding: .2rem .65rem;
+      border-radius: 999px;
+      background: #222;
+      border: 1px solid #333;
+    }
+    #status-pill[data-state="playing"] { background: #14532d; border-color: #16a34a; color: #86efac; }
+    #status-pill[data-state="paused"]  { background: #422006; border-color: #c2410c; color: #fdba74; }
+
+    /* Volume */
+    .volume-row { display: flex; align-items: center; gap: .75rem; font-size: .85rem; color: #888; }
+    input[type=range] {
+      accent-color: #3b82f6;
+      flex: 1;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Rockbox WASM</h1>
+
+<div id="log">Initialising…</div>
+
+<div id="player">
+
+  <!-- URL input + play -->
+  <div class="url-row">
+    <input id="url-input" type="url"
+           placeholder="https://example.com/track.mp3"
+           value="">
+    <button id="btn-play-url" class="primary" disabled>Play URL</button>
+    <button id="btn-enqueue"  disabled>+ Queue</button>
+  </div>
+
+  <!-- Transport -->
+  <div class="btn-row">
+    <button id="btn-prev"  disabled>⏮</button>
+    <button id="btn-play"  disabled>▶</button>
+    <button id="btn-pause" disabled>⏸</button>
+    <button id="btn-next"  disabled>⏭</button>
+    <button id="btn-stop"  disabled>⏹</button>
+    <button id="btn-shuffle" disabled>⇄ Shuffle</button>
+    <button id="btn-clear"   disabled>✕ Clear</button>
+  </div>
+
+  <!-- Now playing -->
+  <div>
+    <div id="track-title">—</div>
+    <div id="track-artist"></div>
+  </div>
+
+  <!-- Status + volume -->
+  <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+    <span id="status-pill">stopped</span>
+    <span id="queue-info" style="font-size:.8rem;color:#666;"></span>
+  </div>
+
+  <div class="volume-row">
+    <span>Vol</span>
+    <input id="vol-slider" type="range" min="-74" max="6" value="0" step="1" disabled>
+    <span id="vol-label">0 dB</span>
+  </div>
+
+</div>
+
+<script type="module">
+import { RockboxPlayer } from './rockbox.js';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const $ = (id) => document.getElementById(id);
+
+function log(msg) {
+  const el = $('log');
+  el.textContent += `\n${msg}`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setEnabled(...ids) {
+  for (const id of ids) $(id).disabled = false;
+}
+
+// ── Player setup ─────────────────────────────────────────────────────────────
+
+const player = new RockboxPlayer({ wasmUrl: 'rockboxd.js' });
+
+log('Loading WASM module…');
+try {
+  await player.init(
+    '/config',  // config dir (MEMFS path used as HOME inside WASM)
+    '/music',   // music dir  (not used at runtime for URL-based playback)
+  );
+  log('Rockbox engine running.');
+} catch (err) {
+  log(`ERROR: ${err.message}`);
+  throw err;
+}
+
+// Debug: every 2 s log ring write index + AudioContext state to console.
+setInterval(() => {
+  const mod = player._mod;
+  if (!mod) return;
+  try {
+    const wiPtr  = player._wiPtr;
+    const wi     = wiPtr ? new Int32Array(player._wasmMemory, wiPtr, 1)[0] : '?';
+    const ctx    = player._audioCtx;
+    console.log('[Rockbox debug] ring.wi=' + wi +
+                ' audioCtx=' + (ctx ? ctx.state : 'none'));
+  } catch(e) { console.warn('[Rockbox debug] error:', e); }
+}, 2000);
+
+// Enable all controls once the engine is ready.
+setEnabled(
+  'btn-play-url', 'btn-enqueue',
+  'btn-prev', 'btn-play', 'btn-pause', 'btn-next', 'btn-stop',
+  'btn-shuffle', 'btn-clear', 'vol-slider',
+);
+
+// ── Transport bindings ────────────────────────────────────────────────────────
+
+$('btn-play-url').addEventListener('click', async () => {
+  await player.resumeAudio();
+  const url = $('url-input').value.trim();
+  if (!url) { log('Enter a URL first.'); return; }
+  log(`▶ Playing: ${url}`);
+  player.playUrl(url);
+});
+
+$('btn-enqueue').addEventListener('click', () => {
+  const url = $('url-input').value.trim();
+  if (!url) { log('Enter a URL first.'); return; }
+  log(`+ Queued: ${url}`);
+  player.enqueueUrl(url);
+});
+
+$('btn-play').addEventListener('click',    () => player.play());
+$('btn-pause').addEventListener('click',   () => player.pause());
+$('btn-next').addEventListener('click',    () => player.next());
+$('btn-prev').addEventListener('click',    () => player.prev());
+$('btn-stop').addEventListener('click',    () => player.stop());
+$('btn-shuffle').addEventListener('click', () => player.shuffleQueue());
+$('btn-clear').addEventListener('click',   () => player.clearQueue());
+
+// Volume: the slider value maps to steps from the current volume.
+// We track the last committed value and send delta steps.
+let lastVol = 0;
+$('vol-slider').addEventListener('input', (e) => {
+  const next  = parseInt(e.target.value, 10);
+  const steps = next - lastVol;
+  lastVol     = next;
+  $('vol-label').textContent = `${next} dB`;
+  player.adjustVolume(steps);
+});
+
+// ── Status polling ────────────────────────────────────────────────────────────
+
+const STATE_LABEL = ['stopped', 'playing', 'paused'];
+
+function poll() {
+  const { status } = player.status()     ?? { status: 0 };
+  const track      = player.currentTrack() ?? {};
+  const queue      = player.playlist()     ?? {};
+
+  // Status pill
+  const pill = $('status-pill');
+  pill.textContent  = STATE_LABEL[status] ?? 'unknown';
+  pill.dataset.state = STATE_LABEL[status] ?? '';
+
+  // Track info
+  $('track-title').textContent  = track.title  || (status ? '(unknown title)' : '—');
+  $('track-artist').textContent = [track.artist, track.album].filter(Boolean).join(' · ');
+
+  // Queue info
+  if (queue.amount > 0) {
+    $('queue-info').textContent =
+      `track ${queue.index ?? 1} / ${queue.amount}`;
+  } else {
+    $('queue-info').textContent = '';
+  }
+}
+
+setInterval(poll, 500);
+poll();
+</script>
+
+</body>
+</html>

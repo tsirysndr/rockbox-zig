@@ -93,6 +93,7 @@
 #define PLATFORM_HOSTED  (1<<1)
 #define PLATFORM_ANDROID (1<<2)
 #define PLATFORM_SDL     (1<<3)
+#define PLATFORM_WASM    (1<<5)
 #define PLATFORM_CTRU    (1<<4)
 
 /* CONFIG_KEYPAD */
@@ -586,6 +587,8 @@ Lyre prototype 1 */
 #include "config/androidcdylib.h"
 #elif defined(HEADLESSHOST)
 #include "config/headlesshost.h"
+#elif defined(WASMAPP)
+#include "config/wasmapp.h"
 #else
 #error "unknown hardware platform!"
 #endif

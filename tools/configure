@@ -765,6 +765,63 @@ headlesshostcc () {
     echo "Using host compiler: $CC"
 }
 
+wasmappcc () {
+    # Emscripten toolchain for the WASM browser target.
+    # Requires Emscripten SDK to be activated (source emsdk_env.sh).
+    if ! command -v emcc >/dev/null 2>&1; then
+        echo "ERROR: emcc not found."
+        echo "       Install and activate the Emscripten SDK first:"
+        echo "         git clone https://github.com/emscripten-core/emsdk.git"
+        echo "         cd emsdk && ./emsdk install latest && ./emsdk activate latest"
+        echo "         source ./emsdk_env.sh"
+        exit 1
+    fi
+
+    CC="emcc"
+    CXX="em++"
+    AR="emar"
+    RANLIB="emranlib"
+    LD="emcc"
+    CPP="emcc -E"
+    endian="little"
+
+    # Locate llvm-objcopy bundled with Emscripten for CODECS_STATIC renaming.
+    EMCC_DIR=$(dirname "$(command -v emcc)")
+    # emsdk layout: emcc → upstream/emscripten/emcc; objcopy in upstream/bin/
+    EMSDK_UPSTREAM="${EMCC_DIR%/emscripten}"
+    if [ -x "${EMSDK_UPSTREAM}/bin/llvm-objcopy" ]; then
+        OC="${EMSDK_UPSTREAM}/bin/llvm-objcopy"
+    else
+        OC="${OC:-llvm-objcopy}"
+    fi
+
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -ffunction-sections -fdata-sections"
+    GCCOPTS="$GCCOPTS -fomit-frame-pointer -fvisibility=hidden"
+    # Enable pthreads — Emscripten implements them via SharedArrayBuffer + Workers.
+    # The serving page must include COOP + COEP headers for SharedArrayBuffer.
+    GCCOPTS="$GCCOPTS -pthread"
+
+    SHARED_LDFLAGS=""
+    SHARED_CFLAGS=""
+    GLOBAL_LDOPTS=""
+    LDOPTS="-lpthread"
+
+    thread_support="HAVE_POSIX_THREADS"
+    thread_support_comment="/* HAVE_POSIX_THREADS: one pthread per Rockbox thread.
+ * Emscripten maps these to Web Workers via SharedArrayBuffer.
+ * Host page must set Cross-Origin-Opener-Policy: same-origin and
+ * Cross-Origin-Embedder-Policy: require-corp for SharedArrayBuffer. */"
+    gccchoice=""
+    gcctarget=""
+
+    extradefines="$extradefines -DCODECS_STATIC -DZIG_APP"
+    export CODECS_STATIC=1
+
+    echo "Using Emscripten: $(emcc --version | head -1)"
+}
+
 androidcdylibcc () {
     # Args: $1 = API level (>=26 for AAudio)
     #       $2 = ABI (arm64-v8a / armeabi-v7a / x86_64)
@@ -1921,6 +1978,7 @@ cat <<EOF
  224) NWZ-E470 series      209) Anbernic RG Nano 233) 800
  225) NWZ-E580 series      205) Android cdylib
                            206) Headless host
+                           207) WASM app
  226) NWZ-A10 series       ==AgpTek==
  227) NW-A20 series        240) Rocker           ==AIGO==
  228) NWZ-A860 series                            245) Eros Q / K (hosted)
@@ -3570,6 +3628,38 @@ fi
 
     t_cpu="hosted"
     t_manufacturer="headless"
+    t_model="host"
+    ;;
+
+   207|wasmapp)
+    application="yes"
+    target_id=127
+    modelname="wasmapp"
+    target="WASMAPP"
+    app_type="wasm_app"
+    app_set_lcd_size 320 480
+
+    sharedir="/dev/null"
+    bindir="/dev/null"
+    libdir="/dev/null"
+
+    memory=256
+
+    wasmappcc
+
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+
+    output="static-libs.stamp"
+    bootoutput="static-libs.stamp"
+
+    appextra="recorder:gui:radio"
+    plugins="no"
+
+    t_cpu="hosted"
+    t_manufacturer="wasm"
     t_model="host"
     ;;
 
