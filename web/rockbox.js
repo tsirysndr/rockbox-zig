@@ -181,7 +181,9 @@ export class RockboxPlayer {
   }
 
   /**
-   * @param {number} mode     0=off, 1=shuffle, 2=trackskip, 3=both, 4=always
+   * @param {number} mode     0=off, 1=auto-skip, 2=manual-skip, 3=shuffle,
+   *                          4=shuffle+manual-skip, 5=always
+   *                          (matches CROSSFADE_ENABLE_* enum in apps/settings.h)
    * @param {object} [opts]
    * @param {number} [opts.fadeInDelay=0]      0–15 s
    * @param {number} [opts.fadeOutDelay=0]     0–15 s

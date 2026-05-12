@@ -28,6 +28,11 @@
 #include "settings.h"
 #include "eq.h"
 
+/* Declared in pcm-webapi.c — atomically resets the ring-buffer write index to
+ * the current read index so new DSP settings (EQ/replaygain) take effect in
+ * <10 ms instead of waiting ~1.5 s for the ring to drain naturally. */
+extern void rb_pcm_flush(void);
+
 /* Escape a string for JSON: replace " → \" and \ → \\. */
 static void json_escape(char *dst, size_t dsz, const char *src)
 {
@@ -356,12 +361,14 @@ static void rb_wasm_cmd_thread(void)
             case WASM_CMD_SET_EQ_ENABLED: {
                 global_settings.eq_enabled = (bool)(int)ev.data;
                 settings_apply(false);
+                rb_pcm_flush();
                 settings_save();
                 break;
             }
             case WASM_CMD_SET_EQ_PRECUT: {
                 global_settings.eq_precut = (unsigned int)(int)ev.data;
                 settings_apply(false);
+                rb_pcm_flush();
                 settings_save();
                 break;
             }
@@ -375,6 +382,7 @@ static void rb_wasm_cmd_thread(void)
                 }
                 free(cmd);
                 settings_apply(false);
+                rb_pcm_flush();
                 settings_save();
                 break;
             }
@@ -406,6 +414,7 @@ static void rb_wasm_cmd_thread(void)
                 }
                 free(cmd);
                 settings_apply(false);
+                rb_pcm_flush();
                 settings_save();
                 break;
             }

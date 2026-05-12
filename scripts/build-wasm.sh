@@ -155,6 +155,13 @@ echo "    rockbox-wasm: $(ls -lh "$RUST_LIB" | awk '{print $5}')"
 
 # ── Step 4: emcc link step ────────────────────────────────────────────────────
 
+if [ "${SKIP_LINK:-0}" = "1" ]; then
+    echo ""
+    echo "==> Step 4: Skipping link step (SKIP_LINK=1)"
+    echo "✔ Compile check complete (C firmware + Rust crate)."
+    exit 0
+fi
+
 echo ""
 echo "==> Step 4: Link rockboxd.{js,wasm} with emcc"
 

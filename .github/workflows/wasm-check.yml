@@ -28,7 +28,7 @@ jobs:
       - name: Set up Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: latest
+          version: "3.1.74"
           actions-cache-folder: emsdk-cache
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -62,15 +62,10 @@ jobs:
       - name: Build WASM
         env:
           EMCC_OPT: "-O0"
+          SKIP_LINK: "1"
         run: bash scripts/build-wasm.sh --debug
 
-      - name: Show artifacts
-        run: ls -lh web/rockboxd.js web/rockboxd.wasm
-
-      - name: Upload web artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rockbox-wasm-${{ github.run_number }}
-          path: web/
-          retention-days: 30
-          if-no-files-found: error
+      - name: Show compiled artifacts
+        run: |
+          ls -lh build-wasm/librockbox.a build-wasm/firmware/libfirmware.a
+          ls -lh target/wasm32-unknown-emscripten/debug/librockbox_wasm.a

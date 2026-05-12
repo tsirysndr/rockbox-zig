@@ -415,7 +415,7 @@ pub extern "C" fn rb_set_eq_band(band: c_int, cutoff: c_int, q: c_int, gain: c_i
 }
 
 /// Set crossfade parameters.
-/// `mode`: 0=off, 1=shuffle, 2=trackskip, 3=both, 4=always.
+/// `mode`: 0=off, 1=auto-skip, 2=manual-skip, 3=shuffle, 4=shuffle+manual, 5=always.
 /// All delay/duration values are in seconds (0–15).
 /// `mixmode`: 0=crossfade, 1=mix.
 /// Applies on the next track transition and persists.
