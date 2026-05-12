@@ -43,17 +43,17 @@ extern "C" {
 }
 
 // Command IDs — must match WASM_CMD_* in wasm-bridge.c
-const WASM_CMD_NEXT:         c_long = 0;
-const WASM_CMD_PREV:         c_long = 1;
-const WASM_CMD_PAUSE:        c_long = 2;
-const WASM_CMD_RESUME:       c_long = 3;
-const WASM_CMD_STOP:         c_long = 4;
-const WASM_CMD_SEEK:         c_long = 5;
-const WASM_CMD_PLAY_AT:      c_long = 6;
-const WASM_CMD_PLAY_URL:     c_long = 7;
-const WASM_CMD_ENQUEUE_URL:  c_long = 8;
-const WASM_CMD_CLEAR_QUEUE:  c_long = 9;
-const WASM_CMD_SHUFFLE:      c_long = 10;
+const WASM_CMD_NEXT: c_long = 0;
+const WASM_CMD_PREV: c_long = 1;
+const WASM_CMD_PAUSE: c_long = 2;
+const WASM_CMD_RESUME: c_long = 3;
+const WASM_CMD_STOP: c_long = 4;
+const WASM_CMD_SEEK: c_long = 5;
+const WASM_CMD_PLAY_AT: c_long = 6;
+const WASM_CMD_PLAY_URL: c_long = 7;
+const WASM_CMD_ENQUEUE_URL: c_long = 8;
+const WASM_CMD_CLEAR_QUEUE: c_long = 9;
+const WASM_CMD_SHUFFLE: c_long = 10;
 
 // ── Daemon state ──────────────────────────────────────────────────────────────
 
