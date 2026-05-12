@@ -46,49 +46,49 @@ extern "C" {
 
 // ── Command IDs — must match WASM_CMD_* in wasm-bridge.c ─────────────────────
 
-const WASM_CMD_NEXT:           c_long = 0;
-const WASM_CMD_PREV:           c_long = 1;
-const WASM_CMD_PAUSE:          c_long = 2;
-const WASM_CMD_RESUME:         c_long = 3;
-const WASM_CMD_STOP:           c_long = 4;
-const WASM_CMD_SEEK:           c_long = 5;
-const WASM_CMD_PLAY_AT:        c_long = 6;
-const WASM_CMD_PLAY_URL:       c_long = 7;
-const WASM_CMD_ENQUEUE_URL:    c_long = 8;
-const WASM_CMD_CLEAR_QUEUE:    c_long = 9;
-const WASM_CMD_SHUFFLE:        c_long = 10;
+const WASM_CMD_NEXT: c_long = 0;
+const WASM_CMD_PREV: c_long = 1;
+const WASM_CMD_PAUSE: c_long = 2;
+const WASM_CMD_RESUME: c_long = 3;
+const WASM_CMD_STOP: c_long = 4;
+const WASM_CMD_SEEK: c_long = 5;
+const WASM_CMD_PLAY_AT: c_long = 6;
+const WASM_CMD_PLAY_URL: c_long = 7;
+const WASM_CMD_ENQUEUE_URL: c_long = 8;
+const WASM_CMD_CLEAR_QUEUE: c_long = 9;
+const WASM_CMD_SHUFFLE: c_long = 10;
 const WASM_CMD_SET_EQ_ENABLED: c_long = 11;
-const WASM_CMD_SET_EQ_PRECUT:  c_long = 12;
-const WASM_CMD_SET_EQ_BAND:    c_long = 13;
-const WASM_CMD_SET_CROSSFADE:  c_long = 14;
+const WASM_CMD_SET_EQ_PRECUT: c_long = 12;
+const WASM_CMD_SET_EQ_BAND: c_long = 13;
+const WASM_CMD_SET_CROSSFADE: c_long = 14;
 const WASM_CMD_SET_REPLAYGAIN: c_long = 15;
-const WASM_CMD_SAVE_SETTINGS:  c_long = 16;
+const WASM_CMD_SAVE_SETTINGS: c_long = 16;
 
 // ── Payload structs for complex settings commands ─────────────────────────────
 // Layouts must match the C typedefs in wasm-bridge.c.
 
 #[repr(C)]
 struct WasmEqBandCmd {
-    band:   c_int,
+    band: c_int,
     cutoff: c_int,
-    q:      c_int,
-    gain:   c_int,
+    q: c_int,
+    gain: c_int,
 }
 
 #[repr(C)]
 struct WasmCrossfadeCmd {
-    mode:     c_int,
+    mode: c_int,
     fi_delay: c_int,
     fo_delay: c_int,
-    fi_dur:   c_int,
-    fo_dur:   c_int,
-    mixmode:  c_int,
+    fi_dur: c_int,
+    fo_dur: c_int,
+    mixmode: c_int,
 }
 
 #[repr(C)]
 struct WasmReplaygainCmd {
     noclip: c_int,
-    type_:  c_int,
+    type_: c_int,
     preamp: c_int,
 }
 
@@ -403,7 +403,12 @@ pub extern "C" fn rb_set_eq_precut(precut: c_int) -> c_int {
 /// Applies immediately and persists.
 #[no_mangle]
 pub extern "C" fn rb_set_eq_band(band: c_int, cutoff: c_int, q: c_int, gain: c_int) -> c_int {
-    let cmd = Box::new(WasmEqBandCmd { band, cutoff, q, gain });
+    let cmd = Box::new(WasmEqBandCmd {
+        band,
+        cutoff,
+        q,
+        gain,
+    });
     // Transfer ownership to the command thread; it calls free().
     unsafe { rb_wasm_cmd_post(WASM_CMD_SET_EQ_BAND, Box::into_raw(cmd) as isize) };
     0
@@ -423,7 +428,14 @@ pub extern "C" fn rb_set_crossfade(
     fo_dur: c_int,
     mixmode: c_int,
 ) -> c_int {
-    let cmd = Box::new(WasmCrossfadeCmd { mode, fi_delay, fo_delay, fi_dur, fo_dur, mixmode });
+    let cmd = Box::new(WasmCrossfadeCmd {
+        mode,
+        fi_delay,
+        fo_delay,
+        fi_dur,
+        fo_dur,
+        mixmode,
+    });
     unsafe { rb_wasm_cmd_post(WASM_CMD_SET_CROSSFADE, Box::into_raw(cmd) as isize) };
     0
 }
@@ -435,7 +447,11 @@ pub extern "C" fn rb_set_crossfade(
 /// Applies immediately and persists.
 #[no_mangle]
 pub extern "C" fn rb_set_replaygain(noclip: c_int, type_: c_int, preamp: c_int) -> c_int {
-    let cmd = Box::new(WasmReplaygainCmd { noclip, type_, preamp });
+    let cmd = Box::new(WasmReplaygainCmd {
+        noclip,
+        type_,
+        preamp,
+    });
     unsafe { rb_wasm_cmd_post(WASM_CMD_SET_REPLAYGAIN, Box::into_raw(cmd) as isize) };
     0
 }
