@@ -145,6 +145,20 @@ static void *wa_thread(void *arg)
     return NULL;
 }
 
+/* Discard all buffered audio so the AudioWorklet immediately picks up any DSP
+ * setting change (EQ, replaygain, …) rather than waiting ~1.5 s for the ring
+ * to drain.  The worklet outputs a brief silence (~5–10 ms) while the decoder
+ * refills the ring with newly processed frames.
+ *
+ * Thread-safety: s_write_idx and s_read_idx are int32 atomics; we atomically
+ * reset write to the current read, making the ring appear empty.  The writer
+ * pthread and the AudioWorklet both tolerate an empty ring gracefully. */
+void rb_pcm_flush(void)
+{
+    int32_t ri = __atomic_load_n(&s_read_idx, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&s_write_idx, ri, __ATOMIC_SEQ_CST);
+}
+
 /* ── pcm_sink ops ─────────────────────────────────────────────────────── */
 
 static void sink_dma_init(void)

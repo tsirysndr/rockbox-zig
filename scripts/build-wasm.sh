@@ -28,11 +28,12 @@ cd "$ROOTDIR"
 
 PROFILE="${PROFILE:-release}"
 CARGO_FLAG="--release"
-EMCC_OPT="-O2"
 if [ "$PROFILE" = "debug" ] || [[ "${1:-}" == "--debug" ]]; then
     PROFILE="debug"
     CARGO_FLAG=""
-    EMCC_OPT="-O0 -g"
+    EMCC_OPT="${EMCC_OPT:--O0 -g}"
+else
+    EMCC_OPT="${EMCC_OPT:--O2}"
 fi
 
 # ── Toolchain checks ──────────────────────────────────────────────────────────

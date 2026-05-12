@@ -60,6 +60,8 @@ jobs:
           restore-keys: wasm-check-firmware-
 
       - name: Build WASM
+        env:
+          EMCC_OPT: "-O0"
         run: bash scripts/build-wasm.sh --debug
 
       - name: Show artifacts
