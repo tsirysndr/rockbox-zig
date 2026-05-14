@@ -606,7 +606,6 @@ pub extern "C" fn rb_set_timestretch(stretch_pct: c_int) -> c_int {
     0
 }
 
-
 /// Flush all current settings to the Rockbox config file (MEMFS).
 /// Call this explicitly if you want to ensure persistence without changing any
 /// individual setting.
