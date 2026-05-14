@@ -13,6 +13,13 @@ enum FilesMode {
     case upnpBrowse
     case plexServers
     case plexBrowse
+    case jellyfinServers
+    case jellyfinBrowse
+}
+
+enum JellyfinAuthMode {
+    case credentials
+    case apiKey
 }
 
 struct FilesListView: View {
@@ -24,6 +31,15 @@ struct FilesListView: View {
     @State private var history: [(FilesMode, String?)] = []
     @AppStorage("plex_token") private var plexToken: String = ""
     @State private var pendingPlexServer: String? = nil
+    @State private var pendingJellyfinServer: String? = nil
+    @State private var jellyfinUsername = ""
+    @State private var jellyfinPassword = ""
+    @State private var jellyfinError: String? = nil
+    @State private var jellyfinSigningIn = false
+    @State private var jellyfinAuthMode: JellyfinAuthMode = .credentials
+    @State private var jellyfinApiKey = ""
+    @State private var showJellyfinManualEntry = false
+    @State private var jellyfinManualUrl = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -92,6 +108,94 @@ struct FilesListView: View {
             .padding(24)
             .frame(width: 340)
         }
+        .sheet(isPresented: Binding(
+            get: { pendingJellyfinServer != nil },
+            set: { if !$0 { pendingJellyfinServer = nil } }
+        )) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Sign in to Jellyfin")
+                    .font(.headline)
+                // Auth mode picker
+                Picker("", selection: $jellyfinAuthMode) {
+                    Text("Credentials").tag(JellyfinAuthMode.credentials)
+                    Text("API Key").tag(JellyfinAuthMode.apiKey)
+                }
+                .pickerStyle(.segmented)
+                if jellyfinAuthMode == .credentials {
+                    TextField("Username", text: $jellyfinUsername)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(jellyfinSigningIn)
+                    SecureField("Password", text: $jellyfinPassword)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(jellyfinSigningIn)
+                } else {
+                    SecureField("API Key", text: $jellyfinApiKey)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(jellyfinSigningIn)
+                }
+                if let err = jellyfinError {
+                    Text(err)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        pendingJellyfinServer = nil
+                        jellyfinError = nil
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(jellyfinSigningIn)
+                    Button(jellyfinSigningIn ? "Signing in…" : "Sign in") {
+                        Task {
+                            if jellyfinAuthMode == .credentials {
+                                await connectToJellyfinServer()
+                            } else {
+                                await connectToJellyfinWithApiKey()
+                            }
+                        }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(jellyfinSigningIn)
+                }
+            }
+            .padding(24)
+            .frame(width: 340)
+        }
+        .sheet(isPresented: $showJellyfinManualEntry) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Add Jellyfin Server")
+                    .font(.headline)
+                Text("Enter the server URL (e.g. http://192.168.1.10:8096)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                TextField("http://192.168.1.x:8096", text: $jellyfinManualUrl)
+                    .textFieldStyle(.roundedBorder)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { showJellyfinManualEntry = false }
+                        .keyboardShortcut(.cancelAction)
+                    Button("Connect") {
+                        let url = jellyfinManualUrl.trimmingCharacters(in: .whitespaces)
+                        guard !url.isEmpty,
+                              let encoded = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+                        else { return }
+                        showJellyfinManualEntry = false
+                        jellyfinManualUrl = ""
+                        jellyfinUsername = ""
+                        jellyfinPassword = ""
+                        jellyfinError = nil
+                        jellyfinAuthMode = .credentials
+                        pendingJellyfinServer = "jellyfin://\(encoded)"
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            .padding(24)
+            .frame(width: 360)
+        }
     }
 
     // MARK: - Root landing
@@ -108,15 +212,25 @@ struct FilesListView: View {
                 rootRow(name: "Plex", systemImage: "play.rectangle") {
                     navigate(to: .plexServers, path: "plex://")
                 }
+                rootRow(name: "Jellyfin", systemImage: "", imageName: "jellyfin") {
+                    navigate(to: .jellyfinServers, path: "jellyfin://")
+                }
             }
         }
     }
 
-    private func rootRow(name: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func rootRow(name: String, systemImage: String, imageName: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .frame(width: 20, height: 20)
+                if let imageName = imageName {
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                } else {
+                    Image(systemName: systemImage)
+                        .frame(width: 20, height: 20)
+                }
                 Text(name)
                     .font(.system(size: 13))
                 Spacer()
@@ -152,6 +266,23 @@ struct FilesListView: View {
                         }
                     }
                 }
+                if mode == .jellyfinServers {
+                    Divider()
+                    Button(action: { showJellyfinManualEntry = true }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "plus.circle")
+                                .frame(width: 20, height: 20)
+                            Text("Add Server Manually…")
+                                .font(.system(size: 13))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -170,6 +301,9 @@ struct FilesListView: View {
         case .plexServers: return "Plex Servers"
         case .plexBrowse:
             return currentPath?.split(separator: "/").last.map(String.init) ?? "Plex"
+        case .jellyfinServers: return "Jellyfin Servers"
+        case .jellyfinBrowse:
+            return currentPath?.split(separator: "/").last.map(String.init) ?? "Jellyfin"
         }
     }
 
@@ -185,6 +319,12 @@ struct FilesListView: View {
         return !rest.isEmpty && !rest.contains("/")
     }
 
+    private func isJellyfinServerPath(_ path: String) -> Bool {
+        guard path.hasPrefix("jellyfin://") else { return false }
+        let rest = path.dropFirst("jellyfin://".count)
+        return !rest.isEmpty && !rest.contains("/")
+    }
+
     private func navigateTo(file: FileItem) {
         if file.path.hasPrefix("upnp://") {
             navigate(to: .upnpBrowse, path: file.path)
@@ -193,6 +333,14 @@ struct FilesListView: View {
             pendingPlexServer = file.path
         } else if file.path.hasPrefix("plex://") {
             navigate(to: .plexBrowse, path: file.path)
+        } else if isJellyfinServerPath(file.path) {
+            // Show auth prompt before browsing the server.
+            jellyfinUsername = ""
+            jellyfinPassword = ""
+            jellyfinError = nil
+            pendingJellyfinServer = file.path
+        } else if file.path.hasPrefix("jellyfin://") {
+            navigate(to: .jellyfinBrowse, path: file.path)
         } else {
             navigate(to: .local, path: file.path)
         }
@@ -205,6 +353,105 @@ struct FilesListView: View {
             : "\(server)%3FX-Plex-Token%3D\(plexToken)"
         pendingPlexServer = nil
         navigate(to: .plexBrowse, path: navPath)
+    }
+
+    private func connectToJellyfinServer() async {
+        guard let server = pendingJellyfinServer else { return }
+        // Decode the base URL from the jellyfin:// path
+        let encoded = server.dropFirst("jellyfin://".count)
+        guard let baseUrl = encoded.removingPercentEncoding else {
+            jellyfinError = "Invalid server URL."
+            return
+        }
+        let urlStr = "\(baseUrl.hasSuffix("/") ? String(baseUrl.dropLast()) : baseUrl)/Users/AuthenticateByName"
+        guard let url = URL(string: urlStr) else {
+            jellyfinError = "Could not build request URL."
+            return
+        }
+
+        jellyfinSigningIn = true
+        jellyfinError = nil
+        defer { jellyfinSigningIn = false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(
+            #"MediaBrowser Client="Rockbox", Device="macOS", DeviceId="rockbox-macos", Version="1.0""#,
+            forHTTPHeaderField: "X-Emby-Authorization"
+        )
+        let body: [String: String] = ["Username": jellyfinUsername, "Pw": jellyfinPassword]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                jellyfinError = "Authentication failed. Check username/password."
+                return
+            }
+            guard
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let token = json["AccessToken"] as? String,
+                let user = json["User"] as? [String: Any],
+                let userId = user["Id"] as? String
+            else {
+                jellyfinError = "Unexpected response from server."
+                return
+            }
+            // Build the navigation path with token embedded
+            let tokenEncoded = token.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? token
+            let userIdEncoded = userId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? userId
+            let navPath = "\(server)%3FX-Jellyfin-Token%3D\(tokenEncoded)%26userId%3D\(userIdEncoded)"
+            pendingJellyfinServer = nil
+            navigate(to: .jellyfinBrowse, path: navPath)
+        } catch {
+            jellyfinError = "Network error: \(error.localizedDescription)"
+        }
+    }
+
+    private func connectToJellyfinWithApiKey() async {
+        guard let server = pendingJellyfinServer else { return }
+        let encoded = server.dropFirst("jellyfin://".count)
+        guard let baseUrl = encoded.removingPercentEncoding else {
+            jellyfinError = "Invalid server URL."
+            return
+        }
+        let urlStr = "\(baseUrl.hasSuffix("/") ? String(baseUrl.dropLast()) : baseUrl)/Users"
+        guard let url = URL(string: urlStr) else {
+            jellyfinError = "Could not build request URL."
+            return
+        }
+
+        jellyfinSigningIn = true
+        jellyfinError = nil
+        defer { jellyfinSigningIn = false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue(jellyfinApiKey, forHTTPHeaderField: "X-Emby-Token")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                jellyfinError = "Invalid API key or insufficient permissions."
+                return
+            }
+            guard
+                let users = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                let firstUser = users.first,
+                let userId = firstUser["Id"] as? String
+            else {
+                jellyfinError = "No users found for this API key."
+                return
+            }
+            let tokenEncoded = jellyfinApiKey.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? jellyfinApiKey
+            let userIdEncoded = userId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? userId
+            let navPath = "\(server)%3FX-Jellyfin-Token%3D\(tokenEncoded)%26userId%3D\(userIdEncoded)"
+            pendingJellyfinServer = nil
+            navigate(to: .jellyfinBrowse, path: navPath)
+        } catch {
+            jellyfinError = "Network error: \(error.localizedDescription)"
+        }
     }
 
     private func goBack() {

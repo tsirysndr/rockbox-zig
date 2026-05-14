@@ -186,6 +186,7 @@ pub enum Icons {
     Airplay,
     Upnp,
     Plex,
+    Jellyfin,
     Bluetooth,
 }
 
@@ -231,6 +232,7 @@ impl IconNamed for Icons {
             Icons::Airplay => "icons/airplay.svg",
             Icons::Upnp => "icons/upnp.svg",
             Icons::Plex => "icons/plex.svg",
+            Icons::Jellyfin => "icons/jellyfin.svg",
             Icons::Bluetooth => "icons/bluetooth.svg",
         }
         .into()

@@ -3,6 +3,7 @@ pub mod app;
 pub mod client;
 pub mod controller;
 pub mod http_client;
+pub mod jellyfin;
 pub mod now_playing;
 pub mod server;
 pub mod startup;

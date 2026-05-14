@@ -4,6 +4,11 @@ use crate::{
     api::rockbox::v1alpha1::{browse_service_server::BrowseService, *},
     AUDIO_EXTENSIONS,
 };
+use rockbox_jellyfin::{
+    browse_items as jellyfin_browse_items, discover_jellyfin_servers,
+    list_views as jellyfin_list_views, parse_base_url as jellyfin_parse_base_url,
+    percent_decode as jellyfin_percent_decode, percent_encode as jellyfin_percent_encode,
+};
 use rockbox_plex::{
     browse_plex, discover_plex_servers, list_sections as list_plex_sections,
     parse_base_url as plex_parse_base_url, percent_decode as plex_percent_decode,
@@ -30,6 +35,9 @@ impl BrowseService for Browse {
             }
             if p.starts_with("plex://") {
                 return handle_plex(p).await;
+            }
+            if p.starts_with("jellyfin://") {
+                return handle_jellyfin(p).await;
             }
         }
 
@@ -151,6 +159,110 @@ async fn handle_plex(path: &str) -> Result<tonic::Response<TreeGetEntriesRespons
                         name,
                         attr: if e.is_container { 0x10 } else { 0 },
                         display_name: Some(e.title),
+                        ..Default::default()
+                    }
+                })
+                .collect();
+            Ok(tonic::Response::new(TreeGetEntriesResponse { entries }))
+        }
+    }
+}
+
+async fn handle_jellyfin(
+    path: &str,
+) -> Result<tonic::Response<TreeGetEntriesResponse>, tonic::Status> {
+    let rest = path.trim_start_matches("jellyfin://");
+
+    // Discovery: rest is empty or carries credentials via "?X-Jellyfin-Token=...&userId=..."
+    if rest.is_empty() || rest.starts_with('?') {
+        let token: Option<String> = rest.strip_prefix('?').and_then(|q| {
+            q.split('&')
+                .find(|p| p.starts_with("X-Jellyfin-Token="))
+                .and_then(|p| p.strip_prefix("X-Jellyfin-Token="))
+                .filter(|v| !v.is_empty())
+                .map(|v| v.to_string())
+        });
+        let user_id: Option<String> = rest.strip_prefix('?').and_then(|q| {
+            q.split('&')
+                .find(|p| p.starts_with("userId="))
+                .and_then(|p| p.strip_prefix("userId="))
+                .filter(|v| !v.is_empty())
+                .map(|v| v.to_string())
+        });
+        let servers = discover_jellyfin_servers().await;
+        let entries = servers
+            .into_iter()
+            .map(|s| {
+                let base_with_creds = match (&token, &user_id) {
+                    (Some(t), Some(u)) => {
+                        format!("{}?X-Jellyfin-Token={}&userId={}", s.base_url, t, u)
+                    }
+                    (Some(t), None) => format!("{}?X-Jellyfin-Token={}", s.base_url, t),
+                    _ => s.base_url.clone(),
+                };
+                Entry {
+                    name: format!("jellyfin://{}", jellyfin_percent_encode(&base_with_creds)),
+                    attr: 0x10,
+                    display_name: Some(s.name),
+                    ..Default::default()
+                }
+            })
+            .collect();
+        return Ok(tonic::Response::new(TreeGetEntriesResponse { entries }));
+    }
+
+    let (base_encoded, api_path_encoded) = match rest.find('/') {
+        None => (rest, None),
+        Some(i) => (&rest[..i], Some(&rest[i + 1..])),
+    };
+    let (base_url, token, user_id) =
+        jellyfin_parse_base_url(&jellyfin_percent_decode(base_encoded));
+    let token = token.unwrap_or_default();
+    let user_id = user_id.unwrap_or_default();
+
+    match api_path_encoded {
+        None => {
+            let views = jellyfin_list_views(&base_url, &token, &user_id).await;
+            let entries = views
+                .into_iter()
+                .map(|e| Entry {
+                    name: format!(
+                        "jellyfin://{}/{}",
+                        base_encoded,
+                        jellyfin_percent_encode(&e.id)
+                    ),
+                    attr: 0x10,
+                    display_name: Some(e.name),
+                    ..Default::default()
+                })
+                .collect();
+            Ok(tonic::Response::new(TreeGetEntriesResponse { entries }))
+        }
+        Some(encoded) => {
+            let parent_id = jellyfin_percent_decode(encoded);
+            let content = jellyfin_browse_items(&base_url, &token, &user_id, &parent_id).await;
+            let entries = content
+                .into_iter()
+                .map(|e| {
+                    let name = if e.is_container {
+                        format!(
+                            "jellyfin://{}/{}",
+                            base_encoded,
+                            jellyfin_percent_encode(&e.id)
+                        )
+                    } else {
+                        e.stream_url.unwrap_or_else(|| {
+                            format!(
+                                "jellyfin://{}/{}",
+                                base_encoded,
+                                jellyfin_percent_encode(&e.id)
+                            )
+                        })
+                    };
+                    Entry {
+                        name,
+                        attr: if e.is_container { 0x10 } else { 0 },
+                        display_name: Some(e.name),
                         ..Default::default()
                     }
                 })

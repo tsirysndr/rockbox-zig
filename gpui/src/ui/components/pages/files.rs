@@ -2,7 +2,9 @@ use crate::client::{play_directory, play_directory_at, FileEntry};
 use crate::controller::Controller;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::text_input::TextInput;
-use crate::ui::components::{FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode};
+use crate::ui::components::{
+    FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode, JellyfinAuthState,
+};
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
@@ -29,15 +31,20 @@ pub struct FilesView {
     loading: bool,
     upnp_cache: HashMap<String, CacheEntry>,
     plex_token_input: Entity<TextInput>,
+    jellyfin_username_input: Entity<TextInput>,
+    jellyfin_password_input: Entity<TextInput>,
+    jellyfin_api_key_input: Entity<TextInput>,
+    jellyfin_manual_url_input: Entity<TextInput>,
 }
 
 impl FilesView {
     pub fn new(cx: &mut Context<Self>) -> Self {
         cx.set_global(FilesBrowseState::default());
         cx.set_global(FileContextMenuState::default());
+        cx.set_global(JellyfinAuthState::default());
 
-        // Prefetch UPnP and Plex device lists so the first open is instant.
-        for prefix in ["upnp://", "plex://"] {
+        // Prefetch UPnP, Plex, and Jellyfin device lists so the first open is instant.
+        for prefix in ["upnp://", "plex://", "jellyfin://"] {
             let path = prefix.to_string();
             let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
             cx.global::<Controller>().rt().spawn(async move {
@@ -64,6 +71,10 @@ impl FilesView {
         }
 
         let plex_token_input = cx.new(|cx| TextInput::new("Plex token (optional)", cx));
+        let jellyfin_username_input = cx.new(|cx| TextInput::new("Username", cx));
+        let jellyfin_password_input = cx.new(|cx| TextInput::new("Password", cx));
+        let jellyfin_api_key_input = cx.new(|cx| TextInput::new("API Key", cx));
+        let jellyfin_manual_url_input = cx.new(|cx| TextInput::new("http://192.168.1.x:8096", cx));
 
         FilesView {
             entries: Vec::new(),
@@ -71,6 +82,10 @@ impl FilesView {
             loading: false,
             upnp_cache: HashMap::new(),
             plex_token_input,
+            jellyfin_username_input,
+            jellyfin_password_input,
+            jellyfin_api_key_input,
+            jellyfin_manual_url_input,
         }
     }
 
@@ -89,16 +104,20 @@ impl FilesView {
             return;
         }
 
-        // Determine cache key for UPnP / Plex paths.
+        // Determine cache key for UPnP / Plex / Jellyfin paths.
         let cache_key: Option<String> = match browse.mode {
             FilesMode::UpnpDevices => Some("upnp://".to_string()),
             FilesMode::UpnpBrowse => browse.current_path.clone(),
             FilesMode::PlexServers => Some("plex://".to_string()),
             FilesMode::PlexBrowse => browse.current_path.clone(),
+            FilesMode::JellyfinServers => Some("jellyfin://".to_string()),
+            FilesMode::JellyfinBrowse => browse.current_path.clone(),
             _ => None,
         };
         let ttl = match browse.mode {
-            FilesMode::UpnpDevices | FilesMode::PlexServers => DEVICE_LIST_TTL,
+            FilesMode::UpnpDevices
+            | FilesMode::PlexServers
+            | FilesMode::JellyfinServers => DEVICE_LIST_TTL,
             _ => CONTENT_TTL,
         };
 
@@ -181,6 +200,98 @@ impl FilesView {
         })
         .detach();
     }
+
+    fn spawn_jellyfin_auth(&self, cx: &mut Context<Self>, server_path: String) {
+        let base_url = pct_decode(server_path.trim_start_matches("jellyfin://"));
+        let username = self.jellyfin_username_input.read(cx).value.clone();
+        let password = self.jellyfin_password_input.read(cx).value.clone();
+        let base_url2 = base_url.clone();
+
+        let (tx, rx) =
+            tokio::sync::oneshot::channel::<Option<(String, String)>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let result = crate::jellyfin::authenticate(&base_url, &username, &password).await;
+            let _ = tx.send(result);
+        });
+        cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
+            if let Ok(result) = rx.await {
+                if let Some((token, user_id)) = result {
+                    let nav_path = format!(
+                        "jellyfin://{}",
+                        pct_encode(&format!(
+                            "{}?X-Jellyfin-Token={}&userId={}",
+                            base_url2, token, user_id
+                        ))
+                    );
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<JellyfinAuthState>().pending_server = None;
+                        cx.global_mut::<JellyfinAuthState>().authenticating = false;
+                        cx.global_mut::<JellyfinAuthState>().error = None;
+                        cx.global_mut::<FilesBrowseState>()
+                            .navigate(FilesMode::JellyfinBrowse, Some(nav_path));
+                    });
+                } else {
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<JellyfinAuthState>().authenticating = false;
+                        cx.global_mut::<JellyfinAuthState>().error = Some(
+                            "Authentication failed. Check username/password.".to_string(),
+                        );
+                    });
+                }
+            }
+        })
+        .detach();
+    }
+    fn spawn_jellyfin_apikey_auth(&self, cx: &mut Context<Self>, server_path: String) {
+        let base_url = pct_decode(server_path.trim_start_matches("jellyfin://"));
+        let api_key = self.jellyfin_api_key_input.read(cx).value.clone();
+        let base_url2 = base_url.clone();
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<(String, String)>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let result = crate::jellyfin::authenticate_with_api_key(&base_url, &api_key).await;
+            let _ = tx.send(result);
+        });
+        cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
+            if let Ok(result) = rx.await {
+                if let Some((token, user_id)) = result {
+                    let nav_path = format!(
+                        "jellyfin://{}",
+                        pct_encode(&format!(
+                            "{}?X-Jellyfin-Token={}&userId={}",
+                            base_url2, token, user_id
+                        ))
+                    );
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<JellyfinAuthState>().pending_server = None;
+                        cx.global_mut::<JellyfinAuthState>().authenticating = false;
+                        cx.global_mut::<JellyfinAuthState>().error = None;
+                        cx.global_mut::<FilesBrowseState>()
+                            .navigate(FilesMode::JellyfinBrowse, Some(nav_path));
+                    });
+                } else {
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<JellyfinAuthState>().authenticating = false;
+                        cx.global_mut::<JellyfinAuthState>().error =
+                            Some("Invalid API key or could not get user list.".to_string());
+                    });
+                }
+            }
+        })
+        .detach();
+    }
+
+    fn spawn_jellyfin_manual_connect(&self, cx: &mut Context<Self>) {
+        let raw_url = self.jellyfin_manual_url_input.read(cx).value.clone();
+        if raw_url.trim().is_empty() {
+            return;
+        }
+        let server_path = format!("jellyfin://{}", pct_encode(raw_url.trim()));
+        cx.global_mut::<JellyfinAuthState>().show_add_manually = false;
+        cx.global_mut::<JellyfinAuthState>().pending_server = Some(server_path);
+        cx.global_mut::<JellyfinAuthState>().error = None;
+        cx.global_mut::<JellyfinAuthState>().auth_mode = crate::ui::components::JellyfinAuthMode::Credentials;
+    }
 }
 
 impl Render for FilesView {
@@ -214,14 +325,26 @@ impl Render for FilesView {
                 .and_then(|p| p.rsplit('/').next())
                 .unwrap_or("Plex")
                 .to_string(),
+            FilesMode::JellyfinServers => "Jellyfin Servers".to_string(),
+            FilesMode::JellyfinBrowse => browse
+                .current_path
+                .as_deref()
+                .and_then(|p| p.rsplit('/').next())
+                .unwrap_or("Jellyfin")
+                .to_string(),
         };
 
         let current_dir = browse.current_path.clone().unwrap_or_default();
         let mode = browse.mode.clone();
         let entries = self.entries.clone();
         let loading = self.loading;
-        let pending_server = browse.pending_plex_server.clone();
+        let pending_plex = browse.pending_plex_server.clone();
         let plex_token_input = self.plex_token_input.clone();
+        let jellyfin_auth = cx.global::<JellyfinAuthState>().clone();
+        let jellyfin_username_input = self.jellyfin_username_input.clone();
+        let jellyfin_password_input = self.jellyfin_password_input.clone();
+        let jellyfin_api_key_input = self.jellyfin_api_key_input.clone();
+        let jellyfin_manual_url_input = self.jellyfin_manual_url_input.clone();
 
         div()
             .size_full()
@@ -268,8 +391,10 @@ impl Render for FilesView {
             // ── Content ───────────────────────────────────────────────────────
             .child(match mode {
                 FilesMode::Root => render_root(theme).into_any_element(),
-                FilesMode::PlexServers if pending_server.is_some() => {
-                    let server_path = pending_server.unwrap();
+
+                // ── Plex token prompt ─────────────────────────────────────────
+                FilesMode::PlexServers if pending_plex.is_some() => {
+                    let server_path = pending_plex.unwrap();
                     let sp = server_path.clone();
                     div()
                         .flex_1()
@@ -344,6 +469,240 @@ impl Render for FilesView {
                         )
                         .into_any_element()
                 }
+
+                // ── Jellyfin add manually prompt ─────────────────────────────
+                FilesMode::JellyfinServers if jellyfin_auth.show_add_manually => {
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_center()
+                        .gap_y_3()
+                        .p_6()
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_text)
+                                .child("Add Server Manually"),
+                        )
+                        .child(
+                            div()
+                                .text_xs()
+                                .text_color(theme.library_header_text)
+                                .child("Enter the Jellyfin server URL (e.g. http://192.168.1.10:8096)"),
+                        )
+                        .child(div().w(px(280.0)).child(jellyfin_manual_url_input))
+                        .child(
+                            div()
+                                .flex()
+                                .gap_x_2()
+                                .child(
+                                    div()
+                                        .id("jellyfin_manual_cancel")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<JellyfinAuthState>().show_add_manually = false;
+                                        }))
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("jellyfin_manual_connect")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_text)
+                                        .bg(theme.switcher_active)
+                                        .on_click(cx.listener(|this, _, _, cx| {
+                                            this.spawn_jellyfin_manual_connect(cx);
+                                        }))
+                                        .child("Connect"),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Jellyfin auth prompt ──────────────────────────────────────
+                FilesMode::JellyfinServers if jellyfin_auth.pending_server.is_some() => {
+                    let server_path = jellyfin_auth.pending_server.clone().unwrap();
+                    let sp_creds = server_path.clone();
+                    let sp_key = server_path.clone();
+                    let authenticating = jellyfin_auth.authenticating;
+                    let error = jellyfin_auth.error.clone();
+                    let auth_mode = jellyfin_auth.auth_mode.clone();
+                    let is_creds = auth_mode == crate::ui::components::JellyfinAuthMode::Credentials;
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_center()
+                        .gap_y_3()
+                        .p_6()
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_text)
+                                .child("Sign in to Jellyfin"),
+                        )
+                        // Auth mode tabs
+                        .child(
+                            div()
+                                .flex()
+                                .gap_x_1()
+                                .p_1()
+                                .rounded_md()
+                                .bg(theme.library_bg)
+                                .child(
+                                    div()
+                                        .id("jellyfin_tab_creds")
+                                        .px_3()
+                                        .py_1()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_xs()
+                                        .text_color(if is_creds { theme.library_text } else { theme.library_header_text })
+                                        .when(is_creds, |t| t.bg(theme.switcher_active))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<JellyfinAuthState>().auth_mode =
+                                                crate::ui::components::JellyfinAuthMode::Credentials;
+                                            cx.global_mut::<JellyfinAuthState>().error = None;
+                                        }))
+                                        .child("Credentials"),
+                                )
+                                .child(
+                                    div()
+                                        .id("jellyfin_tab_apikey")
+                                        .px_3()
+                                        .py_1()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_xs()
+                                        .text_color(if !is_creds { theme.library_text } else { theme.library_header_text })
+                                        .when(!is_creds, |t| t.bg(theme.switcher_active))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<JellyfinAuthState>().auth_mode =
+                                                crate::ui::components::JellyfinAuthMode::ApiKey;
+                                            cx.global_mut::<JellyfinAuthState>().error = None;
+                                        }))
+                                        .child("API Key"),
+                                ),
+                        )
+                        .when(is_creds, |this| {
+                            this
+                                .child(div().w(px(280.0)).child(jellyfin_username_input))
+                                .child(div().w(px(280.0)).child(jellyfin_password_input))
+                        })
+                        .when(!is_creds, |this| {
+                            this.child(div().w(px(280.0)).child(jellyfin_api_key_input))
+                        })
+                        .when_some(error, |this, err| {
+                            this.child(
+                                div()
+                                    .text_xs()
+                                    .text_color(gpui::red())
+                                    .child(err),
+                            )
+                        })
+                        .child(if authenticating {
+                            div()
+                                .text_sm()
+                                .text_color(theme.library_header_text)
+                                .child("Signing in…")
+                                .into_any_element()
+                        } else {
+                            div()
+                                .flex()
+                                .gap_x_2()
+                                .child(
+                                    div()
+                                        .id("jellyfin_cancel")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<JellyfinAuthState>()
+                                                .pending_server = None;
+                                            cx.global_mut::<JellyfinAuthState>().error = None;
+                                        }))
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("jellyfin_signin")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_text)
+                                        .bg(theme.switcher_active)
+                                        .on_click(cx.listener(move |this, _, _, cx| {
+                                            cx.global_mut::<JellyfinAuthState>().authenticating =
+                                                true;
+                                            cx.global_mut::<JellyfinAuthState>().error = None;
+                                            let mode = cx.global::<JellyfinAuthState>().auth_mode.clone();
+                                            if mode == crate::ui::components::JellyfinAuthMode::Credentials {
+                                                this.spawn_jellyfin_auth(cx, sp_creds.clone());
+                                            } else {
+                                                this.spawn_jellyfin_apikey_auth(cx, sp_key.clone());
+                                            }
+                                        }))
+                                        .child("Sign in"),
+                                )
+                                .into_any_element()
+                        })
+                        .into_any_element()
+                }
+
+                FilesMode::JellyfinServers => {
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(render_entries(entries, current_dir, mode, theme))
+                        .child(
+                            div()
+                                .id("jellyfin_add_manually")
+                                .w_full()
+                                .flex()
+                                .items_center()
+                                .gap_x_3()
+                                .px_4()
+                                .py_2p5()
+                                .cursor_pointer()
+                                .hover(|t| t.bg(theme.library_track_bg_hover))
+                                .border_t_1()
+                                .border_color(theme.library_table_border)
+                                .on_click(cx.listener(|_, _, _, cx| {
+                                    cx.global_mut::<JellyfinAuthState>().show_add_manually = true;
+                                }))
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("+ Add Server Manually…"),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
                 _ if loading => render_loading(theme).into_any_element(),
                 _ => render_entries(entries, current_dir, mode, theme).into_any_element(),
             })
@@ -475,6 +834,41 @@ fn render_root(theme: Theme) -> AnyElement {
                         .child("Plex"),
                 ),
         )
+        .child(
+            div()
+                .id("root_jellyfin")
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_3()
+                .px_4()
+                .py_2p5()
+                .cursor_pointer()
+                .hover(|t| t.bg(theme.library_track_bg_hover))
+                .on_click(|_, _, cx: &mut App| {
+                    cx.global_mut::<FilesBrowseState>()
+                        .navigate(FilesMode::JellyfinServers, Some("jellyfin://".to_string()));
+                })
+                .child(
+                    div()
+                        .w(px(22.0))
+                        .h(px(22.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .items_center()
+                        .text_color(theme.library_text)
+                        .child(Icon::new(Icons::Jellyfin).size_5()),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_sm()
+                        .truncate()
+                        .text_color(theme.library_text)
+                        .child("Jellyfin"),
+                ),
+        )
         .into_any_element()
 }
 
@@ -484,7 +878,10 @@ fn render_entries(
     mode: FilesMode,
     theme: Theme,
 ) -> AnyElement {
-    let is_device_list = matches!(mode, FilesMode::UpnpDevices | FilesMode::PlexServers);
+    let is_device_list = matches!(
+        mode,
+        FilesMode::UpnpDevices | FilesMode::PlexServers | FilesMode::JellyfinServers
+    );
     let mode_for_icon = mode.clone();
     let mode_for_nav = mode.clone();
     uniform_list("files_list", entries.len(), move |range, _, _cx| {
@@ -504,11 +901,13 @@ fn render_entries(
                 let is_dir = entry.is_dir;
                 let is_upnp = entry.path.starts_with("upnp://");
                 let is_plex = entry.path.starts_with("plex://");
+                let is_jellyfin = entry.path.starts_with("jellyfin://");
                 let mode_nav = mode_for_nav.clone();
 
                 let dir_icon = match mode_for_icon {
                     FilesMode::UpnpDevices => Icons::Device,
                     FilesMode::PlexServers => Icons::Plex,
+                    FilesMode::JellyfinServers => Icons::Jellyfin,
                     _ => Icons::Directory,
                 };
 
@@ -597,11 +996,18 @@ fn render_entries(
                                         // Show token prompt before browsing the server.
                                         cx.global_mut::<FilesBrowseState>()
                                             .pending_plex_server = Some(path_nav.clone());
+                                    } else if mode_nav == FilesMode::JellyfinServers {
+                                        // Show auth prompt before browsing the server.
+                                        cx.global_mut::<JellyfinAuthState>()
+                                            .pending_server = Some(path_nav.clone());
+                                        cx.global_mut::<JellyfinAuthState>().error = None;
                                     } else {
                                         let new_mode = if is_upnp {
                                             FilesMode::UpnpBrowse
                                         } else if is_plex {
                                             FilesMode::PlexBrowse
+                                        } else if is_jellyfin {
+                                            FilesMode::JellyfinBrowse
                                         } else {
                                             FilesMode::Local
                                         };
@@ -665,4 +1071,47 @@ pub fn menu_item(
         .hover(|t| t.bg(theme.library_track_bg_hover))
         .on_click(on_click)
         .child(label)
+}
+
+// ── URL percent-encode/decode helpers ────────────────────────────────────────
+// Simple implementations that only encode/decode the characters Jellyfin URLs
+// need when embedded in our jellyfin:// scheme.
+
+fn pct_encode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            // unreserved characters — pass through
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char);
+            }
+            other => {
+                out.push('%');
+                out.push(char::from_digit((other >> 4) as u32, 16).unwrap_or('0'));
+                out.push(char::from_digit((other & 0xf) as u32, 16).unwrap_or('0'));
+            }
+        }
+    }
+    out
+}
+
+fn pct_decode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let (Some(hi), Some(lo)) = (
+                (bytes[i + 1] as char).to_digit(16),
+                (bytes[i + 2] as char).to_digit(16),
+            ) {
+                out.push(((hi << 4 | lo) as u8) as char);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i] as char);
+        i += 1;
+    }
+    out
 }

@@ -50,6 +50,10 @@ pub enum FilesMode {
     PlexServers,
     /// Browsing a Plex server's library.
     PlexBrowse,
+    /// Listing discovered Jellyfin media servers.
+    JellyfinServers,
+    /// Browsing a Jellyfin server's library.
+    JellyfinBrowse,
 }
 
 impl Default for FilesMode {
@@ -90,6 +94,24 @@ impl FilesBrowseState {
 }
 
 impl gpui::Global for FilesBrowseState {}
+
+#[derive(Clone, Default, PartialEq)]
+pub enum JellyfinAuthMode {
+    #[default]
+    Credentials,
+    ApiKey,
+}
+
+#[derive(Clone, Default)]
+pub struct JellyfinAuthState {
+    /// base_url (percent-encoded, prefixed with "jellyfin://") of the server waiting for auth.
+    pub pending_server: Option<String>,
+    pub authenticating: bool,
+    pub error: Option<String>,
+    pub auth_mode: JellyfinAuthMode,
+    pub show_add_manually: bool,
+}
+impl gpui::Global for JellyfinAuthState {}
 
 #[derive(Clone)]
 pub struct FileContextMenu {
