@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.15]
+
+### Added
+- Plex Media Server browsing via `plex://` scheme — mDNS discovery (`_plexmediasvr._tcp.local.`), token-in-URL auth, full library / playlist / album / artist / track navigation
+- Jellyfin Media Server browsing via `jellyfin://` scheme — manual server entry, API-key auth, full content hierarchy browsing
+- Navidrome Media Server browsing via `navidrome://` scheme — manual server entry, MD5 token auth (Subsonic API), `getIndexes` + `getMusicDirectory` browsing
+- Kodi/XBMC Media Server browsing via `kodi://` scheme — JSON-RPC API, library browsing for audio albums, artists, genres, and tracks
+- Expo mobile app: Plex, Jellyfin, Navidrome, and Kodi server browsing surfaced in the Files tab alongside the existing local filesystem view
+- WASM browser build: settings API (persist EQ / DSP / volume / crossfade to in-memory config), playlist persistence across reloads, `rb_set_repeat` export (repeat off / all / one / shuffle)
+- Real-time DSP/EQ API exposed over HTTP, gRPC, and GraphQL — `setEq` mutation with `enabled`, `precut`, and per-band `cutoff`/`Q`/`gain` fields; backed by `dsp_set_eq_coefs()` called directly on the audio thread to avoid audible cuts
+
+### Changed
+- Docker base images upgraded from Debian bookworm → trixie across all three Dockerfiles; Rust base image bumped from 1.94 → 1.95
+- Nix flake now builds only `rockboxd` (removed unused outputs)
+- `settings.toml` example updated to document the new media-server `audio_output` entries
+
+### Fixed
+- WASM: `seek`, crossfade, bass/treble DSP controls now apply correctly; real-time events (position, track change) fire reliably; crossfade mode change posts `Q_AUDIO_REMAKE_AUDIO_BUFFER` only when audio is playing to avoid an audible cut when stopped
+- WASM: EQ real-time application and persistence — coefficient updates call `dsp_set_eq_coefs()` in the `wasm_cmd` handler without posting `REMAKE`; band gain multiplied by 10 (tenths of dB) before passing to `rb_set_eq_band`
+- WASM: EQ cutoff and Q values now match the preset layout (Q 7.0, 10-band display) after correcting the unit conversion in `web/rockbox.js`
+- Dithering, Auditory Frequency Resolution (AFR), and Perceptual Bass Enhancement (PBE) controls in the web UI now reflect changes immediately — `GlobalSettings` mutations now call the corresponding DSP setters and trigger `tracing`-level log output
+
 ## [2026.05.09]
 
 ### Fixed
