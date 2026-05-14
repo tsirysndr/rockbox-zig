@@ -58,6 +58,10 @@ pub enum FilesMode {
     NavidromeServers,
     /// Browsing a Navidrome server's library.
     NavidromeBrowse,
+    /// Listing discovered Kodi/XBMC media servers.
+    KodiServers,
+    /// Browsing a Kodi server's library.
+    KodiBrowse,
 }
 
 impl Default for FilesMode {
@@ -106,6 +110,15 @@ pub struct NavidromeAuthState {
     pub show_add_manually: bool,
 }
 impl gpui::Global for NavidromeAuthState {}
+
+#[derive(Clone, Default)]
+pub struct KodiAuthState {
+    /// base_url (percent-encoded, prefixed with "kodi://") of the server waiting for auth.
+    pub pending_server: Option<String>,
+    pub authenticating: bool,
+    pub error: Option<String>,
+}
+impl gpui::Global for KodiAuthState {}
 
 impl gpui::Global for FilesBrowseState {}
 

@@ -188,6 +188,7 @@ pub enum Icons {
     Plex,
     Jellyfin,
     Navidrome,
+    Kodi,
     Bluetooth,
 }
 
@@ -235,6 +236,7 @@ impl IconNamed for Icons {
             Icons::Plex => "icons/plex.svg",
             Icons::Jellyfin => "icons/jellyfin.svg",
             Icons::Navidrome => "icons/navidrome.svg",
+            Icons::Kodi => "icons/kodi.svg",
             Icons::Bluetooth => "icons/bluetooth.svg",
         }
         .into()

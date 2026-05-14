@@ -9487,6 +9487,7 @@ dependencies = [
  "rockbox-bluetooth",
  "rockbox-fts5",
  "rockbox-jellyfin",
+ "rockbox-kodi",
  "rockbox-library",
  "rockbox-navidrome",
  "rockbox-playlists",
@@ -9529,6 +9530,19 @@ name = "rockbox-jellyfin"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "rockbox-kodi"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "mdns-sd",
  "reqwest",
  "serde",
  "serde_json",
@@ -9688,6 +9702,7 @@ dependencies = [
  "rockbox-fts5",
  "rockbox-graphql",
  "rockbox-jellyfin",
+ "rockbox-kodi",
  "rockbox-library",
  "rockbox-navidrome",
  "rockbox-playlists",

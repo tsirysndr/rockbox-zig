@@ -15,6 +15,7 @@ import Play from "../Icons/Play";
 import FileListSkeleton from "../Skeletons/FileListSkeleton";
 import JellyfinIcon from "../Icons/Jellyfin";
 import NavidromeIcon from "../Icons/Navidrome";
+import KodiIcon from "../Icons/Kodi";
 
 const columnHelper = createColumnHelper<File>();
 
@@ -47,7 +48,8 @@ const Files: FC<FilesProps> = (props) => {
             !info.row.original.path.startsWith("upnp://") &&
             !info.row.original.path.startsWith("plex://") &&
             !info.row.original.path.startsWith("jellyfin://") &&
-            !info.row.original.path.startsWith("navidrome://") && (
+            !info.row.original.path.startsWith("navidrome://") &&
+            !info.row.original.path.startsWith("kodi://") && (
             <div>
               <div
                 className="play"
@@ -122,6 +124,22 @@ const Files: FC<FilesProps> = (props) => {
               </div>
             </div>
           )}
+          {info.row.original.path === "kodi://" && (
+            <div className="no-play">
+              <div className="folder">
+                <KodiIcon size={20} color="currentColor" />
+              </div>
+            </div>
+          )}
+          {info.row.original.isDirectory &&
+            info.row.original.path.startsWith("kodi://") &&
+            info.row.original.path !== "kodi://" && (
+            <div className="no-play">
+              <div className="folder">
+                <Folder2 size={20} />
+              </div>
+            </div>
+          )}
           {!info.row.original.isDirectory && (
             <div>
               <div
@@ -188,7 +206,8 @@ const Files: FC<FilesProps> = (props) => {
           info.row.original.path.startsWith("upnp://") ||
           info.row.original.path.startsWith("plex://") ||
           info.row.original.path.startsWith("jellyfin://") ||
-          info.row.original.path.startsWith("navidrome://");
+          info.row.original.path.startsWith("navidrome://") ||
+          info.row.original.path.startsWith("kodi://");
         if (isRootEntry) return <div className="flex flex-row items-center" />;
         return (
           <div
