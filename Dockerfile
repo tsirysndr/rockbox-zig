@@ -14,7 +14,7 @@ COPY webui/rockbox/ ./
 RUN deno task build
 
 # ── Rockbox daemon ─────────────────────────────────────────────────────────────
-FROM rust:1.94-bookworm AS builder
+FROM rust:1.95-trixie AS builder
 
 ARG TARGETARCH
 ARG TAG
@@ -59,7 +59,7 @@ RUN cargo build -p rockbox --release
 # ── Runtime image ──────────────────────────────────────────────────────────────
 FROM typesense/typesense:30.1 AS typesense
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 ARG TARGETARCH
 ARG SNAP_VERSION=0.35.0
@@ -74,7 +74,7 @@ RUN apt-get update && apt-get install -y \
        arm64) SNAP_ARCH="arm64" ;; \
        *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
      esac \
-  && wget -q "https://github.com/badaix/snapcast/releases/download/v${SNAP_VERSION}/snapserver_${SNAP_VERSION}-1_${SNAP_ARCH}_bookworm.deb" -O /tmp/snapserver.deb \
+  && wget -q "https://github.com/snapcast/snapcast/releases/download/v${SNAP_VERSION}/snapserver_${SNAP_VERSION}-1_${SNAP_ARCH}_trixie.deb" -O /tmp/snapserver.deb \
   && apt-get install -y /tmp/snapserver.deb \
   && rm /tmp/snapserver.deb \
   && apt-get remove -y wget \
