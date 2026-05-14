@@ -9486,6 +9486,7 @@ dependencies = [
  "reqwest",
  "rockbox-bluetooth",
  "rockbox-fts5",
+ "rockbox-jellyfin",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-plex",
@@ -9520,6 +9521,18 @@ dependencies = [
  "tonic-build",
  "tonic-reflection",
  "tonic-web",
+]
+
+[[package]]
+name = "rockbox-jellyfin"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -9660,6 +9673,7 @@ dependencies = [
  "rockbox-bluetooth",
  "rockbox-fts5",
  "rockbox-graphql",
+ "rockbox-jellyfin",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-plex",

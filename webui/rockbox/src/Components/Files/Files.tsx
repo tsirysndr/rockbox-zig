@@ -13,6 +13,7 @@ import MainView from "../MainView";
 import ContextMenu from "./ContextMenu";
 import Play from "../Icons/Play";
 import FileListSkeleton from "../Skeletons/FileListSkeleton";
+import JellyfinIcon from "../Icons/Jellyfin";
 
 const columnHelper = createColumnHelper<File>();
 
@@ -43,7 +44,8 @@ const Files: FC<FilesProps> = (props) => {
           {info.row.original.isDirectory &&
             info.row.original.path !== "__local__" &&
             !info.row.original.path.startsWith("upnp://") &&
-            !info.row.original.path.startsWith("plex://") && (
+            !info.row.original.path.startsWith("plex://") &&
+            !info.row.original.path.startsWith("jellyfin://") && (
             <div>
               <div
                 className="play"
@@ -80,6 +82,22 @@ const Files: FC<FilesProps> = (props) => {
           {info.row.original.isDirectory &&
             info.row.original.path.startsWith("plex://") &&
             info.row.original.path !== "plex://" && (
+            <div className="no-play">
+              <div className="folder">
+                <Folder2 size={20} />
+              </div>
+            </div>
+          )}
+          {info.row.original.path === "jellyfin://" && (
+            <div className="no-play">
+              <div className="folder">
+                <JellyfinIcon size={20} color="currentColor" />
+              </div>
+            </div>
+          )}
+          {info.row.original.isDirectory &&
+            info.row.original.path.startsWith("jellyfin://") &&
+            info.row.original.path !== "jellyfin://" && (
             <div className="no-play">
               <div className="folder">
                 <Folder2 size={20} />
@@ -150,7 +168,8 @@ const Files: FC<FilesProps> = (props) => {
         const isRootEntry =
           info.row.original.path === "__local__" ||
           info.row.original.path.startsWith("upnp://") ||
-          info.row.original.path.startsWith("plex://");
+          info.row.original.path.startsWith("plex://") ||
+          info.row.original.path.startsWith("jellyfin://");
         if (isRootEntry) return <div className="flex flex-row items-center" />;
         return (
           <div
