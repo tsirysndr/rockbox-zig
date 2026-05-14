@@ -158,8 +158,6 @@ pub fn save_settings(settings: NewGlobalSettings, from_disk: bool) {
 
         set_value_setting!(settings.bass, crate::global_settings.bass);
         set_value_setting!(settings.treble, crate::global_settings.treble);
-        set_value_setting!(settings.bass_cutoff, crate::global_settings.bass_cutoff);
-        set_value_setting!(settings.treble_cutoff, crate::global_settings.treble_cutoff);
 
         set_value_setting!(settings.crossfade, crate::global_settings.crossfade);
         if settings.crossfade.is_some() {

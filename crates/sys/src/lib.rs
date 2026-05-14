@@ -742,9 +742,6 @@ pub struct UserSettings {
     pub channel_config: c_int,
     pub stereo_width: c_int,
 
-    pub bass_cutoff: c_int,
-    pub treble_cutoff: c_int,
-
     pub crossfade: c_int,
     pub crossfade_fade_in_delay: c_int,
     pub crossfade_fade_out_delay: c_int,

@@ -100,13 +100,15 @@ const Equalizer: FC<EqualizerProps> = (props) => {
       <div className="mx-auto mt-[50px] mb-[120px] flex flex-row justify-between w-full text-[11px]">
         {bands.map((band, index) => (
           <div key={index} className="flex flex-col items-center gap-1" style={{ height: 250 }}>
+            <div className="text-center text-[11px] text-[#ccc] font-mono leading-none mb-1">
+              {formatGain(band.gain)}
+            </div>
             <Slider
               value={band.gain}
               onChange={(_e, v) => handleGainChange(v as number, index)}
               onChangeCommitted={(_e, v) => handleGainCommit(v as number, index)}
               sx={sliderSx}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(v) => formatGain(v)}
+              valueLabelDisplay="off"
               orientation="vertical"
               min={-240}
               max={240}

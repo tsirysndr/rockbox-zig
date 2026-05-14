@@ -9,7 +9,9 @@ const EqualizerWithData: FC = () => {
   const { mutate: saveSettings } = useSaveSettingsMutation();
 
   const onEnableEq = (eqEnabled: boolean) => {
-    saveSettings({ settings: { eqEnabled } });
+    // Send band settings alongside the enable flag so the firmware always has
+    // the correct WASM preset cutoff/q values (not the firmware defaults).
+    saveSettings({ settings: { eqEnabled, eqBandSettings: settings.eqBandSettings } });
   };
 
   const onEqBandSettingsChange = (

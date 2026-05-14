@@ -186,8 +186,6 @@ pub fn write_settings() -> Result<(), Error> {
     settings.repeat_mode = from_c.repeat_mode;
     settings.bass = from_c.bass;
     settings.treble = from_c.treble;
-    settings.bass_cutoff = from_c.bass_cutoff;
-    settings.treble_cutoff = from_c.treble_cutoff;
     settings.crossfade = from_c.crossfade;
     settings.fade_on_stop = from_c.fade_on_stop;
     settings.fade_in_delay = from_c.fade_in_delay;
