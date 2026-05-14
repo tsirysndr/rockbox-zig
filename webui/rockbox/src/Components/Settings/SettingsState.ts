@@ -8,6 +8,7 @@ export const settingsState = atom<{
     cutoff: number;
   }[];
   eqEnabled: boolean;
+  eqPrecut: number;
   volume: number;
   bass: number;
   bassCutoff: number;
@@ -38,6 +39,16 @@ export const settingsState = atom<{
   surroundBalance: number;
   surroundFx1: number;
   surroundFx2: number;
+  surroundMix: number;
+  surroundMethod2: boolean;
+  crossfeedType: number;
+  crossfeedDirectGain: number;
+  crossfeedCrossGain: number;
+  crossfeedHfAttenuation: number;
+  crossfeedHfCutoff: number;
+  afrEnabled: number;
+  pbe: number;
+  pbePrecut: number;
 }>({
   key: "settings",
   default: {
@@ -55,6 +66,7 @@ export const settingsState = atom<{
       { cutoff: 20000, q: 70, gain: 0 },
     ],
     eqEnabled: false,
+    eqPrecut: 0,
     volume: 0,
     bass: 0,
     bassCutoff: 0,
@@ -75,15 +87,25 @@ export const settingsState = atom<{
     stereoswMode: 0,
     stereoWidth: 0,
     surroundEnabled: 0,
-    surroundBalance: 0,
-    surroundFx1: 0,
-    surroundFx2: 0,
+    surroundBalance: 50,
+    surroundFx1: 1200,
+    surroundFx2: 100,
+    surroundMix: 100,
+    surroundMethod2: false,
     crossfade: 0,
     fadeOnStop: false,
     crossfadeFadeInDelay: 0,
-    crossfadeFadeInDuration: 0,
+    crossfadeFadeInDuration: 8,
     crossfadeFadeOutDelay: 0,
-    crossfadeFadeOutDuration: 0,
+    crossfadeFadeOutDuration: 8,
     crossfadeFadeOutMixmode: 0,
+    crossfeedType: 0,
+    crossfeedDirectGain: -115,
+    crossfeedCrossGain: -320,
+    crossfeedHfAttenuation: -160,
+    crossfeedHfCutoff: 700,
+    afrEnabled: 0,
+    pbe: 0,
+    pbePrecut: 0,
   },
 });

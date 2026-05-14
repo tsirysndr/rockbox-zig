@@ -62,6 +62,17 @@ export const useSettings = () => {
       surroundBalance: data.globalSettings.surroundBalance,
       surroundFx1: data.globalSettings.surroundFx1,
       surroundFx2: data.globalSettings.surroundFx2,
+      surroundMix: data.globalSettings.surroundMix,
+      surroundMethod2: data.globalSettings.surroundMethod2,
+      crossfeedType: data.globalSettings.crossfeed,
+      crossfeedDirectGain: data.globalSettings.crossfeedDirectGain,
+      crossfeedCrossGain: data.globalSettings.crossfeedCrossGain,
+      crossfeedHfAttenuation: data.globalSettings.crossfeedHfAttenuation,
+      crossfeedHfCutoff: data.globalSettings.crossfeedHfCutoff,
+      eqPrecut: data.globalSettings.eqPrecut,
+      afrEnabled: data.globalSettings.afrEnabled,
+      pbe: data.globalSettings.pbe,
+      pbePrecut: data.globalSettings.pbePrecut,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, isLoading]);

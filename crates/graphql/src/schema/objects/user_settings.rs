@@ -32,9 +32,9 @@ pub struct UserSettings {
 
     // Crossfeed
     pub crossfeed: i32,
-    pub crossfeed_direct_gain: u32,
-    pub crossfeed_cross_gain: u32,
-    pub crossfeed_hf_attenuation: u32,
+    pub crossfeed_direct_gain: i32,
+    pub crossfeed_cross_gain: i32,
+    pub crossfeed_hf_attenuation: i32,
     pub crossfeed_hf_cutoff: u32,
 
     // EQ
@@ -332,15 +332,15 @@ impl UserSettings {
         self.crossfeed
     }
 
-    async fn crossfeed_direct_gain(&self) -> u32 {
+    async fn crossfeed_direct_gain(&self) -> i32 {
         self.crossfeed_direct_gain
     }
 
-    async fn crossfeed_cross_gain(&self) -> u32 {
+    async fn crossfeed_cross_gain(&self) -> i32 {
         self.crossfeed_cross_gain
     }
 
-    async fn crossfeed_hf_attenuation(&self) -> u32 {
+    async fn crossfeed_hf_attenuation(&self) -> i32 {
         self.crossfeed_hf_attenuation
     }
 

@@ -6188,6 +6188,30 @@ pub struct SaveSettingsRequest {
     pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
     #[prost(message, optional, tag = "28")]
     pub compressor_settings: ::core::option::Option<CompressorSettings>,
+    #[prost(int32, optional, tag = "29")]
+    pub crossfeed: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "30")]
+    pub crossfeed_direct_gain: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "31")]
+    pub crossfeed_cross_gain: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "32")]
+    pub crossfeed_hf_attenuation: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "33")]
+    pub crossfeed_hf_cutoff: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "34")]
+    pub dithering_enabled: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "35")]
+    pub eq_precut: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "36")]
+    pub surround_mix: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "37")]
+    pub surround_method2: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "38")]
+    pub afr_enabled: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "39")]
+    pub pbe: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "40")]
+    pub pbe_precut: ::core::option::Option<i32>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SaveSettingsResponse {}

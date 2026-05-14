@@ -252,6 +252,18 @@ message SaveSettingsRequest {
   repeated EqBandSetting eq_band_settings = 26;
   optional ReplaygainSettings replaygain_settings = 27;
   optional CompressorSettings compressor_settings = 28;
+  optional int32 crossfeed = 29;
+  optional int32 crossfeed_direct_gain = 30;
+  optional int32 crossfeed_cross_gain = 31;
+  optional int32 crossfeed_hf_attenuation = 32;
+  optional int32 crossfeed_hf_cutoff = 33;
+  optional bool dithering_enabled = 34;
+  optional int32 eq_precut = 35;
+  optional int32 surround_mix = 36;
+  optional bool surround_method2 = 37;
+  optional int32 afr_enabled = 38;
+  optional int32 pbe = 39;
+  optional int32 pbe_precut = 40;
 }
 
 message SaveSettingsResponse {}

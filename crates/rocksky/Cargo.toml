@@ -30,6 +30,7 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "logg
 webpki-roots = "0.26"
 futures-util = "0.3.31"
 tokio-stream = "0.1.17"
+tracing = { workspace = true }
 
 [build-dependencies]
 tonic-build = "0.12.3"

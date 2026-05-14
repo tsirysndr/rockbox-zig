@@ -14,6 +14,10 @@ const EqualizerWithData: FC = () => {
     saveSettings({ settings: { eqEnabled, eqBandSettings: settings.eqBandSettings } });
   };
 
+  const onEqPrecutChange = (eqPrecut: number) => {
+    saveSettings({ settings: { eqPrecut } });
+  };
+
   const onEqBandSettingsChange = (
     eqBandSettings: {
       q: number;
@@ -27,7 +31,9 @@ const EqualizerWithData: FC = () => {
   return (
     <Equalizer
       eqEnabled={settings.eqEnabled}
+      eqPrecut={settings.eqPrecut}
       onEnableEq={onEnableEq}
+      onEqPrecutChange={onEqPrecutChange}
       eqBandSettings={settings.eqBandSettings}
       onEqBandSettingsChange={onEqBandSettingsChange}
     />

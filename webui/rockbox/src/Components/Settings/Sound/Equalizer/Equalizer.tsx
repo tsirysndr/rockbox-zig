@@ -53,9 +53,30 @@ function formatGain(tenths: number): string {
   return tenths >= 0 ? `+${db}` : db;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sliderSxHoriz = (theme: any) => ({
+  color: "#6F00FF",
+  "& .MuiSlider-thumb": {
+    width: 18,
+    height: 18,
+    backgroundColor: "#fff",
+    "&::before": { boxShadow: "0 4px 8px rgba(0,0,0,0.18)" },
+    "&:hover, &.Mui-focusVisible, &.Mui-active": { boxShadow: "none" },
+  },
+  "& .MuiSlider-track": { border: "none", height: 5 },
+  "& .MuiSlider-rail": {
+    opacity: 0.5,
+    boxShadow: "inset 0px 0px 4px -2px #000",
+    backgroundColor: "#d0d0d0",
+  },
+  ...theme.applyStyles("dark", { color: "#6F00FF" }),
+});
+
 export type EqualizerProps = {
   eqEnabled: boolean;
+  eqPrecut: number;
   onEnableEq: (enabled: boolean) => void;
+  onEqPrecutChange: (precut: number) => void;
   eqBandSettings: { q: number; gain: number; cutoff: number }[];
   onEqBandSettingsChange: (
     bandSettings: { q: number; gain: number; cutoff: number }[]
@@ -64,12 +85,14 @@ export type EqualizerProps = {
 
 const Equalizer: FC<EqualizerProps> = (props) => {
   const [eqEnabled, setEqEnabled] = useState(props.eqEnabled);
+  const [eqPrecut, setEqPrecut] = useState(props.eqPrecut);
   const [bands, setBands] = useState(props.eqBandSettings);
 
   useEffect(() => {
     setEqEnabled(props.eqEnabled);
+    setEqPrecut(props.eqPrecut);
     setBands(props.eqBandSettings);
-  }, [props.eqEnabled, props.eqBandSettings]);
+  }, [props.eqEnabled, props.eqPrecut, props.eqBandSettings]);
 
   const handleGainChange = (value: number, index: number) => {
     const next = [...bands];
@@ -94,6 +117,28 @@ const Equalizer: FC<EqualizerProps> = (props) => {
             setEqEnabled(!eqEnabled);
           }}
         />
+      </div>
+
+      {/* EQ Pre-cut */}
+      <div className="flex flex-row items-center justify-between h-[50px]">
+        <div>Pre-cut</div>
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] text-[#aaa] w-14 text-right">
+            {(eqPrecut / 10).toFixed(1)} dB
+          </span>
+          <div style={{ width: 120 }}>
+            <Slider
+              value={eqPrecut}
+              onChange={(_e, v) => setEqPrecut(v as number)}
+              onChangeCommitted={(_e, v) => {
+                setEqPrecut(v as number);
+                props.onEqPrecutChange(v as number);
+              }}
+              sx={sliderSxHoriz}
+              min={0} max={240} step={5}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Vertical band sliders */}

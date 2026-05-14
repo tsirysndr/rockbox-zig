@@ -402,14 +402,22 @@ export type MutationUpdateSmartPlaylistArgs = {
 };
 
 export type NewGlobalSettings = {
+  afrEnabled?: InputMaybe<Scalars['Int']['input']>;
   balance?: InputMaybe<Scalars['Int']['input']>;
   bass?: InputMaybe<Scalars['Int']['input']>;
   bassCutoff?: InputMaybe<Scalars['Int']['input']>;
   channelConfig?: InputMaybe<Scalars['Int']['input']>;
   compressorSettings?: InputMaybe<CompressorSettingsInput>;
   crossfade?: InputMaybe<Scalars['Int']['input']>;
+  crossfeed?: InputMaybe<Scalars['Int']['input']>;
+  crossfeedCrossGain?: InputMaybe<Scalars['Int']['input']>;
+  crossfeedDirectGain?: InputMaybe<Scalars['Int']['input']>;
+  crossfeedHfAttenuation?: InputMaybe<Scalars['Int']['input']>;
+  crossfeedHfCutoff?: InputMaybe<Scalars['Int']['input']>;
+  ditheringEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   eqBandSettings?: InputMaybe<Array<EqBandSettingInput>>;
   eqEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  eqPrecut?: InputMaybe<Scalars['Int']['input']>;
   fadeInDelay?: InputMaybe<Scalars['Int']['input']>;
   fadeInDuration?: InputMaybe<Scalars['Int']['input']>;
   fadeOnStop?: InputMaybe<Scalars['Boolean']['input']>;
@@ -418,6 +426,8 @@ export type NewGlobalSettings = {
   fadeOutMixmode?: InputMaybe<Scalars['Int']['input']>;
   musicDir?: InputMaybe<Scalars['String']['input']>;
   partyMode?: InputMaybe<Scalars['Boolean']['input']>;
+  pbe?: InputMaybe<Scalars['Int']['input']>;
+  pbePrecut?: InputMaybe<Scalars['Int']['input']>;
   playerName?: InputMaybe<Scalars['String']['input']>;
   playlistShuffle?: InputMaybe<Scalars['Boolean']['input']>;
   repeatMode?: InputMaybe<Scalars['Int']['input']>;
@@ -425,9 +435,11 @@ export type NewGlobalSettings = {
   stereoWidth?: InputMaybe<Scalars['Int']['input']>;
   stereoswMode?: InputMaybe<Scalars['Int']['input']>;
   surroundBalance?: InputMaybe<Scalars['Int']['input']>;
-  surroundEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  surroundEnabled?: InputMaybe<Scalars['Int']['input']>;
   surroundFx1?: InputMaybe<Scalars['Int']['input']>;
   surroundFx2?: InputMaybe<Scalars['Int']['input']>;
+  surroundMethod2?: InputMaybe<Scalars['Boolean']['input']>;
+  surroundMix?: InputMaybe<Scalars['Int']['input']>;
   treble?: InputMaybe<Scalars['Int']['input']>;
   trebleCutoff?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1238,7 +1250,7 @@ export type SaveSettingsMutation = { __typename?: 'Mutation', saveSettings: bool
 export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: number, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: number, surroundMix: number, surroundMethod2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqPrecut: number, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number }, crossfeed: number, crossfeedDirectGain: number, crossfeedCrossGain: number, crossfeedHfAttenuation: number, crossfeedHfCutoff: number, afrEnabled: number, pbe: number, pbePrecut: number } };
 
 export type PlaySmartPlaylistMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -2789,11 +2801,14 @@ export const GetGlobalSettingsDocument = new TypedDocumentString(`
     surroundBalance
     surroundFx1
     surroundFx2
+    surroundMix
+    surroundMethod2
     partyMode
     ditheringEnabled
     channelConfig
     playerName
     eqEnabled
+    eqPrecut
     eqBandSettings {
       q
       cutoff
@@ -2804,6 +2819,14 @@ export const GetGlobalSettingsDocument = new TypedDocumentString(`
       type
       preamp
     }
+    crossfeed
+    crossfeedDirectGain
+    crossfeedCrossGain
+    crossfeedHfAttenuation
+    crossfeedHfCutoff
+    afrEnabled
+    pbe
+    pbePrecut
   }
 }
     `);

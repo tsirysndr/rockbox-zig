@@ -5,28 +5,41 @@ import { useRecoilState } from "recoil";
 import { useSaveSettingsMutation } from "../../../Hooks/GraphQL";
 
 const SoundWithData: FC = () => {
-  const [settings] = useRecoilState(settingsState);
+  const [settings, setSettings] = useRecoilState(settingsState);
   const { mutate: saveSettings } = useSaveSettingsMutation();
 
-  const onBalanceChange = (balance: number) => {
-    saveSettings({ settings: { balance } });
-  };
-
-  const onBassChange = (bass: number) => {
-    saveSettings({ settings: { bass } });
-  };
-
-  const onTrebleChange = (treble: number) => {
-    saveSettings({ settings: { treble } });
-  };
   return (
     <Sound
       bass={settings.bass}
       treble={settings.treble}
       balance={settings.balance}
-      onBalanceChange={onBalanceChange}
-      onBassChange={onBassChange}
-      onTrebleChange={onTrebleChange}
+      channelConfig={settings.channelConfig}
+      stereoWidth={settings.stereoWidth}
+      ditheringEnabled={settings.ditheringEnabled}
+      afrEnabled={settings.afrEnabled}
+      pbe={settings.pbe}
+      pbePrecut={settings.pbePrecut}
+      onBassChange={(bass) => saveSettings({ settings: { bass } })}
+      onTrebleChange={(treble) => saveSettings({ settings: { treble } })}
+      onBalanceChange={(balance) => saveSettings({ settings: { balance } })}
+      onChannelConfigChange={(channelConfig) =>
+        saveSettings({ settings: { channelConfig } })
+      }
+      onStereoWidthChange={(stereoWidth) =>
+        saveSettings({ settings: { stereoWidth } })
+      }
+      onDitheringChange={(ditheringEnabled) => {
+        setSettings((s) => ({ ...s, ditheringEnabled }));
+        saveSettings({ settings: { ditheringEnabled } });
+      }}
+      onAfrChange={(afrEnabled) => {
+        setSettings((s) => ({ ...s, afrEnabled }));
+        saveSettings({ settings: { afrEnabled } });
+      }}
+      onPbeChange={(pbe, pbePrecut) => {
+        setSettings((s) => ({ ...s, pbe, pbePrecut }));
+        saveSettings({ settings: { pbe, pbePrecut } });
+      }}
     />
   );
 };

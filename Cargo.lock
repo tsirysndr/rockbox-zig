@@ -9627,6 +9627,7 @@ dependencies = [
  "tonic-build",
  "tonic-reflection",
  "tonic-web",
+ "tracing",
  "tungstenite 0.26.2",
  "webpki-roots 0.26.3",
 ]

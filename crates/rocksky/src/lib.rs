@@ -23,6 +23,8 @@ use std::io::Read;
 use std::sync::Arc;
 use std::thread;
 use tokio::sync::Mutex;
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tokio_tungstenite::tungstenite::Error as WsError;
 use tokio_tungstenite::{connect_async_tls_with_config, Connector};
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
@@ -57,15 +59,30 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
         .with_no_client_auth();
     let connector = Connector::Rustls(Arc::new(tls_config));
 
+    let mut request = rocksky_ws.as_str().into_client_request()?;
+    request
+        .headers_mut()
+        .insert("authorization", format!("Bearer {}", token).parse()?);
+
     let (ws_stream, _) =
-        match connect_async_tls_with_config(&rocksky_ws, None, false, Some(connector)).await {
+        match connect_async_tls_with_config(request, None, false, Some(connector)).await {
             Ok(stream) => stream,
             Err(e) => {
-                eprintln!("WebSocket connection failed: {:?}", e);
+                if let WsError::Http(ref response) = e {
+                    let status = response.status();
+                    let body = response
+                        .body()
+                        .as_deref()
+                        .and_then(|b| std::str::from_utf8(b).ok())
+                        .unwrap_or("<empty body>");
+                    tracing::error!("WebSocket connection failed: HTTP {} — {}", status, body);
+                } else {
+                    tracing::error!("WebSocket connection failed: {:?}", e);
+                }
                 return Err(e.into());
             }
         };
-    println!("Connected to {}", rocksky_ws);
+    tracing::info!("Connected to {}", rocksky_ws);
 
     let (mut write, mut read) = ws_stream.split();
     let device_id = Arc::new(Mutex::new(String::new()));
@@ -111,7 +128,7 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
                     )
                     .await
                 {
-                    eprintln!("Send error: {}", e);
+                    tracing::warn!("WebSocket send error: {}", e);
                     break;
                 }
             }
@@ -131,9 +148,10 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
                 break;
             }
             Err(e) if attempt < 10 => {
-                eprintln!(
+                tracing::warn!(
                     "gRPC connection attempt {}/10 failed: {}. Retrying...",
-                    attempt, e
+                    attempt,
+                    e
                 );
                 tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             }
@@ -151,7 +169,7 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
         let msg = match msg {
             Ok(m) => m.to_string(),
             Err(e) => {
-                eprintln!("WebSocket read error: {:?}", e);
+                tracing::error!("WebSocket read error: {:?}", e);
                 return Err(anyhow!("WebSocket read error: {:?}", e));
             }
         };
@@ -192,7 +210,7 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
                             .await?;
                     }
                     _ => {
-                        println!("Unknown command: {}", cmd);
+                        tracing::debug!("Unknown command: {}", cmd);
                     }
                 };
             }
@@ -317,15 +335,14 @@ pub fn register_rockbox() -> Result<(), Error> {
             loop {
                 match run_ws_session(token.clone()).await {
                     Ok(_) => {
-                        println!("WebSocket session ended cleanly");
+                        tracing::info!("WebSocket session ended cleanly");
                     }
                     Err(e) => {
-                        eprintln!("WebSocket session error: {:?}", e);
-                        eprintln!("Error details: {:#?}", e);
+                        tracing::error!("WebSocket session error: {:#?}", e);
                     }
                 }
 
-                println!("Reconnecting in {} seconds...", delay);
+                tracing::info!("Reconnecting in {} seconds...", delay);
                 tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
             }
         })
@@ -368,7 +385,7 @@ pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Cover uploaded: {}", response.status());
+    tracing::info!("Cover uploaded: {}", response.status());
 
     Ok(())
 }
@@ -387,7 +404,7 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
         match upload_album_cover(&album_art).await {
             Ok(_) => {}
             Err(r) => {
-                eprintln!("Failed to upload album art: {}", r);
+                tracing::warn!("Failed to upload album art: {}", r);
             }
         }
     }
@@ -425,10 +442,10 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
         }))
         .send()
         .await?;
-    println!("Scrobbled: {}", response.status());
+    tracing::info!("Scrobbled: {}", response.status());
 
     if !response.status().is_success() {
-        println!("Failed to scrobble: {}", response.text().await?);
+        tracing::warn!("Failed to scrobble: {}", response.text().await?);
     }
 
     Ok(())
@@ -448,7 +465,7 @@ pub async fn save_track(track: Track, album: Album) -> Result<(), Error> {
         match upload_album_cover(&album_art).await {
             Ok(_) => {}
             Err(r) => {
-                eprintln!("Failed to upload album art: {}", r);
+                tracing::warn!("Failed to upload album art: {}", r);
             }
         }
     }
@@ -489,10 +506,10 @@ pub async fn save_track(track: Track, album: Album) -> Result<(), Error> {
         }))
         .send()
         .await?;
-    println!("Track Saved: {} {}", track.path, response.status());
+    tracing::info!("Track Saved: {} {}", track.path, response.status());
 
     if !response.status().is_success() {
-        println!(
+        tracing::warn!(
             "Failed to save Track: {} {}",
             track.path,
             response.text().await?
@@ -516,7 +533,7 @@ pub async fn like(track: Track, album: Album) -> Result<(), Error> {
         match upload_album_cover(&album_art).await {
             Ok(_) => {}
             Err(r) => {
-                eprintln!("Failed to upload album art: {}", r);
+                tracing::warn!("Failed to upload album art: {}", r);
             }
         }
     }
@@ -547,7 +564,7 @@ pub async fn like(track: Track, album: Album) -> Result<(), Error> {
         }))
         .send()
         .await?;
-    println!("Liked: {}", response.status());
+    tracing::info!("Liked: {}", response.status());
     Ok(())
 }
 
@@ -573,7 +590,7 @@ pub async fn unlike(track: Track) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Unliked: {} {}", response.status(), hash);
+    tracing::info!("Unliked: {} {}", response.status(), hash);
 
     Ok(())
 }

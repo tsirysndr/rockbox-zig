@@ -209,6 +209,34 @@ pub fn save_settings(settings: NewGlobalSettings, from_disk: bool) {
         );
         set_value_setting!(settings.surround_fx1, crate::global_settings.surround_fx1);
         set_value_setting!(settings.surround_fx2, crate::global_settings.surround_fx2);
+        set_value_setting!(settings.surround_mix, crate::global_settings.surround_mix);
+        if let Some(method2) = settings.surround_method2 {
+            crate::global_settings.surround_method2 = method2;
+        }
+        if let Some(eq_precut) = settings.eq_precut {
+            crate::global_settings.eq_precut = eq_precut as u32;
+        }
+        if let Some(dithering) = settings.dithering_enabled {
+            crate::global_settings.dithering_enabled = dithering;
+        }
+        if let Some(crossfeed) = settings.crossfeed {
+            crate::global_settings.crossfeed = crossfeed;
+        }
+        if let Some(v) = settings.crossfeed_direct_gain {
+            crate::global_settings.crossfeed_direct_gain = v as u32;
+        }
+        if let Some(v) = settings.crossfeed_cross_gain {
+            crate::global_settings.crossfeed_cross_gain = v as u32;
+        }
+        if let Some(v) = settings.crossfeed_hf_attenuation {
+            crate::global_settings.crossfeed_hf_attenuation = v as u32;
+        }
+        if let Some(v) = settings.crossfeed_hf_cutoff {
+            crate::global_settings.crossfeed_hf_cutoff = v as u32;
+        }
+        set_value_setting!(settings.afr_enabled, crate::global_settings.afr_enabled);
+        set_value_setting!(settings.pbe, crate::global_settings.pbe);
+        set_value_setting!(settings.pbe_precut, crate::global_settings.pbe_precut);
         set_value_setting!(settings.party_mode, crate::global_settings.party_mode);
         set_value_setting!(
             settings.channel_config,

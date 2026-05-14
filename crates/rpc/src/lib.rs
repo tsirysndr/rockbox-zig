@@ -347,9 +347,9 @@ pub mod api {
                 let replaygain_settings =
                     v1alpha1::ReplaygainSettings::from(settings.replaygain_settings);
                 let crossfeed = settings.crossfeed;
-                let crossfeed_direct_gain = settings.crossfeed_direct_gain;
-                let crossfeed_cross_gain = settings.crossfeed_cross_gain;
-                let crossfeed_hf_attenuation = settings.crossfeed_hf_attenuation;
+                let crossfeed_direct_gain = settings.crossfeed_direct_gain as u32;
+                let crossfeed_cross_gain = settings.crossfeed_cross_gain as u32;
+                let crossfeed_hf_attenuation = settings.crossfeed_hf_attenuation as u32;
                 let crossfeed_hf_cutoff = settings.crossfeed_hf_cutoff;
                 let eq_enabled = settings.eq_enabled;
                 let eq_precut = settings.eq_precut;
@@ -949,6 +949,18 @@ pub mod api {
                         release_time: c.release_time,
                         attack_time: c.attack_time,
                     }),
+                    crossfeed: self.crossfeed,
+                    crossfeed_direct_gain: self.crossfeed_direct_gain,
+                    crossfeed_cross_gain: self.crossfeed_cross_gain,
+                    crossfeed_hf_attenuation: self.crossfeed_hf_attenuation,
+                    crossfeed_hf_cutoff: self.crossfeed_hf_cutoff,
+                    dithering_enabled: self.dithering_enabled,
+                    eq_precut: self.eq_precut,
+                    surround_mix: self.surround_mix,
+                    surround_method2: self.surround_method2,
+                    afr_enabled: self.afr_enabled,
+                    pbe: self.pbe,
+                    pbe_precut: self.pbe_precut,
                     audio_output: None,
                     fifo_path: None,
                     airplay_host: None,
