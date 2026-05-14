@@ -8,6 +8,11 @@ use rockbox_jellyfin::{
     list_views as jellyfin_list_views, parse_base_url as jellyfin_parse_base_url,
     percent_decode as jellyfin_percent_decode, percent_encode as jellyfin_percent_encode,
 };
+use rockbox_kodi::{
+    browse_directory as kodi_browse_directory, browse_sources as kodi_browse_sources,
+    discover_kodi_servers, parse_base_url as kodi_parse_base_url,
+    percent_decode as kodi_percent_decode, percent_encode as kodi_percent_encode,
+};
 use rockbox_navidrome::{
     browse_directory as navidrome_browse_directory, list_indexes as navidrome_list_indexes,
     parse_base_url as navidrome_parse_base_url, percent_decode as navidrome_percent_decode,
@@ -41,6 +46,9 @@ impl BrowseQuery {
             }
             if p.starts_with("jellyfin://") {
                 return handle_jellyfin(p).await;
+            }
+            if p.starts_with("kodi://") {
+                return handle_kodi(p).await;
             }
             if p.starts_with("navidrome://") {
                 return handle_navidrome(p).await;
@@ -315,6 +323,69 @@ async fn handle_upnp(path: &str) -> Result<Vec<Entry>, Error> {
             }
         })
         .collect())
+}
+
+async fn handle_kodi(path: &str) -> Result<Vec<Entry>, Error> {
+    let rest = path.trim_start_matches("kodi://");
+
+    // Discovery: rest is empty or carries query params only.
+    if rest.is_empty() || rest.starts_with('?') {
+        let servers = discover_kodi_servers().await;
+        return Ok(servers
+            .into_iter()
+            .map(|s| Entry {
+                name: format!("kodi://{}", kodi_percent_encode(&s.base_url)),
+                attr: 0x10,
+                display_name: Some(s.name),
+                ..Default::default()
+            })
+            .collect());
+    }
+
+    let (base_encoded, dir_encoded) = match rest.find('/') {
+        None => (rest, None),
+        Some(i) => (&rest[..i], Some(&rest[i + 1..])),
+    };
+    let (base_url, user, pass) = kodi_parse_base_url(&kodi_percent_decode(base_encoded));
+    let user = user.as_deref();
+    let pass = pass.as_deref();
+
+    Ok(match dir_encoded {
+        None => {
+            let items = kodi_browse_sources(&base_url, user, pass).await;
+            items
+                .into_iter()
+                .map(|e| Entry {
+                    name: format!("kodi://{}/{}", base_encoded, kodi_percent_encode(&e.id)),
+                    attr: 0x10,
+                    display_name: Some(e.label),
+                    ..Default::default()
+                })
+                .collect()
+        }
+        Some(encoded) => {
+            let dir = kodi_percent_decode(encoded);
+            let items = kodi_browse_directory(&base_url, user, pass, &dir).await;
+            items
+                .into_iter()
+                .map(|e| {
+                    let name = if e.is_container {
+                        format!("kodi://{}/{}", base_encoded, kodi_percent_encode(&e.id))
+                    } else {
+                        e.stream_url.unwrap_or_else(|| {
+                            format!("kodi://{}/{}", base_encoded, kodi_percent_encode(&e.id))
+                        })
+                    };
+                    Entry {
+                        name,
+                        attr: if e.is_container { 0x10 } else { 0 },
+                        display_name: Some(e.label),
+                        ..Default::default()
+                    }
+                })
+                .collect()
+        }
+    })
 }
 
 async fn handle_navidrome(path: &str) -> Result<Vec<Entry>, Error> {

@@ -4,7 +4,7 @@ use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{
     FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode, JellyfinAuthState,
-    NavidromeAuthState,
+    KodiAuthState, NavidromeAuthState,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -39,6 +39,9 @@ pub struct FilesView {
     navidrome_url_input: Entity<TextInput>,
     navidrome_username_input: Entity<TextInput>,
     navidrome_password_input: Entity<TextInput>,
+    kodi_url_input: Entity<TextInput>,
+    kodi_username_input: Entity<TextInput>,
+    kodi_password_input: Entity<TextInput>,
 }
 
 impl FilesView {
@@ -47,9 +50,10 @@ impl FilesView {
         cx.set_global(FileContextMenuState::default());
         cx.set_global(JellyfinAuthState::default());
         cx.set_global(NavidromeAuthState::default());
+        cx.set_global(KodiAuthState::default());
 
-        // Prefetch UPnP, Plex, Jellyfin, and Navidrome device lists so the first open is instant.
-        for prefix in ["upnp://", "plex://", "jellyfin://", "navidrome://"] {
+        // Prefetch UPnP, Plex, Jellyfin, Navidrome, and Kodi device lists so the first open is instant.
+        for prefix in ["upnp://", "plex://", "jellyfin://", "navidrome://", "kodi://"] {
             let path = prefix.to_string();
             let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
             cx.global::<Controller>().rt().spawn(async move {
@@ -83,6 +87,9 @@ impl FilesView {
         let navidrome_url_input = cx.new(|cx| TextInput::new("http://192.168.1.x:4533", cx));
         let navidrome_username_input = cx.new(|cx| TextInput::new("Username", cx));
         let navidrome_password_input = cx.new(|cx| TextInput::new("Password", cx).masked());
+        let kodi_url_input = cx.new(|cx| TextInput::new("http://192.168.1.x:8080", cx));
+        let kodi_username_input = cx.new(|cx| TextInput::new("Username (optional)", cx));
+        let kodi_password_input = cx.new(|cx| TextInput::new("Password (optional)", cx).masked());
 
         FilesView {
             entries: Vec::new(),
@@ -97,6 +104,9 @@ impl FilesView {
             navidrome_url_input,
             navidrome_username_input,
             navidrome_password_input,
+            kodi_url_input,
+            kodi_username_input,
+            kodi_password_input,
         }
     }
 
@@ -125,13 +135,16 @@ impl FilesView {
             FilesMode::JellyfinBrowse => browse.current_path.clone(),
             FilesMode::NavidromeServers => Some("navidrome://".to_string()),
             FilesMode::NavidromeBrowse => browse.current_path.clone(),
+            FilesMode::KodiServers => Some("kodi://".to_string()),
+            FilesMode::KodiBrowse => browse.current_path.clone(),
             _ => None,
         };
         let ttl = match browse.mode {
             FilesMode::UpnpDevices
             | FilesMode::PlexServers
             | FilesMode::JellyfinServers
-            | FilesMode::NavidromeServers => DEVICE_LIST_TTL,
+            | FilesMode::NavidromeServers
+            | FilesMode::KodiServers => DEVICE_LIST_TTL,
             _ => CONTENT_TTL,
         };
 
@@ -360,6 +373,61 @@ impl FilesView {
         })
         .detach();
     }
+
+    fn spawn_kodi_auth(&self, cx: &mut Context<Self>) {
+        let raw_url = self.kodi_url_input.read(cx).value.clone();
+        let username = self.kodi_username_input.read(cx).value.clone();
+        let password = self.kodi_password_input.read(cx).value.clone();
+
+        if raw_url.trim().is_empty() {
+            cx.global_mut::<KodiAuthState>().error =
+                Some("Server URL is required.".to_string());
+            return;
+        }
+
+        let base_url = raw_url.trim().to_string();
+        let user_opt = if username.trim().is_empty() { None } else { Some(username.clone()) };
+        let pass_opt = if password.is_empty() { None } else { Some(password.clone()) };
+        let base_url2 = base_url.clone();
+        let user2 = user_opt.clone();
+        let pass2 = pass_opt.clone();
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let ok = crate::kodi::ping(&base_url, user_opt.as_deref(), pass_opt.as_deref()).await;
+            let _ = tx.send(ok);
+        });
+        cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
+            if let Ok(ok) = rx.await {
+                if ok {
+                    let cred_suffix = match (&user2, &pass2) {
+                        (Some(u), Some(p)) => format!("?kodi_user={}&kodi_pass={}", u, p),
+                        (Some(u), None) => format!("?kodi_user={}", u),
+                        _ => String::new(),
+                    };
+                    let nav_path = format!(
+                        "kodi://{}",
+                        pct_encode(&format!("{}{}", base_url2, cred_suffix))
+                    );
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<KodiAuthState>().pending_server = None;
+                        cx.global_mut::<KodiAuthState>().authenticating = false;
+                        cx.global_mut::<KodiAuthState>().error = None;
+                        cx.global_mut::<FilesBrowseState>()
+                            .navigate(FilesMode::KodiBrowse, Some(nav_path));
+                    });
+                } else {
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<KodiAuthState>().authenticating = false;
+                        cx.global_mut::<KodiAuthState>().error = Some(
+                            "Could not connect to Kodi. Check URL and credentials.".to_string(),
+                        );
+                    });
+                }
+            }
+        })
+        .detach();
+    }
 }
 
 impl Render for FilesView {
@@ -407,6 +475,13 @@ impl Render for FilesView {
                 .and_then(|p| p.rsplit('/').next())
                 .unwrap_or("Navidrome")
                 .to_string(),
+            FilesMode::KodiServers => "Kodi Servers".to_string(),
+            FilesMode::KodiBrowse => browse
+                .current_path
+                .as_deref()
+                .and_then(|p| p.rsplit('/').next())
+                .unwrap_or("Kodi")
+                .to_string(),
         };
 
         let current_dir = browse.current_path.clone().unwrap_or_default();
@@ -424,6 +499,10 @@ impl Render for FilesView {
         let navidrome_url_input = self.navidrome_url_input.clone();
         let navidrome_username_input = self.navidrome_username_input.clone();
         let navidrome_password_input = self.navidrome_password_input.clone();
+        let kodi_auth = cx.global::<KodiAuthState>().clone();
+        let kodi_url_input = self.kodi_url_input.clone();
+        let kodi_username_input = self.kodi_username_input.clone();
+        let kodi_password_input = self.kodi_password_input.clone();
 
         div()
             .size_full()
@@ -851,6 +930,121 @@ impl Render for FilesView {
                         .into_any_element()
                 }
 
+                // ── Kodi auth prompt ─────────────────────────────────────────
+                FilesMode::KodiServers if kodi_auth.pending_server.is_some() => {
+                    let authenticating = kodi_auth.authenticating;
+                    let error = kodi_auth.error.clone();
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_center()
+                        .gap_y_3()
+                        .p_6()
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_text)
+                                .child("Connect to Kodi"),
+                        )
+                        .child(
+                            div()
+                                .text_xs()
+                                .text_color(theme.library_header_text)
+                                .child("Enter your Kodi server URL. Username and password are optional."),
+                        )
+                        .child(div().w(px(280.0)).child(kodi_url_input))
+                        .child(div().w(px(280.0)).child(kodi_username_input))
+                        .child(div().w(px(280.0)).child(kodi_password_input))
+                        .when_some(error, |this, err| {
+                            this.child(div().text_xs().text_color(gpui::red()).child(err))
+                        })
+                        .child(if authenticating {
+                            div()
+                                .text_sm()
+                                .text_color(theme.library_header_text)
+                                .child("Connecting\u{2026}")
+                                .into_any_element()
+                        } else {
+                            div()
+                                .flex()
+                                .gap_x_2()
+                                .child(
+                                    div()
+                                        .id("kodi_cancel")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<KodiAuthState>().pending_server = None;
+                                            cx.global_mut::<KodiAuthState>().error = None;
+                                        }))
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("kodi_connect")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_text)
+                                        .bg(theme.switcher_active)
+                                        .on_click(cx.listener(|this, _, _, cx| {
+                                            cx.global_mut::<KodiAuthState>().authenticating = true;
+                                            cx.global_mut::<KodiAuthState>().error = None;
+                                            this.spawn_kodi_auth(cx);
+                                        }))
+                                        .child("Connect"),
+                                )
+                                .into_any_element()
+                        })
+                        .into_any_element()
+                }
+
+                // ── Kodi server list ──────────────────────────────────────────
+                FilesMode::KodiServers => {
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(render_entries(entries, current_dir, mode, theme))
+                        .child(
+                            div()
+                                .id("kodi_add_manually")
+                                .w_full()
+                                .flex()
+                                .items_center()
+                                .gap_x_3()
+                                .px_4()
+                                .py_2p5()
+                                .cursor_pointer()
+                                .hover(|t| t.bg(theme.library_track_bg_hover))
+                                .border_t_1()
+                                .border_color(theme.library_table_border)
+                                .on_click(cx.listener(|_, _, _, cx| {
+                                    cx.global_mut::<KodiAuthState>().pending_server =
+                                        Some("kodi://+manual".to_string());
+                                    cx.global_mut::<KodiAuthState>().error = None;
+                                }))
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("+ Add Server Manually\u{2026}"),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
                 _ if loading => render_loading(theme).into_any_element(),
                 _ => render_entries(entries, current_dir, mode, theme).into_any_element(),
             })
@@ -1052,6 +1246,41 @@ fn render_root(theme: Theme) -> AnyElement {
                         .child("Navidrome"),
                 ),
         )
+        .child(
+            div()
+                .id("root_kodi")
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_3()
+                .px_4()
+                .py_2p5()
+                .cursor_pointer()
+                .hover(|t| t.bg(theme.library_track_bg_hover))
+                .on_click(|_, _, cx: &mut App| {
+                    cx.global_mut::<FilesBrowseState>()
+                        .navigate(FilesMode::KodiServers, Some("kodi://".to_string()));
+                })
+                .child(
+                    div()
+                        .w(px(22.0))
+                        .h(px(22.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .items_center()
+                        .text_color(theme.library_text)
+                        .child(Icon::new(Icons::Kodi).size_5()),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_sm()
+                        .truncate()
+                        .text_color(theme.library_text)
+                        .child("Kodi"),
+                ),
+        )
         .into_any_element()
 }
 
@@ -1067,6 +1296,7 @@ fn render_entries(
             | FilesMode::PlexServers
             | FilesMode::JellyfinServers
             | FilesMode::NavidromeServers
+            | FilesMode::KodiServers
     );
     let mode_for_icon = mode.clone();
     let mode_for_nav = mode.clone();
@@ -1089,6 +1319,7 @@ fn render_entries(
                 let is_plex = entry.path.starts_with("plex://");
                 let is_jellyfin = entry.path.starts_with("jellyfin://");
                 let is_navidrome = entry.path.starts_with("navidrome://");
+                let is_kodi = entry.path.starts_with("kodi://");
                 let mode_nav = mode_for_nav.clone();
 
                 let dir_icon = match mode_for_icon {
@@ -1096,6 +1327,7 @@ fn render_entries(
                     FilesMode::PlexServers => Icons::Plex,
                     FilesMode::JellyfinServers => Icons::Jellyfin,
                     FilesMode::NavidromeServers => Icons::Navidrome,
+                    FilesMode::KodiServers => Icons::Kodi,
                     _ => Icons::Directory,
                 };
 
@@ -1189,6 +1421,9 @@ fn render_entries(
                                         cx.global_mut::<JellyfinAuthState>()
                                             .pending_server = Some(path_nav.clone());
                                         cx.global_mut::<JellyfinAuthState>().error = None;
+                                    } else if is_kodi {
+                                        cx.global_mut::<FilesBrowseState>()
+                                            .navigate(FilesMode::KodiBrowse, Some(path_nav.clone()));
                                     } else {
                                         let new_mode = if is_upnp {
                                             FilesMode::UpnpBrowse

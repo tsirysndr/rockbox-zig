@@ -28,6 +28,7 @@ tonic-web = "0.12.3"
 http = "1.4.0"
 md5 = "0.7.0"
 mdns-sd = "0.5.9"
+tracing = "0.1"
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
 souvlaki = "0.8"

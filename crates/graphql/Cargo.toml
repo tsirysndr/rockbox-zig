@@ -21,6 +21,7 @@ owo-colors = "4.1.0"
 reqwest = {version = "0.12.5", features = ["rustls-tls-native-roots", "json"], default-features = false}
 rockbox-library = {path = "../library"}
 rockbox-jellyfin = {path = "../jellyfin"}
+rockbox-kodi = {path = "../kodi"}
 rockbox-navidrome = {path = "../navidrome"}
 rockbox-plex = {path = "../plex"}
 rockbox-upnp = {path = "../upnp"}

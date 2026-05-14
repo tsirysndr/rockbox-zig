@@ -13,6 +13,7 @@ const ROOT_ENTRIES: File[] = [
   { name: "Plex", path: "plex://", isDirectory: true },
   { name: "Jellyfin", path: "jellyfin://", isDirectory: true },
   { name: "Navidrome", path: "navidrome://", isDirectory: true },
+  { name: "Kodi", path: "kodi://", isDirectory: true },
 ];
 
 const JELLYFIN_ADD_MANUALLY: File = {
@@ -30,6 +31,12 @@ function isPlexServerPath(path: string): boolean {
 /** True when a jellyfin:// path refers to a server entry (no unencoded `/` after the scheme). */
 function isJellyfinServerPath(path: string): boolean {
   const rest = path.slice("jellyfin://".length);
+  return rest.length > 0 && !rest.includes("/");
+}
+
+/** True when a kodi:// path refers to a server entry (no unencoded `/` after the scheme). */
+function isKodiServerPath(path: string): boolean {
+  const rest = path.slice("kodi://".length);
   return rest.length > 0 && !rest.includes("/");
 }
 
@@ -121,6 +128,14 @@ const FilesWithData: FC = () => {
   const [navidromeConnecting, setNavidromeConnecting] = useState(false);
   const navidromeUrlRef = useRef<HTMLInputElement>(null);
 
+  // Kodi auth state
+  const [kodiPromptServer, setKodiPromptServer] = useState<string | null>(null);
+  const [kodiUrl, setKodiUrl] = useState("");
+  const [kodiUsername, setKodiUsername] = useState("");
+  const [kodiPassword, setKodiPassword] = useState("");
+  const [kodiError, setKodiError] = useState<string | null>(null);
+  const kodiUrlRef = useRef<HTMLInputElement>(null);
+
   // Resolve the actual path to query: __local__ means music root (no path arg).
   const queryPath = isRoot ? undefined : path === "__local__" ? undefined : path;
   const shouldFetch = !isRoot;
@@ -140,6 +155,10 @@ const FilesWithData: FC = () => {
   );
   useGetEntriesQuery(
     { path: "navidrome://" },
+    { staleTime: 0, refetchOnMount: false }
+  );
+  useGetEntriesQuery(
+    { path: "kodi://" },
     { staleTime: 0, refetchOnMount: false }
   );
 
@@ -171,6 +190,7 @@ const FilesWithData: FC = () => {
       path.startsWith("plex://") ||
       path.startsWith("jellyfin://") ||
       path.startsWith("navidrome://") ||
+      path.startsWith("kodi://") ||
       path === "__local__"
     )
       return;
@@ -182,7 +202,8 @@ const FilesWithData: FC = () => {
       path.startsWith("upnp://") ||
       path.startsWith("plex://") ||
       path.startsWith("jellyfin://") ||
-      path.startsWith("navidrome://")
+      path.startsWith("navidrome://") ||
+      path.startsWith("kodi://")
     )
       return;
     playDirectory({ path, position });
@@ -210,6 +231,18 @@ const FilesWithData: FC = () => {
       setNavidromePassword("");
       setNavidromeError(null);
     } else if (file.path.startsWith("navidrome://")) {
+      navigate(`/files?q=${encodeURIComponent(file.path)}`);
+    } else if (file.path === "kodi://") {
+      navigate(`/files?q=${encodeURIComponent(file.path)}`);
+    } else if (file.path.startsWith("kodi://") && isKodiServerPath(file.path)) {
+      // Prompt for credentials before browsing a Kodi server.
+      const rawBase = decodeURIComponent(file.path.slice("kodi://".length)).split("?")[0];
+      setKodiUrl(rawBase);
+      setKodiUsername("");
+      setKodiPassword("");
+      setKodiError(null);
+      setKodiPromptServer(file.path);
+    } else if (file.path.startsWith("kodi://")) {
       navigate(`/files?q=${encodeURIComponent(file.path)}`);
     } else if (
       file.path.startsWith("upnp://") ||
@@ -343,6 +376,17 @@ const FilesWithData: FC = () => {
     }
   };
 
+  const handleKodiConnect = () => {
+    const baseUrl = kodiUrl.trim().replace(/\/$/, "");
+    if (!baseUrl) return;
+    const credSuffix = kodiUsername.trim()
+      ? `?kodi_user=${encodeURIComponent(kodiUsername)}&kodi_pass=${encodeURIComponent(kodiPassword)}`
+      : "";
+    const navPath = `kodi://${encodeURIComponent(`${baseUrl}${credSuffix}`)}`;
+    setKodiPromptServer(null);
+    navigate(`/files?q=${encodeURIComponent(navPath)}`);
+  };
+
   useEffect(() => {
     if (!shouldFetch) return;
     setRefetching(true);
@@ -385,6 +429,13 @@ const FilesWithData: FC = () => {
       setTimeout(() => navidromeUrlRef.current?.focus(), 50);
     }
   }, [navidromeEntry]);
+
+  // Focus Kodi URL input when the prompt appears.
+  useEffect(() => {
+    if (kodiPromptServer) {
+      setTimeout(() => kodiUrlRef.current?.focus(), 50);
+    }
+  }, [kodiPromptServer]);
 
   return (
     <>
@@ -584,6 +635,61 @@ const FilesWithData: FC = () => {
               <button
                 className="px-4 py-1.5 rounded-lg text-sm bg-[var(--theme-primary,#e5a00d)] text-black font-medium cursor-pointer border-0 hover:opacity-90"
                 onClick={handleJellyfinManualConnect}
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {kodiPromptServer && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setKodiPromptServer(null)}
+        >
+          <div
+            className="bg-[var(--theme-bg,#1a1a1a)] rounded-xl p-6 w-[320px] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-[var(--theme-text)] font-medium text-sm mb-1">Connect to Kodi</p>
+            <p className="text-[#888] text-xs mb-4">Username and password are optional for local servers.</p>
+            <input
+              ref={kodiUrlRef}
+              type="text"
+              placeholder="http://192.168.1.x:8080"
+              value={kodiUrl}
+              onChange={(e) => setKodiUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleKodiConnect(); if (e.key === "Escape") setKodiPromptServer(null); }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-3"
+            />
+            <input
+              type="text"
+              placeholder="Username (optional)"
+              value={kodiUsername}
+              onChange={(e) => setKodiUsername(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleKodiConnect(); if (e.key === "Escape") setKodiPromptServer(null); }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-3"
+            />
+            <input
+              type="password"
+              placeholder="Password (optional)"
+              value={kodiPassword}
+              onChange={(e) => setKodiPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleKodiConnect(); if (e.key === "Escape") setKodiPromptServer(null); }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-4"
+            />
+            {kodiError && <p className="text-red-400 text-xs mb-3">{kodiError}</p>}
+            <div className="flex gap-2 justify-end">
+              <button
+                className="px-4 py-1.5 rounded-lg text-sm text-[#888] hover:bg-white/5 cursor-pointer border-0 bg-transparent"
+                onClick={() => setKodiPromptServer(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-1.5 rounded-lg text-sm bg-[var(--theme-primary,#e5a00d)] text-black font-medium cursor-pointer border-0 hover:opacity-90"
+                onClick={handleKodiConnect}
               >
                 Connect
               </button>

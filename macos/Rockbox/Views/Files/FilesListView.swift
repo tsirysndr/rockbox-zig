@@ -18,6 +18,8 @@ enum FilesMode {
     case jellyfinBrowse
     case navidromeServers
     case navidromeBrowse
+    case kodiServers
+    case kodiBrowse
 }
 
 enum JellyfinAuthMode {
@@ -49,6 +51,12 @@ struct FilesListView: View {
     @State private var navidromePassword = ""
     @State private var navidromeError: String? = nil
     @State private var navidromeConnecting = false
+    @State private var showKodiEntry = false
+    @State private var kodiUrl = ""
+    @State private var kodiUsername = ""
+    @State private var kodiPassword = ""
+    @State private var kodiError: String? = nil
+    @State private var kodiConnecting = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -245,6 +253,46 @@ struct FilesListView: View {
             .padding(24)
             .frame(width: 360)
         }
+        .sheet(isPresented: $showKodiEntry) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Connect to Kodi")
+                    .font(.headline)
+                Text("Username and password are optional for local servers.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                TextField("http://192.168.1.x:8080", text: $kodiUrl)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(kodiConnecting)
+                TextField("Username (optional)", text: $kodiUsername)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(kodiConnecting)
+                SecureField("Password (optional)", text: $kodiPassword)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(kodiConnecting)
+                if let err = kodiError {
+                    Text(err)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        showKodiEntry = false
+                        kodiError = nil
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(kodiConnecting)
+                    Button(kodiConnecting ? "Connecting…" : "Connect") {
+                        Task { await connectToKodi() }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(kodiConnecting)
+                }
+            }
+            .padding(24)
+            .frame(width: 360)
+        }
     }
 
     // MARK: - Root landing
@@ -267,6 +315,9 @@ struct FilesListView: View {
                 rootRow(name: "Navidrome", systemImage: "", imageName: "navidrome") {
                     navigate(to: .navidromeServers, path: "navidrome://")
                     showNavidromeEntry = true
+                }
+                rootRow(name: "Kodi", systemImage: "", imageName: "kodi") {
+                    navigate(to: .kodiServers, path: "kodi://")
                 }
             }
         }
@@ -352,6 +403,22 @@ struct FilesListView: View {
                     .buttonStyle(.plain)
                     .foregroundColor(.secondary)
                 }
+                if mode == .kodiServers {
+                    Button(action: { showKodiEntry = true }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "plus.circle")
+                                .frame(width: 20, height: 20)
+                            Text("Add Manually…")
+                                .font(.system(size: 13))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -376,6 +443,9 @@ struct FilesListView: View {
         case .navidromeServers: return "Navidrome"
         case .navidromeBrowse:
             return currentPath?.split(separator: "/").last.map(String.init) ?? "Navidrome"
+        case .kodiServers: return "Kodi Servers"
+        case .kodiBrowse:
+            return currentPath?.split(separator: "/").last.map(String.init) ?? "Kodi"
         }
     }
 
@@ -397,6 +467,12 @@ struct FilesListView: View {
         return !rest.isEmpty && !rest.contains("/")
     }
 
+    private func isKodiServerPath(_ path: String) -> Bool {
+        guard path.hasPrefix("kodi://") else { return false }
+        let rest = path.dropFirst("kodi://".count)
+        return !rest.isEmpty && !rest.contains("/")
+    }
+
     private func navigateTo(file: FileItem) {
         if file.path.hasPrefix("upnp://") {
             navigate(to: .upnpBrowse, path: file.path)
@@ -415,6 +491,18 @@ struct FilesListView: View {
             navigate(to: .jellyfinBrowse, path: file.path)
         } else if file.path.hasPrefix("navidrome://") {
             navigate(to: .navidromeBrowse, path: file.path)
+        } else if isKodiServerPath(file.path) {
+            // Show connect sheet with URL pre-filled from the decoded base URL.
+            let encoded = file.path.dropFirst("kodi://".count)
+            if let decoded = encoded.removingPercentEncoding {
+                // Strip any existing kodi_user/kodi_pass query params
+                let rawBase = decoded.components(separatedBy: "?").first ?? decoded
+                kodiUrl = rawBase
+            }
+            kodiError = nil
+            showKodiEntry = true
+        } else if file.path.hasPrefix("kodi://") {
+            navigate(to: .kodiBrowse, path: file.path)
         } else {
             navigate(to: .local, path: file.path)
         }
@@ -574,6 +662,66 @@ struct FilesListView: View {
             navigate(to: .navidromeBrowse, path: navPath)
         } catch {
             navidromeError = "Network error: \(error.localizedDescription)"
+        }
+    }
+
+    private func connectToKodi() async {
+        let baseUrl = kodiUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "/$", with: "", options: .regularExpression)
+        guard !baseUrl.isEmpty else {
+            kodiError = "Server URL is required."
+            return
+        }
+        guard let url = URL(string: "\(baseUrl)/jsonrpc") else {
+            kodiError = "Invalid server URL."
+            return
+        }
+
+        kodiConnecting = true
+        kodiError = nil
+        defer { kodiConnecting = false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !kodiUsername.trimmingCharacters(in: .whitespaces).isEmpty {
+            let credentials = "\(kodiUsername):\(kodiPassword)"
+            if let data = credentials.data(using: .utf8) {
+                let encoded = data.base64EncodedString()
+                request.setValue("Basic \(encoded)", forHTTPHeaderField: "Authorization")
+            }
+        }
+        request.httpBody = try? JSONSerialization.data(
+            withJSONObject: ["jsonrpc": "2.0", "method": "JSONRPC.Ping", "id": 1]
+        )
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                kodiError = "HTTP error. Check the URL and credentials."
+                return
+            }
+            guard
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                json["result"] as? String == "pong"
+            else {
+                kodiError = "Kodi did not respond correctly. Check the URL."
+                return
+            }
+            let trimmedUser = kodiUsername.trimmingCharacters(in: .whitespaces)
+            let credSuffix = trimmedUser.isEmpty
+                ? ""
+                : "?kodi_user=\(trimmedUser)&kodi_pass=\(kodiPassword)"
+            let credUrl = "\(baseUrl)\(credSuffix)"
+            guard let encoded = credUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                kodiError = "Failed to encode server URL."
+                return
+            }
+            let navPath = "kodi://\(encoded)"
+            showKodiEntry = false
+            navigate(to: .kodiBrowse, path: navPath)
+        } catch {
+            kodiError = "Network error: \(error.localizedDescription)"
         }
     }
 

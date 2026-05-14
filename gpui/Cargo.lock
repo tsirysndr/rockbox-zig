@@ -25,6 +25,7 @@ dependencies = [
  "tonic-build",
  "tonic-reflection",
  "tonic-web",
+ "tracing",
 ]
 
 [[package]]
