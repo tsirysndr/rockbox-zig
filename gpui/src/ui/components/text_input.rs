@@ -1,7 +1,7 @@
 use crate::ui::theme::Theme;
 use gpui::{
-    div, App, Context, FocusHandle, InteractiveElement, IntoElement, KeyDownEvent, ParentElement,
-    Render, StatefulInteractiveElement, Styled, Subscription, Window,
+    div, App, ClipboardItem, Context, FocusHandle, InteractiveElement, IntoElement, KeyDownEvent,
+    ParentElement, Render, StatefulInteractiveElement, Styled, Subscription, Window,
 };
 
 pub struct TextInput {
@@ -54,14 +54,26 @@ impl Render for TextInput {
             }))
             .on_key_down(cx.listener(|this, event: &KeyDownEvent, _window, cx| {
                 let key = event.keystroke.key.as_str();
+                let cmd = event.keystroke.modifiers.platform;
+                let ctrl = event.keystroke.modifiers.control;
                 if key == "backspace" {
                     this.value.pop();
                     cx.notify();
                 } else if key == "escape" {
                     this.value.clear();
                     cx.notify();
-                } else if !event.keystroke.modifiers.platform && !event.keystroke.modifiers.control
-                {
+                } else if (cmd || ctrl) && key == "v" {
+                    if let Some(item) = cx.read_from_clipboard() {
+                        if let Some(text) = item.text() {
+                            this.value.push_str(&text);
+                            cx.notify();
+                        }
+                    }
+                } else if (cmd || ctrl) && key == "a" {
+                    // select-all: no cursor support, just a no-op so the key isn't swallowed
+                } else if (cmd || ctrl) && key == "c" {
+                    cx.write_to_clipboard(ClipboardItem::new_string(this.value.clone()));
+                } else if !cmd && !ctrl {
                     if let Some(c) = &event.keystroke.key_char {
                         this.value.push_str(c);
                         cx.notify();

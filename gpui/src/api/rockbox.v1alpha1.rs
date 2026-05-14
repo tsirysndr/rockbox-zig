@@ -7820,6 +7820,30 @@ pub struct SaveSettingsRequest {
     pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
     #[prost(message, optional, tag = "28")]
     pub compressor_settings: ::core::option::Option<CompressorSettings>,
+    #[prost(int32, optional, tag = "29")]
+    pub crossfeed: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "30")]
+    pub crossfeed_direct_gain: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "31")]
+    pub crossfeed_cross_gain: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "32")]
+    pub crossfeed_hf_attenuation: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "33")]
+    pub crossfeed_hf_cutoff: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "34")]
+    pub dithering_enabled: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "35")]
+    pub eq_precut: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "36")]
+    pub surround_mix: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "37")]
+    pub surround_method2: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "38")]
+    pub afr_enabled: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "39")]
+    pub pbe: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "40")]
+    pub pbe_precut: ::core::option::Option<i32>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SaveSettingsResponse {}
@@ -8415,6 +8439,64 @@ pub struct KeyclickClickRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct KeyclickClickResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct EqBandSettingMessage {
+    #[prost(int32, tag = "1")]
+    pub cutoff: i32,
+    #[prost(int32, tag = "2")]
+    pub q: i32,
+    #[prost(int32, tag = "3")]
+    pub gain: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetEqRequest {
+    #[prost(bool, tag = "1")]
+    pub enabled: bool,
+    #[prost(int32, tag = "2")]
+    pub precut: i32,
+    #[prost(message, repeated, tag = "3")]
+    pub bands: ::prost::alloc::vec::Vec<EqBandSettingMessage>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetEqResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetCrossfeedRequest {
+    #[prost(int32, tag = "1")]
+    pub r#type: i32,
+    #[prost(int32, tag = "2")]
+    pub direct_gain: i32,
+    #[prost(int64, tag = "3")]
+    pub cross_gain: i64,
+    #[prost(int64, tag = "4")]
+    pub hf_attenuation: i64,
+    #[prost(int64, tag = "5")]
+    pub hf_cutoff: i64,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetCrossfeedResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetDitheringRequest {
+    #[prost(bool, tag = "1")]
+    pub enabled: bool,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetDitheringResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetAfrRequest {
+    #[prost(int32, tag = "1")]
+    pub mode: i32,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetAfrResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetPbeRequest {
+    #[prost(int32, tag = "1")]
+    pub mode: i32,
+    #[prost(int32, tag = "2")]
+    pub precut: i32,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SetPbeResponse {}
 /// Generated client implementations.
 pub mod sound_service_client {
     #![allow(
@@ -8883,6 +8965,121 @@ pub mod sound_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn set_eq(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetEqRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetEqResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SoundService/SetEq",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetEq"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn set_crossfeed(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetCrossfeedRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetCrossfeedResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SoundService/SetCrossfeed",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetCrossfeed"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn set_dithering(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetDitheringRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetDitheringResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SoundService/SetDithering",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetDithering"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn set_afr(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetAfrRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetAfrResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SoundService/SetAfr",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetAfr"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn set_pbe(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetPbeRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetPbeResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SoundService/SetPbe",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetPbe"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -9003,6 +9200,32 @@ pub mod sound_service_server {
             tonic::Response<super::KeyclickClickResponse>,
             tonic::Status,
         >;
+        async fn set_eq(
+            &self,
+            request: tonic::Request<super::SetEqRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetEqResponse>, tonic::Status>;
+        async fn set_crossfeed(
+            &self,
+            request: tonic::Request<super::SetCrossfeedRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetCrossfeedResponse>,
+            tonic::Status,
+        >;
+        async fn set_dithering(
+            &self,
+            request: tonic::Request<super::SetDitheringRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetDitheringResponse>,
+            tonic::Status,
+        >;
+        async fn set_afr(
+            &self,
+            request: tonic::Request<super::SetAfrRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetAfrResponse>, tonic::Status>;
+        async fn set_pbe(
+            &self,
+            request: tonic::Request<super::SetPbeRequest>,
+        ) -> std::result::Result<tonic::Response<super::SetPbeResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct SoundServiceServer<T> {
@@ -9742,6 +9965,230 @@ pub mod sound_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = KeyclickClickSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SoundService/SetEq" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetEqSvc<T: SoundService>(pub Arc<T>);
+                    impl<
+                        T: SoundService,
+                    > tonic::server::UnaryService<super::SetEqRequest> for SetEqSvc<T> {
+                        type Response = super::SetEqResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetEqRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SoundService>::set_eq(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetEqSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SoundService/SetCrossfeed" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetCrossfeedSvc<T: SoundService>(pub Arc<T>);
+                    impl<
+                        T: SoundService,
+                    > tonic::server::UnaryService<super::SetCrossfeedRequest>
+                    for SetCrossfeedSvc<T> {
+                        type Response = super::SetCrossfeedResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetCrossfeedRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SoundService>::set_crossfeed(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetCrossfeedSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SoundService/SetDithering" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetDitheringSvc<T: SoundService>(pub Arc<T>);
+                    impl<
+                        T: SoundService,
+                    > tonic::server::UnaryService<super::SetDitheringRequest>
+                    for SetDitheringSvc<T> {
+                        type Response = super::SetDitheringResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetDitheringRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SoundService>::set_dithering(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetDitheringSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SoundService/SetAfr" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetAfrSvc<T: SoundService>(pub Arc<T>);
+                    impl<
+                        T: SoundService,
+                    > tonic::server::UnaryService<super::SetAfrRequest>
+                    for SetAfrSvc<T> {
+                        type Response = super::SetAfrResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetAfrRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SoundService>::set_afr(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetAfrSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SoundService/SetPbe" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetPbeSvc<T: SoundService>(pub Arc<T>);
+                    impl<
+                        T: SoundService,
+                    > tonic::server::UnaryService<super::SetPbeRequest>
+                    for SetPbeSvc<T> {
+                        type Response = super::SetPbeResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetPbeRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SoundService>::set_pbe(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetPbeSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

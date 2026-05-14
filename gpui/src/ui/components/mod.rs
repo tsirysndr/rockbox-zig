@@ -38,7 +38,7 @@ impl gpui::Global for LibrarySection {}
 
 #[derive(Clone, PartialEq)]
 pub enum FilesMode {
-    /// Root landing: show "Music" and "UPnP Devices" tiles.
+    /// Root landing: shows "Music", "UPnP Devices", and "Plex" tiles.
     Root,
     /// Browsing the local music directory (current_path = current dir, None = music root).
     Local,
@@ -46,6 +46,10 @@ pub enum FilesMode {
     UpnpDevices,
     /// Browsing a UPnP device's ContentDirectory.
     UpnpBrowse,
+    /// Listing discovered Plex Media Servers.
+    PlexServers,
+    /// Browsing a Plex server's library.
+    PlexBrowse,
 }
 
 impl Default for FilesMode {
@@ -59,6 +63,8 @@ pub struct FilesBrowseState {
     pub mode: FilesMode,
     pub current_path: Option<String>,
     pub history: Vec<(FilesMode, Option<String>)>,
+    /// Path of a discovered Plex server waiting for a token before browsing.
+    pub pending_plex_server: Option<String>,
 }
 
 impl FilesBrowseState {
@@ -70,6 +76,7 @@ impl FilesBrowseState {
         if let Some((prev_mode, prev_path)) = self.history.pop() {
             self.mode = prev_mode;
             self.current_path = prev_path;
+            self.pending_plex_server = None;
         }
     }
 
@@ -78,6 +85,7 @@ impl FilesBrowseState {
         let old_path = self.current_path.take();
         self.history.push((old_mode, old_path));
         self.current_path = new_path;
+        self.pending_plex_server = None;
     }
 }
 

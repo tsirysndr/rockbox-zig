@@ -9488,6 +9488,7 @@ dependencies = [
  "rockbox-fts5",
  "rockbox-library",
  "rockbox-playlists",
+ "rockbox-plex",
  "rockbox-rocksky",
  "rockbox-sys",
  "rockbox-types",
@@ -9606,6 +9607,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-plex"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "mdns-sd",
+ "reqwest",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-rocksky"
 version = "0.1.0"
 dependencies = [
@@ -9650,6 +9662,7 @@ dependencies = [
  "rockbox-graphql",
  "rockbox-library",
  "rockbox-playlists",
+ "rockbox-plex",
  "rockbox-rocksky",
  "rockbox-sys",
  "rockbox-types",

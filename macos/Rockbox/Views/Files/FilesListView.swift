@@ -11,6 +11,8 @@ enum FilesMode {
     case local
     case upnpDevices
     case upnpBrowse
+    case plexServers
+    case plexBrowse
 }
 
 struct FilesListView: View {
@@ -20,6 +22,8 @@ struct FilesListView: View {
     @State private var currentPath: String? = nil
     @State private var mode: FilesMode = .root
     @State private var history: [(FilesMode, String?)] = []
+    @AppStorage("plex_token") private var plexToken: String = ""
+    @State private var pendingPlexServer: String? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,6 +68,30 @@ struct FilesListView: View {
         } message: {
             Text(errorText ?? "")
         }
+        .sheet(isPresented: Binding(
+            get: { pendingPlexServer != nil },
+            set: { if !$0 { pendingPlexServer = nil } }
+        )) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Plex Token")
+                    .font(.headline)
+                Text("Required for private servers. Leave blank for public ones.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                SecureField("paste your X-Plex-Token here", text: $plexToken)
+                    .textFieldStyle(.roundedBorder)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { pendingPlexServer = nil }
+                        .keyboardShortcut(.cancelAction)
+                    Button("Connect") { connectToPlexServer() }
+                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                }
+            }
+            .padding(24)
+            .frame(width: 340)
+        }
     }
 
     // MARK: - Root landing
@@ -76,6 +104,9 @@ struct FilesListView: View {
                 }
                 rootRow(name: "UPnP Devices", systemImage: "network") {
                     navigate(to: .upnpDevices, path: "upnp://")
+                }
+                rootRow(name: "Plex", systemImage: "play.rectangle") {
+                    navigate(to: .plexServers, path: "plex://")
                 }
             }
         }
@@ -136,6 +167,9 @@ struct FilesListView: View {
         case .upnpDevices: return "UPnP Devices"
         case .upnpBrowse:
             return currentPath?.split(separator: "/").last.map(String.init) ?? "UPnP"
+        case .plexServers: return "Plex Servers"
+        case .plexBrowse:
+            return currentPath?.split(separator: "/").last.map(String.init) ?? "Plex"
         }
     }
 
@@ -145,9 +179,32 @@ struct FilesListView: View {
         currentPath = path
     }
 
+    private func isPlexServerPath(_ path: String) -> Bool {
+        guard path.hasPrefix("plex://") else { return false }
+        let rest = path.dropFirst("plex://".count)
+        return !rest.isEmpty && !rest.contains("/")
+    }
+
     private func navigateTo(file: FileItem) {
-        let newMode: FilesMode = file.path.hasPrefix("upnp://") ? .upnpBrowse : .local
-        navigate(to: newMode, path: file.path)
+        if file.path.hasPrefix("upnp://") {
+            navigate(to: .upnpBrowse, path: file.path)
+        } else if isPlexServerPath(file.path) {
+            // Show token prompt before browsing the server.
+            pendingPlexServer = file.path
+        } else if file.path.hasPrefix("plex://") {
+            navigate(to: .plexBrowse, path: file.path)
+        } else {
+            navigate(to: .local, path: file.path)
+        }
+    }
+
+    private func connectToPlexServer() {
+        guard let server = pendingPlexServer else { return }
+        let navPath = plexToken.isEmpty
+            ? server
+            : "\(server)%3FX-Plex-Token%3D\(plexToken)"
+        pendingPlexServer = nil
+        navigate(to: .plexBrowse, path: navPath)
     }
 
     private func goBack() {

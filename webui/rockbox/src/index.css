@@ -17,6 +17,7 @@
   --font-family-medium: RockfordSansMedium;
   --font-family-bold: RockfordSansBold;
   --font-family-light: RockfordSansLight;
+  --color-separator: var(--theme-separator);
 }
 
 @layer base {
