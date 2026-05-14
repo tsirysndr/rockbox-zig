@@ -1,5 +1,5 @@
 {
-  description = "Rockbox Zig — dev environment for building rockboxd and the rockbox CLI";
+  description = "Rockbox Zig — rockboxd daemon (gRPC/GraphQL/HTTP/MPD audio server)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -22,11 +22,9 @@
           extensions = [ "rust-src" "rustfmt" "clippy" ];
         };
 
-        # ── Zig 0.16.0 (fetched from upstream; not yet in all nixpkgs pins) ─
+        # ── Zig 0.16.0 (fetched from upstream) ──────────────────────────────
         zigVersion = "0.16.0";
 
-        # Map Nix system strings to the upstream tarball platform strings and
-        # their sha256 checksums (from https://ziglang.org/download/0.16.0/index.json).
         zigBySystem = {
           "x86_64-linux"   = { plat = "x86_64-linux";  sha256 = "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00"; };
           "aarch64-linux"  = { plat = "aarch64-linux"; sha256 = "ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17"; };
@@ -60,23 +58,21 @@
 
         # ── Platform-specific packages ───────────────────────────────────────
 
-        # Linux: ALSA (cpal / headless build), D-Bus, libunwind.
+        # Linux: ALSA (cpal), D-Bus, libunwind — linked into rockboxd.
         linuxPkgs = lib.optionals pkgs.stdenv.isLinux (with pkgs; [
           alsa-lib alsa-lib.dev
           dbus     dbus.dev
           libunwind libunwind.dev
         ]);
 
-        # macOS: llvm-objcopy for the codec --redefine-sym step inside
-        # scripts/build-headless.sh.  Use llvmPackages_18.llvm (not .bintools —
-        # bintools wraps Apple's ld and requires the removed apple_sdk_11_0 stub).
-        # macOS system frameworks (CoreAudio, AudioToolbox, …) are available
-        # automatically through the Xcode/CLT SDK; no explicit Nix inputs needed.
+        # macOS: llvm-objcopy for codec --redefine-sym inside build-headless.sh.
+        # Use .llvm (not .bintools — bintools wraps Apple ld and needs the
+        # removed apple_sdk_11_0 stub).  System frameworks are ambient via CLT.
         darwinPkgs = lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
-          llvmPackages_18.llvm  # provides llvm-objcopy for Mach-O codec builds
+          llvmPackages_18.llvm
         ]);
 
-        # ── PKG_CONFIG_PATH / LD_LIBRARY_PATH helpers ────────────────────────
+        # ── PKG_CONFIG_PATH / LD_LIBRARY_PATH helpers (devShell only) ────────
 
         pkgConfigDirs = lib.concatStringsSep ":" (
           [
@@ -93,11 +89,7 @@
         );
 
         ldLibDirs = lib.concatStringsSep ":" (
-          [
-            "${pkgs.SDL2}/lib"
-            "${pkgs.freetype}/lib"
-            "${pkgs.zlib}/lib"
-          ]
+          [ "${pkgs.SDL2}/lib" "${pkgs.freetype}/lib" "${pkgs.zlib}/lib" ]
           ++ lib.optionals pkgs.stdenv.isLinux [
             "${pkgs.alsa-lib}/lib"
             "${pkgs.dbus}/lib"
@@ -105,38 +97,133 @@
           ]
         );
 
-      in
-      {
-        # ── nix develop ───────────────────────────────────────────────────────
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            # Toolchains
+        # ── WebUI static assets ──────────────────────────────────────────────
+        # Compiled from webui/rockbox/ and embedded by rockbox-server.
+        #
+        # To obtain / update npmDepsHash:
+        #   nix build .#webui-assets 2>&1 | grep 'got:'
+        # then paste the printed hash below.
+        webuiAssets = pkgs.buildNpmPackage {
+          pname   = "rockbox-webui";
+          version = "0.1.0";
+          src     = ./webui/rockbox;
+
+          npmDepsHash = lib.fakeHash;
+
+          # Only the compiled dist/ is needed; skip npm's default pack step.
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp -r dist/. $out/
+            runHook postInstall
+          '';
+        };
+
+        # ── Vendored Cargo sources ────────────────────────────────────────────
+        # fetchCargoVendor runs `cargo vendor` once and caches the result.
+        # Single hash covers the entire workspace including all transitive deps.
+        #
+        # To obtain / update the hash:
+        #   nix build .#rockboxd 2>&1 | grep 'got:'
+        # then paste the printed hash below.
+        cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+          src  = ./.;
+          hash = lib.fakeHash;
+        };
+
+        # ── rockboxd derivation ───────────────────────────────────────────────
+        # Build order mirrors scripts/build-headless.sh:
+        #   0. webui assets (done above, injected via preBuild)
+        #   1. configure + make lib  (headless C firmware)
+        #   2. cargo build           (Rust crates, offline via cargoDeps)
+        #   3. zig build             (final link)
+        rockboxd = pkgs.stdenv.mkDerivation {
+          pname   = "rockboxd";
+          version = "0.1.0";
+          src     = ./.;
+
+          nativeBuildInputs = with pkgs; [
             zig
             rustToolchain
-
-            # C firmware build (Make + configure script)
             gnumake
             gcc
             pkg-config
             cmake
-            perl     # Rockbox tools/configure is a Perl script
-            python3  # Some build helpers in firmware/
+            perl       # tools/configure is a Perl script
+            python3
+            protobuf   # protoc for Rust codegen
+            # Wires up offline Cargo registry from cargoDeps.
+            rustPlatform.cargoSetupHook
+          ] ++ darwinPkgs;
 
-            # Libraries required by the SDL build target
+          # Libraries linked into the final binary.
+          buildInputs = with pkgs; [
+            freetype freetype.dev
+            zlib zlib.dev
+            libusb1 libusb1.dev
+          ] ++ linuxPkgs;
+
+          inherit cargoDeps;
+
+          preBuild = ''
+            # Inject compiled webui where rockbox-server's build.rs expects it.
+            mkdir -p webui/rockbox/dist
+            cp -r ${webuiAssets}/. webui/rockbox/dist/
+          '';
+
+          buildPhase = ''
+            runHook preBuild
+            export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-cache"
+            export ZIG_LOCAL_CACHE_DIR="$TMPDIR/zig-cache"
+            bash scripts/build-headless.sh
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out/bin
+            cp zig/zig-out/bin/rockboxd $out/bin/rockboxd
+            runHook postInstall
+          '';
+
+          meta = with lib; {
+            description = "Rockbox daemon — gRPC / GraphQL / HTTP / MPD audio server";
+            homepage    = "https://github.com/tsirysndr/rockbox-zig";
+            license     = licenses.lgpl21;
+            platforms   = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+            mainProgram = "rockboxd";
+          };
+        };
+
+      in
+      {
+        # ── packages ────────────────────────────────────────────────────────────
+        # nix build / nix shell / nix profile install all use packages.default.
+        packages = {
+          default      = rockboxd;       # ← what gets installed
+          inherit rockboxd;
+          webui-assets = webuiAssets;    # exposed separately to ease hash updates
+        };
+
+        # ── nix develop ─────────────────────────────────────────────────────────
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            zig
+            rustToolchain
+            gnumake
+            gcc
+            pkg-config
+            cmake
+            perl
+            python3
             SDL2 SDL2.dev
             freetype freetype.dev
             zlib zlib.dev
             libusb1 libusb1.dev
-
-            # gRPC / protobuf (for Rust crates and webui)
-            protobuf   # provides protoc
+            protobuf
             buf
-
-            # Dev / debugging tools
             grpcurl
             evans
-
-            # WebUI / mobile tooling
             bun
             deno
           ] ++ linuxPkgs ++ darwinPkgs;
@@ -146,15 +233,16 @@
             echo "  Zig:  $(zig version)"
             echo "  Rust: $(rustc --version)"
             echo ""
-            echo "SDL build (rockboxd with SDL audio):"
+            echo "Headless build (cpal, no SDL):"
+            echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
+            echo "  bash scripts/build-headless.sh"
+            echo ""
+            echo "SDL build:"
             echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
             echo "  cd build-lib && make lib -j\$(nproc)"
             echo "  cargo build --release -p rockbox-cli -p rockbox-server"
             echo "  cd zig && zig build"
-            echo ""
-            echo "Headless / cpal build (no SDL):"
-            echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
-            echo "  bash scripts/build-headless.sh"
+
             export PKG_CONFIG_PATH="${pkgConfigDirs}"
             export ZIG_GLOBAL_CACHE_DIR="$PWD/.zig-cache"
             export ZIG_LOCAL_CACHE_DIR="$PWD/.zig-cache"
@@ -162,41 +250,13 @@
             export LD_LIBRARY_PATH="${ldLibDirs}"
           '' + lib.optionalString pkgs.stdenv.isDarwin ''
             export DYLD_LIBRARY_PATH="${pkgs.SDL2}/lib:${pkgs.freetype}/lib:${pkgs.zlib}/lib"
-            # llvm-objcopy provided by this shell (llvm 18).
-            # build-headless.sh probes Homebrew paths and won't find it automatically;
-            # pass it explicitly if needed:
-            #   OC=$(which llvm-objcopy) bash scripts/build-headless.sh
             export ROCKBOX_LLVM_OBJCOPY="$(command -v llvm-objcopy 2>/dev/null)"
           '';
         };
 
-        # ── nix shell (legacy alias) ──────────────────────────────────────────
-        # `nix shell` is for running a package, not a dev shell.
-        # This entry exposes a shell with all tools on PATH for quick one-off use.
-        packages.default = pkgs.buildEnv {
-          name  = "rockbox-zig-env";
-          paths = with pkgs; [
-            zig
-            rustToolchain
-            gnumake
-            gcc
-            pkg-config
-            protobuf
-            SDL2
-            freetype
-            zlib
-            libusb1
-            bun
-            deno
-          ] ++ linuxPkgs;
-          # darwinPkgs intentionally excluded: framework paths don't compose in
-          # buildEnv; they're ambient via the system SDK on macOS.
-        };
-
-        # ── Convenience build scripts (nix run .#<name>) ─────────────────────
+        # ── nix run .#<name> convenience scripts ─────────────────────────────
         apps = {
-          # Full headless build: webui → firmware → Rust crates → Zig link.
-          # Run from the repository root: nix run .#build-headless
+          # Full headless build: webui → firmware → Rust → Zig
           build-headless = {
             type    = "app";
             program = "${pkgs.writeShellScript "build-headless" ''
@@ -207,8 +267,7 @@
             ''}";
           };
 
-          # SDL build: webui → make lib → cargo → zig build.
-          # Run from the repository root: nix run .#build-sdl
+          # SDL build: webui → make lib → cargo → zig build
           build-sdl = {
             type    = "app";
             program = "${pkgs.writeShellScript "build-sdl" ''
@@ -230,9 +289,12 @@
             type    = "app";
             program = "${pkgs.writeShellScript "rockboxd-info" ''
               echo "Usage:"
-              echo "  nix run .#build-headless   # headless build — zig/zig-out/bin/rockboxd"
-              echo "  nix run .#build-sdl        # SDL build    — zig/zig-out/bin/rockboxd"
-              echo "  nix develop                # enter dev shell"
+              echo "  nix build .                # build rockboxd"
+              echo "  nix shell .                # shell with rockboxd in PATH"
+              echo "  nix profile install .      # install rockboxd permanently"
+              echo "  nix run .#build-headless   # build in the working tree (headless)"
+              echo "  nix run .#build-sdl        # build in the working tree (SDL)"
+              echo "  nix develop                # dev shell with all toolchains"
             ''}";
           };
         };
