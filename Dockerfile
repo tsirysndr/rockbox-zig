@@ -14,7 +14,7 @@ COPY webui/rockbox/ ./
 RUN deno task build
 
 # ── Rockbox daemon ─────────────────────────────────────────────────────────────
-FROM rust:1.94-trixie AS builder
+FROM rust:1.95-trixie AS builder
 
 ARG TARGETARCH
 ARG TAG
@@ -59,7 +59,7 @@ RUN cargo build -p rockbox --release
 # ── Runtime image ──────────────────────────────────────────────────────────────
 FROM typesense/typesense:30.1 AS typesense
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 ARG TARGETARCH
 ARG SNAP_VERSION=0.35.0
