@@ -430,6 +430,11 @@ void init_threads(void)
  * Sequoia arm64 — same as the rest of this file.
  */
 
+/* WASM: the JS main thread cannot block on pthread_mutex_lock (Emscripten
+ * would throw an "unwind" exception).  The wasm-bridge.c file provides
+ * no-op stubs; let the weak stubs in broker_thread.c win for all other
+ * hosted builds that don't need the cooperative scheduler handshake. */
+#if !(CONFIG_PLATFORM & PLATFORM_WASM)
 void rb_kernel_lock(void)
 {
     pthread_mutex_lock(&g_mutex);
@@ -441,6 +446,7 @@ void rb_kernel_unlock(void)
     __running_self_entry() = NULL;
     pthread_mutex_unlock(&g_mutex);
 }
+#endif /* !PLATFORM_WASM */
 
 /* ── Priority scheduling stub ─────────────────────────────────────────────────
  *

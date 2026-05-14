@@ -20,6 +20,12 @@ $(OPUSLIB) : CODECFLAGS := -DHAVE_CONFIG_H \
    -I$(RBCODECLIB_DIR)/codecs/libopus/silk \
    $(CODECFLAGS)
 
+ifeq ($(APP_TYPE),wasm_app)
+$(OPUSLIB): $(OPUSLIB_OBJ)
+	$(SILENT)rm -f $@
+	$(call PRINTS,AR $(@F))$(foreach f,$^,$(AR) qc $@ $(f) >/dev/null &&) $(AR) s $@ >/dev/null
+else
 $(OPUSLIB): $(OPUSLIB_OBJ)
 	$(SILENT)$(shell rm -f $@)
 	$(call PRINTS,AR $(@F))$(AR) rcs $@ $^ >/dev/null
+endif

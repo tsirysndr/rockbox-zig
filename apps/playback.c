@@ -2105,7 +2105,6 @@ static bool audio_buffer_codec(struct track_info *track_infop,
 static int audio_load_track(void)
 {
     struct track_info info;
-
     if (track_list.in_progress_hid > 0)
     {
         /* There must be an info pointer if the in-progress id3 is even there */
@@ -2167,7 +2166,6 @@ static int audio_load_track(void)
 
         /* Test for broken playlists by probing for the file/stream. */
         fd = stream_open(path, O_RDONLY);
-        fprintf(stderr, "[playback] audio_load_track: stream_open(%s) -> fd=%d\n", path, fd);
         if (fd != -1)
             break;
         logf("Open failed %s", path);
@@ -2210,8 +2208,6 @@ static int audio_load_track(void)
     if (filling == STATE_FULL ||
         (info.id3_hid = bufopen(path, 0, TYPE_ID3, NULL)) < 0)
     {
-        fprintf(stderr, "[playback] audio_load_track: bufopen ID3 failed or buffer full (id3_hid=%d filling=%d)\n",
-                info.id3_hid, filling);
         /* Buffer or track list is full */
         struct mp3entry *ub_id3;
 

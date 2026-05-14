@@ -20,6 +20,10 @@
  ****************************************************************************/
 #include "config.h"
 #include "system.h"
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
+/* Defined in firmware/target/hosted/wasm/wasm-bridge.c */
+void rb_signal_firmware_ready(void);
+#endif
 
 #include "version.h"
 #include "gcc_extensions.h"
@@ -182,6 +186,9 @@ int main(void)
     CHART(">init");
     init();
     CHART("<init");
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
+    rb_signal_firmware_ready(); /* audio subsystem is up; JS may poll now */
+#endif
     FOR_NB_SCREENS(i)
     {
         screens[i].clear_display();

@@ -81,12 +81,14 @@
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if defined(__ANDROID__) && defined(CODECS_STATIC)
     [PCM_SINK_BUILTIN]      = &aaudio_pcm_sink,    /* AAudio = default on Android cdylib */
+#elif (CONFIG_PLATFORM & PLATFORM_WASM)
+    [PCM_SINK_BUILTIN]      = &webapi_pcm_sink,    /* Web Audio API = default on WASM */
 #elif defined(CODECS_STATIC) && !defined(__ANDROID__)
     [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on headless host */
 #else
     [PCM_SINK_BUILTIN]      = &builtin_pcm_sink,
 #endif
-#if (CONFIG_PLATFORM & PLATFORM_HOSTED)
+#if (CONFIG_PLATFORM & PLATFORM_HOSTED) && !(CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_FIFO]         = &fifo_pcm_sink,
     [PCM_SINK_AIRPLAY]      = &airplay_pcm_sink,
     [PCM_SINK_SQUEEZELITE]  = &squeezelite_pcm_sink,
@@ -99,6 +101,9 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if defined(CODECS_STATIC) && !defined(__ANDROID__)
     [PCM_SINK_CPAL]         = &cpal_pcm_sink,      /* also addressable by name */
 #endif
+#endif
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
+    [PCM_SINK_WEBAPI]       = &webapi_pcm_sink,    /* also addressable by name */
 #endif
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;
@@ -271,6 +276,7 @@ void pcm_init(void)
 
     for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
+        if (!sink) continue; /* skip sinks not registered for this platform */
         sink->pending_freq = sink->caps.default_freq;
         sink->configured_freq = -1U;
         sink->pcm_is_ready = false;
@@ -285,6 +291,7 @@ void pcm_postinit(void)
 
     for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
+        if (!sink) continue; /* skip sinks not registered for this platform */
         sink->ops.postinit();
         sink->pcm_is_ready = true;
     }
@@ -318,6 +325,9 @@ bool pcm_switch_sink(enum pcm_sink_ids sink)
     logf("pcm_switch_sink %d to %d", cur_sink, sink);
     if(sink >= PCM_SINK_NUM) {
         return false;
+    }
+    if(!sinks[sink]) {
+        return false; /* sink not registered for this platform */
     }
 
     if(cur_sink == sink) {

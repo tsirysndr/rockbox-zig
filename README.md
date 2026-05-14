@@ -47,6 +47,7 @@ and Squeezelite.
 - [x] Navigate by folders or tag database
 - [x] UPnP/DLNA
 - [x] Android library
+- [x] WebAssembly target
 
 ### Clients
 - [x] Web client (React)

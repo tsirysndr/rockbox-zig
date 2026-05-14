@@ -277,6 +277,42 @@ $(CODECDIR)/%.codec: $(CODECDIR)/%.o
 # objcopy modifies the .o in place; idempotent on re-run (the unrenamed
 # __header isn't present anymore so the second pass is a no-op).
 ifdef CODECS_STATIC
+ifneq (,$(findstring wasm_app,$(APP_TYPE)))
+# WASM: llvm-objcopy --redefine-sym is not supported for WASM object format.
+# Rename the four colliding symbols at compile time via -DFOO=FOO_name instead.
+# The generic compile rule (root.make line 511) uses $(CFLAGS); target-specific
+# CFLAGS here propagate to the .o prerequisite build, so setting them on the
+# .a target is sufficient.
+CODEC_NAMES_WASM := $(notdir $(CODECS:.a=))
+
+define WASM_CODEC_CFLAGS
+$(CODECDIR)/$(1).a: CODECFLAGS += \
+    -D__header=__header_$(1)       -D___header=___header_$(1) \
+    -Dcodec_main=codec_main_$(1)   -D_codec_main=_codec_main_$(1) \
+    -Dcodec_run=codec_run_$(1)     -D_codec_run=_codec_run_$(1) \
+    -Dcodec_start=codec_start_$(1) -D_codec_start=_codec_start_$(1)
+endef
+$(foreach c,$(CODEC_NAMES_WASM),$(eval $(call WASM_CODEC_CFLAGS,$(c))))
+
+# Per-codec crt0: codec_crt0.c compiled with per-codec renaming defines.
+# codec_start calls codec_main; both must be renamed so they match the codec .o.
+define WASM_CODEC_CRT0
+$(CODECDIR)/$(1)-crt0.o: $(RBCODECLIB_DIR)/codecs/codec_crt0.c
+	$$(call PRINTS,CC codec_crt0 [$(1)])
+	$$(SILENT) $$(CC) $$(CFLAGS) \
+	    -Dcodec_start=codec_start_$(1) -D_codec_start=_codec_start_$(1) \
+	    -Dcodec_main=codec_main_$(1)   -D_codec_main=_codec_main_$(1) \
+	    -c -o $$@ $$<
+endef
+$(foreach c,$(CODEC_NAMES_WASM),$(eval $(call WASM_CODEC_CRT0,$(c))))
+
+# WASM archive rule: symbols renamed at compile time, just archive.
+$(CODECDIR)/%.a: $(CODECDIR)/%.o $(CODECDIR)/%-crt0.o
+	$(call PRINTS,STATIC $(@F))
+	$(SILENT) $(AR) rcs $@ $< $(CODECDIR)/$*-crt0.o
+
+else
+# ELF / Mach-O: rename symbols post-compilation with objcopy --redefine-sym.
 # objcopy --redefine-sym is given both the ELF (Linux/Android NDK) and the
 # Mach-O (macOS smoke-test) symbol manglings — Mach-O prepends an extra
 # leading underscore to C symbols. Four symbols per codec collide when
@@ -308,8 +344,9 @@ $(CODECDIR)/%.a: $(CODECDIR)/%.o $(CODEC_CRT0)
 	                --redefine-sym _codec_main=_codec_main_$* \
 	                $(CODECDIR)/$*-crt0.o
 	$(SILENT) $(AR) rcs $@ $< $(CODECDIR)/$*-crt0.o
+endif
 
-# Per-codec helper-lib dependencies (mirror of lines 190-229 with .a output).
+# Per-codec helper-lib dependencies (both WASM and ELF/Mach-O).
 # When a codec is added/removed in SOURCES, mirror its existing .codec dep
 # line below with .a on the LHS.
 $(CODECDIR)/spc.a          : $(CODECDIR)/libspc.a
