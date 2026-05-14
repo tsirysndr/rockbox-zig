@@ -155,10 +155,6 @@
             echo "Headless / cpal build (no SDL):"
             echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
             echo "  bash scripts/build-headless.sh"
-            echo ""
-            echo "CLI binary (rockbox):"
-            echo "  cargo build --release -p rockbox"
-
             export PKG_CONFIG_PATH="${pkgConfigDirs}"
             export ZIG_GLOBAL_CACHE_DIR="$PWD/.zig-cache"
             export ZIG_LOCAL_CACHE_DIR="$PWD/.zig-cache"
@@ -230,24 +226,12 @@
             ''}";
           };
 
-          # CLI binary only.
-          # Run from the repository root: nix run .#build-cli
-          build-cli = {
-            type    = "app";
-            program = "${pkgs.writeShellScript "build-cli" ''
-              set -euo pipefail
-              cargo build --release -p rockbox
-              echo "Done: target/release/rockbox"
-            ''}";
-          };
-
           default = {
             type    = "app";
             program = "${pkgs.writeShellScript "rockboxd-info" ''
               echo "Usage:"
-              echo "  nix run .#build-headless   # full headless build (rockboxd)"
-              echo "  nix run .#build-sdl        # SDL build (rockboxd)"
-              echo "  nix run .#build-cli        # CLI binary (rockbox)"
+              echo "  nix run .#build-headless   # headless build — zig/zig-out/bin/rockboxd"
+              echo "  nix run .#build-sdl        # SDL build    — zig/zig-out/bin/rockboxd"
               echo "  nix develop                # enter dev shell"
             ''}";
           };
