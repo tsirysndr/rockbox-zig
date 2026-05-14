@@ -19,6 +19,7 @@ reqwest = { version = "0.12.5", features = [
 ], default-features = false }
 rockbox-graphql = { path = "../graphql" }
 rockbox-jellyfin = { path = "../jellyfin" }
+rockbox-navidrome = { path = "../navidrome" }
 rockbox-plex = { path = "../plex" }
 rockbox-upnp = { path = "../upnp" }
 rockbox-library = { path = "../library" }

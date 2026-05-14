@@ -9,6 +9,11 @@ use rockbox_jellyfin::{
     list_views as jellyfin_list_views, parse_base_url as jellyfin_parse_base_url,
     percent_decode as jellyfin_percent_decode, percent_encode as jellyfin_percent_encode,
 };
+use rockbox_navidrome::{
+    browse_directory as navidrome_browse_directory, list_indexes as navidrome_list_indexes,
+    parse_base_url as navidrome_parse_base_url, percent_decode as navidrome_percent_decode,
+    percent_encode as navidrome_percent_encode,
+};
 use rockbox_plex::{
     browse_plex, discover_plex_servers, list_sections as list_plex_sections,
     parse_base_url as plex_parse_base_url, percent_decode as plex_percent_decode,
@@ -38,6 +43,9 @@ impl BrowseService for Browse {
             }
             if p.starts_with("jellyfin://") {
                 return handle_jellyfin(p).await;
+            }
+            if p.starts_with("navidrome://") {
+                return handle_navidrome(p).await;
             }
         }
 
@@ -319,6 +327,80 @@ async fn handle_upnp(path: &str) -> Result<tonic::Response<TreeGetEntriesRespons
             }
         })
         .collect();
+
+    Ok(tonic::Response::new(TreeGetEntriesResponse { entries }))
+}
+
+async fn handle_navidrome(
+    path: &str,
+) -> Result<tonic::Response<TreeGetEntriesResponse>, tonic::Status> {
+    let rest = path.trim_start_matches("navidrome://");
+
+    // No discovery: empty path returns an empty list so the GPUI can show the manual-add prompt.
+    if rest.is_empty() || rest.starts_with('?') {
+        return Ok(tonic::Response::new(TreeGetEntriesResponse {
+            entries: vec![],
+        }));
+    }
+
+    let (base_encoded, dir_id_encoded) = match rest.find('/') {
+        None => (rest, None),
+        Some(i) => (&rest[..i], Some(&rest[i + 1..])),
+    };
+    let (base_url, user, token, salt) =
+        navidrome_parse_base_url(&navidrome_percent_decode(base_encoded));
+    let user = user.unwrap_or_default();
+    let token = token.unwrap_or_default();
+    let salt = salt.unwrap_or_default();
+
+    let entries = match dir_id_encoded {
+        None => {
+            let items = navidrome_list_indexes(&base_url, &user, &token, &salt, None).await;
+            items
+                .into_iter()
+                .map(|e| Entry {
+                    name: format!(
+                        "navidrome://{}/{}",
+                        base_encoded,
+                        navidrome_percent_encode(&e.id)
+                    ),
+                    attr: 0x10,
+                    display_name: Some(e.name),
+                    ..Default::default()
+                })
+                .collect()
+        }
+        Some(encoded) => {
+            let dir_id = navidrome_percent_decode(encoded);
+            let items = navidrome_browse_directory(&base_url, &user, &token, &salt, &dir_id).await;
+            items
+                .into_iter()
+                .map(|e| {
+                    let name = if e.is_container {
+                        format!(
+                            "navidrome://{}/{}",
+                            base_encoded,
+                            navidrome_percent_encode(&e.id)
+                        )
+                    } else {
+                        e.stream_url.unwrap_or_else(|| {
+                            format!(
+                                "navidrome://{}/{}",
+                                base_encoded,
+                                navidrome_percent_encode(&e.id)
+                            )
+                        })
+                    };
+                    Entry {
+                        name,
+                        attr: if e.is_container { 0x10 } else { 0 },
+                        display_name: Some(e.name),
+                        ..Default::default()
+                    }
+                })
+                .collect()
+        }
+    };
 
     Ok(tonic::Response::new(TreeGetEntriesResponse { entries }))
 }

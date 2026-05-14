@@ -12,6 +12,7 @@ const ROOT_ENTRIES: File[] = [
   { name: "UPnP Devices", path: "upnp://", isDirectory: true },
   { name: "Plex", path: "plex://", isDirectory: true },
   { name: "Jellyfin", path: "jellyfin://", isDirectory: true },
+  { name: "Navidrome", path: "navidrome://", isDirectory: true },
 ];
 
 const JELLYFIN_ADD_MANUALLY: File = {
@@ -30,6 +31,58 @@ function isPlexServerPath(path: string): boolean {
 function isJellyfinServerPath(path: string): boolean {
   const rest = path.slice("jellyfin://".length);
   return rest.length > 0 && !rest.includes("/");
+}
+
+/** Compute MD5 hash (used for Subsonic token auth). Inline implementation — Web Crypto doesn't support MD5. */
+function md5(input: string): string {
+  const utf8 = unescape(encodeURIComponent(input));
+  const bytes: number[] = [];
+  for (let i = 0; i < utf8.length; i++) bytes.push(utf8.charCodeAt(i));
+  const len8 = bytes.length;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  const b = len8 * 8;
+  bytes.push(b & 0xff, (b >> 8) & 0xff, (b >> 16) & 0xff, (b >> 24) & 0xff, 0, 0, 0, 0);
+  const M: number[] = [];
+  for (let i = 0; i < bytes.length; i += 4)
+    M.push(bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24));
+  const add = (x: number, y: number) => { const l = (x & 0xffff) + (y & 0xffff); return ((x >> 16) + (y >> 16) + (l >> 16)) << 16 | l & 0xffff; };
+  const rol = (n: number, c: number) => n << c | n >>> (32 - c);
+  const cmn = (q: number, a: number, b: number, x: number, s: number, t: number) => add(rol(add(add(a, q), add(x, t)), s), b);
+  const ff = (a: number, b: number, c: number, d: number, x: number, s: number, t: number) => cmn(b & c | ~b & d, a, b, x, s, t);
+  const gg = (a: number, b: number, c: number, d: number, x: number, s: number, t: number) => cmn(b & d | c & ~d, a, b, x, s, t);
+  const hh = (a: number, b: number, c: number, d: number, x: number, s: number, t: number) => cmn(b ^ c ^ d, a, b, x, s, t);
+  const ii = (a: number, b: number, c: number, d: number, x: number, s: number, t: number) => cmn(c ^ (b | ~d), a, b, x, s, t);
+  let a = 0x67452301, bv = 0xefcdab89, c = 0x98badcfe, d = 0x10325476;
+  for (let i = 0; i < M.length; i += 16) {
+    const [aa, bb, cc, dd] = [a, bv, c, d];
+    a=ff(a,bv,c,d,M[i+0],7,-680876936);d=ff(d,a,bv,c,M[i+1],12,-389564586);c=ff(c,d,a,bv,M[i+2],17,606105819);bv=ff(bv,c,d,a,M[i+3],22,-1044525330);
+    a=ff(a,bv,c,d,M[i+4],7,-176418897);d=ff(d,a,bv,c,M[i+5],12,1200080426);c=ff(c,d,a,bv,M[i+6],17,-1473231341);bv=ff(bv,c,d,a,M[i+7],22,-45705983);
+    a=ff(a,bv,c,d,M[i+8],7,1770035416);d=ff(d,a,bv,c,M[i+9],12,-1958414417);c=ff(c,d,a,bv,M[i+10],17,-42063);bv=ff(bv,c,d,a,M[i+11],22,-1990404162);
+    a=ff(a,bv,c,d,M[i+12],7,1804603682);d=ff(d,a,bv,c,M[i+13],12,-40341101);c=ff(c,d,a,bv,M[i+14],17,-1502002290);bv=ff(bv,c,d,a,M[i+15],22,1236535329);
+    a=gg(a,bv,c,d,M[i+1],5,-165796510);d=gg(d,a,bv,c,M[i+6],9,-1069501632);c=gg(c,d,a,bv,M[i+11],14,643717713);bv=gg(bv,c,d,a,M[i+0],20,-373897302);
+    a=gg(a,bv,c,d,M[i+5],5,-701558691);d=gg(d,a,bv,c,M[i+10],9,38016083);c=gg(c,d,a,bv,M[i+15],14,-660478335);bv=gg(bv,c,d,a,M[i+4],20,-405537848);
+    a=gg(a,bv,c,d,M[i+9],5,568446438);d=gg(d,a,bv,c,M[i+14],9,-1019803690);c=gg(c,d,a,bv,M[i+3],14,-187363961);bv=gg(bv,c,d,a,M[i+8],20,1163531501);
+    a=gg(a,bv,c,d,M[i+13],5,-1444681467);d=gg(d,a,bv,c,M[i+2],9,-51403784);c=gg(c,d,a,bv,M[i+7],14,1735328473);bv=gg(bv,c,d,a,M[i+12],20,-1926607734);
+    a=hh(a,bv,c,d,M[i+5],4,-378558);d=hh(d,a,bv,c,M[i+8],11,-2022574463);c=hh(c,d,a,bv,M[i+11],16,1839030562);bv=hh(bv,c,d,a,M[i+14],23,-35309556);
+    a=hh(a,bv,c,d,M[i+1],4,-1530992060);d=hh(d,a,bv,c,M[i+4],11,1272893353);c=hh(c,d,a,bv,M[i+7],16,-155497632);bv=hh(bv,c,d,a,M[i+10],23,-1094730640);
+    a=hh(a,bv,c,d,M[i+13],4,681279174);d=hh(d,a,bv,c,M[i+0],11,-358537222);c=hh(c,d,a,bv,M[i+3],16,-722521979);bv=hh(bv,c,d,a,M[i+6],23,76029189);
+    a=hh(a,bv,c,d,M[i+9],4,-640364487);d=hh(d,a,bv,c,M[i+12],11,-421815835);c=hh(c,d,a,bv,M[i+15],16,530742520);bv=hh(bv,c,d,a,M[i+2],23,-995338651);
+    a=ii(a,bv,c,d,M[i+0],6,-198630844);d=ii(d,a,bv,c,M[i+7],10,1126891415);c=ii(c,d,a,bv,M[i+14],15,-1416354905);bv=ii(bv,c,d,a,M[i+5],21,-57434055);
+    a=ii(a,bv,c,d,M[i+12],6,1700485571);d=ii(d,a,bv,c,M[i+3],10,-1894986606);c=ii(c,d,a,bv,M[i+10],15,-1051523);bv=ii(bv,c,d,a,M[i+1],21,-2054922799);
+    a=ii(a,bv,c,d,M[i+8],6,1873313359);d=ii(d,a,bv,c,M[i+15],10,-30611744);c=ii(c,d,a,bv,M[i+6],15,-1560198380);bv=ii(bv,c,d,a,M[i+13],21,1309151649);
+    a=ii(a,bv,c,d,M[i+4],6,-145523070);d=ii(d,a,bv,c,M[i+11],10,-1120210379);c=ii(c,d,a,bv,M[i+2],15,718787259);bv=ii(bv,c,d,a,M[i+9],21,-343485551);
+    a=add(a,aa);bv=add(bv,bb);c=add(c,cc);d=add(d,dd);
+  }
+  return [a,bv,c,d].flatMap(w => [0,1,2,3].map(i => ((w >> (i*8)) & 0xff).toString(16).padStart(2,"0"))).join("");
+}
+
+/** Generate a random 8-character alphanumeric salt. */
+function randomSalt(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length: 8 }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
 }
 
 const FilesWithData: FC = () => {
@@ -59,6 +112,15 @@ const FilesWithData: FC = () => {
   const jellyfinApiKeyRef = useRef<HTMLInputElement>(null);
   const jellyfinManualUrlRef = useRef<HTMLInputElement>(null);
 
+  // Navidrome auth state
+  const [navidromeEntry, setNavidromeEntry] = useState(false);
+  const [navidromeUrl, setNavidromeUrl] = useState("");
+  const [navidromeUsername, setNavidromeUsername] = useState("");
+  const [navidromePassword, setNavidromePassword] = useState("");
+  const [navidromeError, setNavidromeError] = useState<string | null>(null);
+  const [navidromeConnecting, setNavidromeConnecting] = useState(false);
+  const navidromeUrlRef = useRef<HTMLInputElement>(null);
+
   // Resolve the actual path to query: __local__ means music root (no path arg).
   const queryPath = isRoot ? undefined : path === "__local__" ? undefined : path;
   const shouldFetch = !isRoot;
@@ -74,6 +136,10 @@ const FilesWithData: FC = () => {
   );
   useGetEntriesQuery(
     { path: "jellyfin://" },
+    { staleTime: 0, refetchOnMount: false }
+  );
+  useGetEntriesQuery(
+    { path: "navidrome://" },
     { staleTime: 0, refetchOnMount: false }
   );
 
@@ -104,6 +170,7 @@ const FilesWithData: FC = () => {
       path.startsWith("upnp://") ||
       path.startsWith("plex://") ||
       path.startsWith("jellyfin://") ||
+      path.startsWith("navidrome://") ||
       path === "__local__"
     )
       return;
@@ -114,7 +181,8 @@ const FilesWithData: FC = () => {
     if (
       path.startsWith("upnp://") ||
       path.startsWith("plex://") ||
-      path.startsWith("jellyfin://")
+      path.startsWith("jellyfin://") ||
+      path.startsWith("navidrome://")
     )
       return;
     playDirectory({ path, position });
@@ -135,6 +203,14 @@ const FilesWithData: FC = () => {
       setJellyfinUsername("");
       setJellyfinPassword("");
       setJellyfinError(null);
+    } else if (file.path === "navidrome://") {
+      setNavidromeEntry(true);
+      setNavidromeUrl("");
+      setNavidromeUsername("");
+      setNavidromePassword("");
+      setNavidromeError(null);
+    } else if (file.path.startsWith("navidrome://")) {
+      navigate(`/files?q=${encodeURIComponent(file.path)}`);
     } else if (
       file.path.startsWith("upnp://") ||
       file.path.startsWith("plex://") ||
@@ -240,6 +316,33 @@ const FilesWithData: FC = () => {
     setJellyfinAuthMode("credentials");
   };
 
+  const handleNavidromeConnect = async () => {
+    const baseUrl = navidromeUrl.trim().replace(/\/$/, "");
+    if (!baseUrl || !navidromeUsername.trim()) return;
+    setNavidromeConnecting(true);
+    setNavidromeError(null);
+    try {
+      const salt = randomSalt();
+      const token = md5(navidromePassword + salt);
+      const pingUrl = `${baseUrl}/rest/ping.view?u=${encodeURIComponent(navidromeUsername)}&t=${token}&s=${salt}&v=1.16.1&c=rockbox&f=json`;
+      const resp = await fetch(pingUrl);
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const json = await resp.json();
+      if (json["subsonic-response"]?.status !== "ok") {
+        setNavidromeError("Authentication failed. Check username/password.");
+        return;
+      }
+      const credUrl = `${baseUrl}?nd_user=${encodeURIComponent(navidromeUsername)}&nd_token=${token}&nd_salt=${salt}`;
+      const encoded = encodeURIComponent(credUrl);
+      setNavidromeEntry(false);
+      navigate(`/files?q=${encodeURIComponent(`navidrome://${encoded}`)}`);
+    } catch {
+      setNavidromeError("Could not reach the Navidrome server.");
+    } finally {
+      setNavidromeConnecting(false);
+    }
+  };
+
   useEffect(() => {
     if (!shouldFetch) return;
     setRefetching(true);
@@ -275,6 +378,13 @@ const FilesWithData: FC = () => {
       setTimeout(() => jellyfinManualUrlRef.current?.focus(), 50);
     }
   }, [jellyfinManualEntry]);
+
+  // Focus Navidrome URL input when the entry form appears.
+  useEffect(() => {
+    if (navidromeEntry) {
+      setTimeout(() => navidromeUrlRef.current?.focus(), 50);
+    }
+  }, [navidromeEntry]);
 
   return (
     <>
@@ -476,6 +586,78 @@ const FilesWithData: FC = () => {
                 onClick={handleJellyfinManualConnect}
               >
                 Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {navidromeEntry && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => { if (!navidromeConnecting) setNavidromeEntry(false); }}
+        >
+          <div
+            className="bg-[var(--theme-bg,#1a1a1a)] rounded-xl p-6 w-[320px] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-[var(--theme-text)] font-medium text-sm mb-1">
+              Connect to Navidrome
+            </p>
+            <p className="text-[#888] text-xs mb-4">
+              Enter your Navidrome server URL and credentials.
+            </p>
+            <input
+              ref={navidromeUrlRef}
+              type="text"
+              placeholder="http://192.168.1.x:4533"
+              value={navidromeUrl}
+              onChange={(e) => setNavidromeUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNavidromeConnect();
+                if (e.key === "Escape" && !navidromeConnecting) setNavidromeEntry(false);
+              }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-3"
+            />
+            <input
+              type="text"
+              placeholder="Username"
+              value={navidromeUsername}
+              onChange={(e) => setNavidromeUsername(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNavidromeConnect();
+                if (e.key === "Escape" && !navidromeConnecting) setNavidromeEntry(false);
+              }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-3"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={navidromePassword}
+              onChange={(e) => setNavidromePassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNavidromeConnect();
+                if (e.key === "Escape" && !navidromeConnecting) setNavidromeEntry(false);
+              }}
+              className="w-full bg-[var(--theme-input-bg,#2a2a2a)] text-[var(--theme-text)] text-sm rounded-lg px-3 py-2 border border-[var(--theme-border,#444)] outline-none focus:border-[var(--theme-primary,#e5a00d)] mb-4"
+            />
+            {navidromeError && (
+              <p className="text-red-400 text-xs mb-3">{navidromeError}</p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                className="px-4 py-1.5 rounded-lg text-sm text-[#888] hover:bg-white/5 cursor-pointer border-0 bg-transparent disabled:opacity-40"
+                disabled={navidromeConnecting}
+                onClick={() => setNavidromeEntry(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-1.5 rounded-lg text-sm bg-[var(--theme-primary,#e5a00d)] text-black font-medium cursor-pointer border-0 hover:opacity-90 disabled:opacity-40"
+                disabled={navidromeConnecting}
+                onClick={handleNavidromeConnect}
+              >
+                {navidromeConnecting ? "Connecting…" : "Connect"}
               </button>
             </div>
           </div>

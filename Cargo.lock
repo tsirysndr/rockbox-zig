@@ -9488,6 +9488,7 @@ dependencies = [
  "rockbox-fts5",
  "rockbox-jellyfin",
  "rockbox-library",
+ "rockbox-navidrome",
  "rockbox-playlists",
  "rockbox-plex",
  "rockbox-rocksky",
@@ -9593,6 +9594,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-navidrome"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "md5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-network"
 version = "0.1.0"
 dependencies = [
@@ -9675,6 +9689,7 @@ dependencies = [
  "rockbox-graphql",
  "rockbox-jellyfin",
  "rockbox-library",
+ "rockbox-navidrome",
  "rockbox-playlists",
  "rockbox-plex",
  "rockbox-rocksky",
