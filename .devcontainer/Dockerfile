@@ -1,4 +1,4 @@
-FROM rust:1.94-bookworm
+FROM rust:1.94-trixie
 
 ARG TARGETARCH
 
