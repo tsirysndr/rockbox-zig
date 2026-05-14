@@ -417,6 +417,26 @@
   </div>
 
   <!-- DSP extras -->
+  <div class="settings-section" id="plex-section">
+    <h3>Plex</h3>
+    <div class="setting-row">
+      <label for="plex-url">Server URL</label>
+      <input id="plex-url" type="url" placeholder="http://192.168.1.x:32400" style="flex:1;background:#1a1a1a;color:#eee;border:1px solid #333;padding:3px 6px;border-radius:4px;">
+    </div>
+    <div class="setting-row">
+      <label for="plex-token">Token (optional)</label>
+      <input id="plex-token" type="password" placeholder="X-Plex-Token" style="flex:1;background:#1a1a1a;color:#eee;border:1px solid #333;padding:3px 6px;border-radius:4px;">
+    </div>
+    <div class="setting-row">
+      <button id="btn-plex-connect" class="primary">Browse</button>
+      <span id="plex-status" style="font-size:.75rem;color:#888;margin-left:.5rem;"></span>
+    </div>
+    <div id="plex-browser" style="margin-top:.5rem;display:none;">
+      <div id="plex-breadcrumb" style="font-size:.75rem;color:#888;margin-bottom:.4rem;"></div>
+      <div id="plex-entries" style="max-height:240px;overflow-y:auto;border:1px solid #2a2a2a;border-radius:4px;"></div>
+    </div>
+  </div>
+
   <div class="settings-section">
     <h3>DSP extras</h3>
     <div class="setting-row">
@@ -864,6 +884,129 @@ $('timestretch').addEventListener('input', (e) => {
   const v = parseInt(e.target.value, 10);
   $('timestretch-val').textContent = v > 0 ? v + '%' : 'off';
   player.setTimestretch(v);
+});
+
+// ── Plex browser ──────────────────────────────────────────────────────────────
+
+const plexState = { url: '', token: '', stack: [] };
+
+function plexHeaders() {
+  const h = {
+    'X-Plex-Product': 'Rockbox',
+    'X-Plex-Client-Identifier': 'rockbox-wasm-client',
+    'Accept': 'application/xml',
+  };
+  const tok = $('plex-token').value.trim();
+  if (tok) h['X-Plex-Token'] = tok;
+  return h;
+}
+
+function plexAttr(xml, name) {
+  const re = new RegExp(`${name}="([^"]*)"`, 'i');
+  const m = xml.match(re);
+  return m ? m[1] : '';
+}
+
+function parsePlexXml(xml, baseUrl) {
+  const entries = [];
+  // Directories (containers)
+  const dirRe = /<Directory ([^>]+)\/>/g;
+  let m;
+  while ((m = dirRe.exec(xml)) !== null) {
+    const attrs = m[1];
+    const key   = plexAttr(attrs, 'key');
+    const title = plexAttr(attrs, 'title');
+    if (key && title) entries.push({ key, title, isContainer: true });
+  }
+  // Tracks
+  const trackRe = /<Track ([^>]+)>([\s\S]*?)<\/Track>/g;
+  while ((m = trackRe.exec(xml)) !== null) {
+    const attrs    = m[1];
+    const inner    = m[2];
+    const title    = plexAttr(attrs, 'title');
+    const partM    = inner.match(/<Part ([^>]+)/);
+    const partKey  = partM ? plexAttr(partM[1], 'key') : '';
+    if (title && partKey) {
+      const tok = $('plex-token').value.trim();
+      const streamUrl = baseUrl.replace(/\/$/, '') + partKey + (tok ? `?X-Plex-Token=${tok}` : '');
+      entries.push({ key: partKey, title, isContainer: false, streamUrl });
+    }
+  }
+  return entries;
+}
+
+async function plexFetch(path) {
+  const baseUrl = $('plex-url').value.trim().replace(/\/$/, '');
+  if (!baseUrl) { $('plex-status').textContent = 'Enter a server URL first.'; return null; }
+  try {
+    const resp = await fetch(baseUrl + path, { headers: plexHeaders() });
+    if (!resp.ok) { $('plex-status').textContent = `Error ${resp.status}`; return null; }
+    return await resp.text();
+  } catch (e) {
+    $('plex-status').textContent = `Fetch failed: ${e.message}`;
+    return null;
+  }
+}
+
+function renderPlexEntries(entries, path) {
+  const container = $('plex-entries');
+  container.innerHTML = '';
+  entries.forEach(entry => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:.5rem;padding:5px 8px;cursor:pointer;border-bottom:1px solid #1e1e1e;';
+    row.innerHTML = `<span style="font-size:.85rem;">${entry.isContainer ? '📁' : '🎵'}</span>`
+      + `<span style="font-size:.8rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${entry.title}</span>`;
+    row.addEventListener('mouseenter', () => row.style.background = '#2a2a2a');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+    row.addEventListener('click', async () => {
+      if (entry.isContainer) {
+        plexState.stack.push(path);
+        await plexBrowse(entry.key);
+      } else {
+        $('url-input').value = entry.streamUrl;
+        await player.resumeAudio();
+        player.playUrl(entry.streamUrl);
+        log(`▶ Plex: ${entry.title}`);
+      }
+    });
+    container.appendChild(row);
+  });
+  // Breadcrumb back button when drilling down
+  const bc = $('plex-breadcrumb');
+  bc.innerHTML = '';
+  if (plexState.stack.length > 0) {
+    const back = document.createElement('span');
+    back.textContent = '← Back';
+    back.style.cssText = 'cursor:pointer;color:#aaa;';
+    back.addEventListener('click', async () => {
+      const prev = plexState.stack.pop();
+      if (prev !== undefined) await plexBrowse(prev);
+    });
+    bc.appendChild(back);
+  }
+}
+
+async function plexBrowse(path) {
+  $('plex-status').textContent = 'Loading…';
+  const baseUrl = $('plex-url').value.trim().replace(/\/$/, '');
+  const xml = await plexFetch(path);
+  if (!xml) return;
+  const entries = parsePlexXml(xml, baseUrl);
+  // For sections list, rewrite numeric key to /library/sections/{key}/all
+  const normalised = entries.map(e => {
+    if (e.isContainer && path === '/library/sections' && !e.key.startsWith('/')) {
+      return { ...e, key: `/library/sections/${e.key}/all` };
+    }
+    return e;
+  });
+  renderPlexEntries(normalised, path);
+  $('plex-browser').style.display = 'block';
+  $('plex-status').textContent = `${normalised.length} item${normalised.length !== 1 ? 's' : ''}`;
+}
+
+$('btn-plex-connect').addEventListener('click', async () => {
+  plexState.stack = [];
+  await plexBrowse('/library/sections');
 });
 
 // ── Save state ────────────────────────────────────────────────────────────────

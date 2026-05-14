@@ -185,6 +185,7 @@ pub enum Icons {
     Chromecast,
     Airplay,
     Upnp,
+    Plex,
     Bluetooth,
 }
 
@@ -229,6 +230,7 @@ impl IconNamed for Icons {
             Icons::Chromecast => "icons/chromecast.svg",
             Icons::Airplay => "icons/airplay.svg",
             Icons::Upnp => "icons/upnp.svg",
+            Icons::Plex => "icons/plex.svg",
             Icons::Bluetooth => "icons/bluetooth.svg",
         }
         .into()

@@ -3,7 +3,7 @@ import { FC } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import { Folder2, HddNetwork, MusicNoteBeamed } from "@styled-icons/bootstrap";
+import { Folder2, HddNetwork, MusicNoteBeamed, PlayBtn } from "@styled-icons/bootstrap";
 import { Link } from "react-router-dom";
 import { File } from "../../Types/file";
 import Table from "../Table";
@@ -42,7 +42,8 @@ const Files: FC<FilesProps> = (props) => {
         >
           {info.row.original.isDirectory &&
             info.row.original.path !== "__local__" &&
-            info.row.original.path !== "upnp://" && (
+            !info.row.original.path.startsWith("upnp://") &&
+            !info.row.original.path.startsWith("plex://") && (
             <div>
               <div
                 className="play"
@@ -66,6 +67,22 @@ const Files: FC<FilesProps> = (props) => {
             <div className="no-play">
               <div className="folder">
                 <HddNetwork size={20} />
+              </div>
+            </div>
+          )}
+          {info.row.original.path === "plex://" && (
+            <div className="no-play">
+              <div className="folder">
+                <PlayBtn size={20} />
+              </div>
+            </div>
+          )}
+          {info.row.original.isDirectory &&
+            info.row.original.path.startsWith("plex://") &&
+            info.row.original.path !== "plex://" && (
+            <div className="no-play">
+              <div className="folder">
+                <Folder2 size={20} />
               </div>
             </div>
           )}
@@ -132,7 +149,8 @@ const Files: FC<FilesProps> = (props) => {
       cell: (info) => {
         const isRootEntry =
           info.row.original.path === "__local__" ||
-          info.row.original.path === "upnp://";
+          info.row.original.path.startsWith("upnp://") ||
+          info.row.original.path.startsWith("plex://");
         if (isRootEntry) return <div className="flex flex-row items-center" />;
         return (
           <div

@@ -1,20 +1,22 @@
 use crate::client::{play_directory, play_directory_at, FileEntry};
 use crate::controller::Controller;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode};
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, uniform_list, AnyElement, App, ClickEvent, Context, FontWeight, InteractiveElement,
-    IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled, WeakEntity, Window,
+    div, px, uniform_list, AnyElement, App, AppContext, ClickEvent, Context, Entity, FontWeight,
+    InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled,
+    WeakEntity, Window,
 };
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-/// How long the UPnP device list (upnp://) stays fresh. SSDP is time-sensitive.
-const UPNP_DEVICE_TTL: Duration = Duration::from_secs(30);
-/// How long a browsed UPnP content folder stays fresh. Content is stable.
-const UPNP_CONTENT_TTL: Duration = Duration::from_secs(300);
+/// How long a device discovery list stays fresh.
+const DEVICE_LIST_TTL: Duration = Duration::from_secs(30);
+/// How long a browsed content folder stays fresh.
+const CONTENT_TTL: Duration = Duration::from_secs(300);
 
 struct CacheEntry {
     entries: Vec<FileEntry>,
@@ -26,6 +28,7 @@ pub struct FilesView {
     last_loaded: Option<(FilesMode, Option<String>)>,
     loading: bool,
     upnp_cache: HashMap<String, CacheEntry>,
+    plex_token_input: Entity<TextInput>,
 }
 
 impl FilesView {
@@ -33,34 +36,41 @@ impl FilesView {
         cx.set_global(FilesBrowseState::default());
         cx.set_global(FileContextMenuState::default());
 
-        // Prefetch UPnP device list into the cache so the first open is instant.
-        let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
-        cx.global::<Controller>().rt().spawn(async move {
-            let devices = crate::client::tree_get_entries(Some("upnp://".to_string()))
-                .await
-                .unwrap_or_default();
-            let _ = tx.send(devices);
-        });
-        cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
-            if let Ok(devices) = rx.await {
-                let _ = this.update(cx, |this, _cx| {
-                    this.upnp_cache.insert(
-                        "upnp://".to_string(),
-                        CacheEntry {
-                            entries: devices,
-                            fetched_at: Instant::now(),
-                        },
-                    );
-                });
-            }
-        })
-        .detach();
+        // Prefetch UPnP and Plex device lists so the first open is instant.
+        for prefix in ["upnp://", "plex://"] {
+            let path = prefix.to_string();
+            let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
+            cx.global::<Controller>().rt().spawn(async move {
+                let devices = crate::client::tree_get_entries(Some(path))
+                    .await
+                    .unwrap_or_default();
+                let _ = tx.send(devices);
+            });
+            let cache_key = prefix.to_string();
+            cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
+                if let Ok(devices) = rx.await {
+                    let _ = this.update(cx, |this, _cx| {
+                        this.upnp_cache.insert(
+                            cache_key,
+                            CacheEntry {
+                                entries: devices,
+                                fetched_at: Instant::now(),
+                            },
+                        );
+                    });
+                }
+            })
+            .detach();
+        }
+
+        let plex_token_input = cx.new(|cx| TextInput::new("Plex token (optional)", cx));
 
         FilesView {
             entries: Vec::new(),
             last_loaded: None,
             loading: false,
             upnp_cache: HashMap::new(),
+            plex_token_input,
         }
     }
 
@@ -79,15 +89,17 @@ impl FilesView {
             return;
         }
 
-        // Determine if this is a UPnP path and its cache key.
+        // Determine cache key for UPnP / Plex paths.
         let cache_key: Option<String> = match browse.mode {
             FilesMode::UpnpDevices => Some("upnp://".to_string()),
             FilesMode::UpnpBrowse => browse.current_path.clone(),
+            FilesMode::PlexServers => Some("plex://".to_string()),
+            FilesMode::PlexBrowse => browse.current_path.clone(),
             _ => None,
         };
         let ttl = match browse.mode {
-            FilesMode::UpnpDevices => UPNP_DEVICE_TTL,
-            _ => UPNP_CONTENT_TTL,
+            FilesMode::UpnpDevices | FilesMode::PlexServers => DEVICE_LIST_TTL,
+            _ => CONTENT_TTL,
         };
 
         if let Some(ref ck) = cache_key {
@@ -195,12 +207,21 @@ impl Render for FilesView {
                 .and_then(|p| p.rsplit('/').next())
                 .unwrap_or("UPnP")
                 .to_string(),
+            FilesMode::PlexServers => "Plex Servers".to_string(),
+            FilesMode::PlexBrowse => browse
+                .current_path
+                .as_deref()
+                .and_then(|p| p.rsplit('/').next())
+                .unwrap_or("Plex")
+                .to_string(),
         };
 
         let current_dir = browse.current_path.clone().unwrap_or_default();
         let mode = browse.mode.clone();
         let entries = self.entries.clone();
         let loading = self.loading;
+        let pending_server = browse.pending_plex_server.clone();
+        let plex_token_input = self.plex_token_input.clone();
 
         div()
             .size_full()
@@ -247,6 +268,82 @@ impl Render for FilesView {
             // ── Content ───────────────────────────────────────────────────────
             .child(match mode {
                 FilesMode::Root => render_root(theme).into_any_element(),
+                FilesMode::PlexServers if pending_server.is_some() => {
+                    let server_path = pending_server.unwrap();
+                    let sp = server_path.clone();
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_center()
+                        .gap_y_3()
+                        .p_6()
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_text)
+                                .child("Enter Plex Token"),
+                        )
+                        .child(
+                            div()
+                                .text_xs()
+                                .text_color(theme.library_header_text)
+                                .child("Required for private servers. Leave blank for public ones."),
+                        )
+                        .child(div().w(px(280.0)).child(plex_token_input))
+                        .child(
+                            div()
+                                .flex()
+                                .gap_x_2()
+                                .child(
+                                    div()
+                                        .id("plex_token_cancel")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            cx.global_mut::<FilesBrowseState>()
+                                                .pending_plex_server = None;
+                                        }))
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("plex_token_connect")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_text)
+                                        .bg(theme.switcher_active)
+                                        .on_click(cx.listener(move |this, _, _, cx| {
+                                            let token =
+                                                this.plex_token_input.read(cx).value.clone();
+                                            let nav_path = if token.is_empty() {
+                                                sp.clone()
+                                            } else {
+                                                format!(
+                                                    "{}%3FX-Plex-Token%3D{}",
+                                                    sp, token
+                                                )
+                                            };
+                                            cx.global_mut::<FilesBrowseState>().navigate(
+                                                FilesMode::PlexBrowse,
+                                                Some(nav_path),
+                                            );
+                                        }))
+                                        .child("Connect"),
+                                ),
+                        )
+                        .into_any_element()
+                }
                 _ if loading => render_loading(theme).into_any_element(),
                 _ => render_entries(entries, current_dir, mode, theme).into_any_element(),
             })
@@ -343,6 +440,41 @@ fn render_root(theme: Theme) -> AnyElement {
                         .child("UPnP Devices"),
                 ),
         )
+        .child(
+            div()
+                .id("root_plex")
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_3()
+                .px_4()
+                .py_2p5()
+                .cursor_pointer()
+                .hover(|t| t.bg(theme.library_track_bg_hover))
+                .on_click(|_, _, cx: &mut App| {
+                    cx.global_mut::<FilesBrowseState>()
+                        .navigate(FilesMode::PlexServers, Some("plex://".to_string()));
+                })
+                .child(
+                    div()
+                        .w(px(22.0))
+                        .h(px(22.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .items_center()
+                        .text_color(theme.library_text)
+                        .child(Icon::new(Icons::Plex).size_5()),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_sm()
+                        .truncate()
+                        .text_color(theme.library_text)
+                        .child("Plex"),
+                ),
+        )
         .into_any_element()
 }
 
@@ -352,7 +484,9 @@ fn render_entries(
     mode: FilesMode,
     theme: Theme,
 ) -> AnyElement {
-    let is_device_list = mode == FilesMode::UpnpDevices;
+    let is_device_list = matches!(mode, FilesMode::UpnpDevices | FilesMode::PlexServers);
+    let mode_for_icon = mode.clone();
+    let mode_for_nav = mode.clone();
     uniform_list("files_list", entries.len(), move |range, _, _cx| {
         range
             .map(|idx| {
@@ -369,11 +503,13 @@ fn render_entries(
                 let cur_dir_opts = current_dir.clone();
                 let is_dir = entry.is_dir;
                 let is_upnp = entry.path.starts_with("upnp://");
+                let is_plex = entry.path.starts_with("plex://");
+                let mode_nav = mode_for_nav.clone();
 
-                let dir_icon = if is_device_list {
-                    Icons::Device
-                } else {
-                    Icons::Directory
+                let dir_icon = match mode_for_icon {
+                    FilesMode::UpnpDevices => Icons::Device,
+                    FilesMode::PlexServers => Icons::Plex,
+                    _ => Icons::Directory,
                 };
 
                 div()
@@ -457,13 +593,21 @@ fn render_entries(
                             .text_color(theme.library_text)
                             .when(is_dir, |this| {
                                 this.cursor_pointer().on_click(move |_, _, cx: &mut App| {
-                                    let new_mode = if is_upnp {
-                                        FilesMode::UpnpBrowse
+                                    if mode_nav == FilesMode::PlexServers {
+                                        // Show token prompt before browsing the server.
+                                        cx.global_mut::<FilesBrowseState>()
+                                            .pending_plex_server = Some(path_nav.clone());
                                     } else {
-                                        FilesMode::Local
-                                    };
-                                    cx.global_mut::<FilesBrowseState>()
-                                        .navigate(new_mode, Some(path_nav.clone()));
+                                        let new_mode = if is_upnp {
+                                            FilesMode::UpnpBrowse
+                                        } else if is_plex {
+                                            FilesMode::PlexBrowse
+                                        } else {
+                                            FilesMode::Local
+                                        };
+                                        cx.global_mut::<FilesBrowseState>()
+                                            .navigate(new_mode, Some(path_nav.clone()));
+                                    }
                                 })
                             })
                             .child(entry.name.clone()),

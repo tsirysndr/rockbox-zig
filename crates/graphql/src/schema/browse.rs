@@ -3,6 +3,11 @@ use std::{env, fs};
 use async_graphql::*;
 
 use crate::{schema::objects::entry::Entry, AUDIO_EXTENSIONS};
+use rockbox_plex::{
+    browse_plex, discover_plex_servers, list_sections as list_plex_sections,
+    parse_base_url as plex_parse_base_url, percent_decode as plex_percent_decode,
+    percent_encode as plex_percent_encode,
+};
 use rockbox_upnp::control_point::{
     browse_content_directory, discover_media_servers, percent_decode, percent_encode,
 };
@@ -20,6 +25,9 @@ impl BrowseQuery {
         if let Some(ref p) = path {
             if p.starts_with("upnp://") {
                 return handle_upnp(p).await;
+            }
+            if p.starts_with("plex://") {
+                return handle_plex(p).await;
             }
         }
 
@@ -71,6 +79,78 @@ impl BrowseQuery {
         }
 
         Ok(entries)
+    }
+}
+
+async fn handle_plex(path: &str) -> Result<Vec<Entry>, Error> {
+    let rest = path.trim_start_matches("plex://");
+
+    // Discovery: rest is empty or carries a token via "?X-Plex-Token=..."
+    if rest.is_empty() || rest.starts_with('?') {
+        let token: Option<String> = rest
+            .strip_prefix("?X-Plex-Token=")
+            .map(|t| t.split('&').next().unwrap_or(t))
+            .filter(|t| !t.is_empty())
+            .map(|t| t.to_string());
+        let servers = discover_plex_servers().await;
+        return Ok(servers
+            .into_iter()
+            .map(|s| {
+                let base_with_token = match &token {
+                    Some(t) => format!("{}?X-Plex-Token={}", s.base_url, t),
+                    None => s.base_url.clone(),
+                };
+                Entry {
+                    name: format!("plex://{}", plex_percent_encode(&base_with_token)),
+                    attr: 0x10,
+                    display_name: Some(s.name),
+                    ..Default::default()
+                }
+            })
+            .collect());
+    }
+
+    let (base_encoded, api_path_encoded) = match rest.find('/') {
+        None => (rest, None),
+        Some(i) => (&rest[..i], Some(&rest[i + 1..])),
+    };
+    let (base_url, token) = plex_parse_base_url(&plex_percent_decode(base_encoded));
+
+    match api_path_encoded {
+        None => {
+            let sections = list_plex_sections(&base_url, token.as_deref()).await;
+            Ok(sections
+                .into_iter()
+                .map(|e| Entry {
+                    name: format!("plex://{}/{}", base_encoded, plex_percent_encode(&e.key)),
+                    attr: 0x10,
+                    display_name: Some(e.title),
+                    ..Default::default()
+                })
+                .collect())
+        }
+        Some(encoded) => {
+            let api_path = plex_percent_decode(encoded);
+            let content = browse_plex(&base_url, token.as_deref(), &api_path).await;
+            Ok(content
+                .into_iter()
+                .map(|e| {
+                    let name = if e.is_container {
+                        format!("plex://{}/{}", base_encoded, plex_percent_encode(&e.key))
+                    } else {
+                        e.stream_url.unwrap_or_else(|| {
+                            format!("plex://{}/{}", base_encoded, plex_percent_encode(&e.key))
+                        })
+                    };
+                    Entry {
+                        name,
+                        attr: if e.is_container { 0x10 } else { 0 },
+                        display_name: Some(e.title),
+                        ..Default::default()
+                    }
+                })
+                .collect())
+        }
     }
 }
 
