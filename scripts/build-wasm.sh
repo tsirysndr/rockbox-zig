@@ -196,6 +196,13 @@ EXPORTED_FUNCTIONS='["_malloc","_free",
     "_rb_clear_queue","_rb_shuffle_queue","_rb_jump_to_queue_position",
     "_rb_adjust_volume","_rb_sound_current",
     "_rb_status_json","_rb_current_track_json","_rb_playlist_json",
+    "_rb_settings_json",
+    "_rb_set_eq_enabled","_rb_set_eq_precut","_rb_set_eq_band",
+    "_rb_set_crossfade","_rb_set_replaygain","_rb_save_settings",
+    "_rb_set_balance","_rb_set_channel_mode","_rb_set_stereo_width",
+    "_rb_set_crossfeed","_rb_set_surround",
+    "_rb_set_bass","_rb_set_treble",
+    "_rb_set_dithering","_rb_set_afr","_rb_set_pbe","_rb_set_timestretch",
     "_rb_pcm_ring_ptr","_rb_pcm_ring_frames",
     "_rb_pcm_write_idx_ptr","_rb_pcm_read_idx_ptr","_rb_pcm_sample_rate_ptr"]'
 # Flatten to a single line (no whitespace inside the JSON array).
@@ -213,7 +220,7 @@ emcc \
     -sMODULARIZE=1 \
     -sEXPORT_NAME=RockboxModule \
     -sNO_EXIT_RUNTIME=1 \
-    "-sEXPORTED_RUNTIME_METHODS=[\"UTF8ToString\",\"lengthBytesUTF8\",\"stringToUTF8\",\"HEAP8\",\"HEAPU8\"]" \
+    "-sEXPORTED_RUNTIME_METHODS=[\"UTF8ToString\",\"lengthBytesUTF8\",\"stringToUTF8\",\"HEAP8\",\"HEAPU8\",\"FS\"]" \
     "-sEXPORTED_FUNCTIONS=$EXPORTED_FUNCTIONS" \
     -sENVIRONMENT=web,worker \
     -Wl,--allow-multiple-definition \
@@ -229,6 +236,9 @@ emcc \
     "${CODEC_ARCHIVES[@]}" \
     -Wl,--no-whole-archive \
     "${CODEC_HELPER_LIBS[@]}"
+# Note: -lidbfs.js is intentionally omitted — it injects C-level FS init code into
+# every pthread worker at startup, which crashes in Rockbox's thread bootstrap.
+# Persistence is handled entirely in JS via native indexedDB + MEMFS file I/O.
 
 echo ""
 echo "✔ Build complete:"

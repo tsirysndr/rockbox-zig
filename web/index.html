@@ -134,16 +134,16 @@
     .setting-row label { min-width: 130px; color: #aaa; }
     .setting-row input[type=range] { flex: 1; }
     .setting-row span.val { min-width: 3.5rem; text-align: right; color: #ccc; }
-    .eq-bands { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
-    .eq-band { display: flex; flex-direction: column; align-items: center; gap: .25rem; font-size: .7rem; color: #888; }
-    .eq-band input[type=range] { writing-mode: vertical-lr; direction: rtl; width: 24px; height: 80px; cursor: pointer; }
-    .eq-band .eq-val { font-size: .72rem; color: #ccc; min-width: 3ch; text-align: center; }
-    .persist-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-    #restore-banner {
-      background: #14532d; border: 1px solid #16a34a; color: #86efac;
-      border-radius: 8px; padding: .6rem 1rem; font-size: .85rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    .eq-bands { display: flex; gap: .2rem; }
+    .eq-band { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .62rem; color: #888; flex: 1; min-width: 0; }
+    .eq-band span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+    .eq-band input[type=range] { writing-mode: vertical-lr; direction: rtl; width: 18px; height: 120px; cursor: pointer; }
+    .eq-band .eq-val { font-size: .62rem; color: #ccc; min-width: 2.5ch; text-align: center; }
+    .setting-row select {
+      background: #111; border: 1px solid #333; color: #e8e8e8;
+      border-radius: 6px; padding: .3rem .5rem; font-size: .85rem; flex: 1;
     }
+    .persist-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -194,15 +194,6 @@
 
 </div>
 
-<!-- Restore banner (shown when a saved playlist is found) -->
-<div id="restore-banner" style="display:none; width:100%; max-width:640px;">
-  <span id="restore-msg"></span>
-  <div style="display:flex;gap:.5rem;">
-    <button id="btn-restore-yes" class="primary">Resume</button>
-    <button id="btn-restore-no">Dismiss</button>
-  </div>
-</div>
-
 <!-- Settings panel -->
 <div id="settings">
   <h2>Settings</h2>
@@ -210,7 +201,7 @@
   <!-- Persist -->
   <div class="persist-row">
     <button id="btn-save-state" disabled>💾 Save state</button>
-    <span style="font-size:.75rem;color:#555;">Saves queue + settings to localStorage</span>
+    <span style="font-size:.75rem;color:#555;">Saves session to IndexedDB (auto-saved on page close)</span>
   </div>
 
   <!-- Equalizer -->
@@ -235,7 +226,7 @@
     <h3>Crossfade</h3>
     <div class="setting-row">
       <label for="cf-mode">Mode</label>
-      <select id="cf-mode" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+      <select id="cf-mode" disabled>
         <option value="0" selected>Off</option>
         <option value="1">Auto-skip (track end)</option>
         <option value="2">Manual skip (⏭/⏮)</option>
@@ -266,7 +257,7 @@
     </div>
     <div class="setting-row">
       <label for="cf-mixmode">Fade-out type</label>
-      <select id="cf-mixmode" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+      <select id="cf-mixmode" disabled>
         <option value="0" selected>Crossfade</option>
         <option value="1">Mix</option>
       </select>
@@ -278,7 +269,7 @@
     <h3>Replay Gain</h3>
     <div class="setting-row">
       <label for="rg-type">Mode</label>
-      <select id="rg-type" disabled style="background:#111;border:1px solid #333;color:#e8e8e8;border-radius:6px;padding:.3rem .5rem;font-size:.85rem;">
+      <select id="rg-type" disabled>
         <option value="0">Track</option>
         <option value="1">Album</option>
         <option value="2">Shuffle-aware</option>
@@ -293,6 +284,159 @@
     <div class="setting-row">
       <label for="rg-noclip">Prevent clipping</label>
       <input id="rg-noclip" type="checkbox" disabled>
+    </div>
+  </div>
+
+  <!-- Tone controls -->
+  <div class="settings-section">
+    <h3>Tone controls</h3>
+    <div class="setting-row">
+      <label for="bass">Bass</label>
+      <input id="bass" type="range" min="-24" max="24" value="0" step="1" disabled>
+      <span id="bass-val" class="val">0 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="treble">Treble</label>
+      <input id="treble" type="range" min="-24" max="24" value="0" step="1" disabled>
+      <span id="treble-val" class="val">0 dB</span>
+    </div>
+  </div>
+
+  <!-- Stereo -->
+  <div class="settings-section">
+    <h3>Stereo</h3>
+    <div class="setting-row">
+      <label for="balance">Balance</label>
+      <input id="balance" type="range" min="-100" max="100" value="0" step="1" disabled>
+      <span id="balance-val" class="val">0</span>
+    </div>
+    <div class="setting-row">
+      <label for="channel-mode">Channel mode</label>
+      <select id="channel-mode" disabled>
+        <option value="0" selected>Stereo</option>
+        <option value="1">Mono</option>
+        <option value="2">Custom width</option>
+        <option value="3">Mono (left)</option>
+        <option value="4">Mono (right)</option>
+        <option value="5">Karaoke</option>
+        <option value="6">Swap L/R</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="stereo-width">Stereo width</label>
+      <input id="stereo-width" type="range" min="0" max="250" value="100" step="5" disabled>
+      <span id="stereo-width-val" class="val">100%</span>
+    </div>
+  </div>
+
+  <!-- Crossfeed (headphone DSP) -->
+  <div class="settings-section">
+    <h3>Crossfeed (headphone)</h3>
+    <div class="setting-row">
+      <label for="xfd-type">Type</label>
+      <select id="xfd-type" disabled>
+        <option value="0" selected>Off</option>
+        <option value="1">Meier</option>
+        <option value="2">Custom</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="xfd-direct">Direct gain</label>
+      <input id="xfd-direct" type="range" min="-600" max="0" value="-115" step="5" disabled>
+      <span id="xfd-direct-val" class="val">-11.5 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="xfd-cross">Cross gain</label>
+      <input id="xfd-cross" type="range" min="-1200" max="-300" value="-320" step="10" disabled>
+      <span id="xfd-cross-val" class="val">-32.0 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="xfd-hf-att">HF attenuation</label>
+      <input id="xfd-hf-att" type="range" min="-2400" max="-600" value="-160" step="10" disabled>
+      <span id="xfd-hf-att-val" class="val">-16.0 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="xfd-hf-cut">HF cutoff</label>
+      <input id="xfd-hf-cut" type="range" min="500" max="2000" value="700" step="50" disabled>
+      <span id="xfd-hf-cut-val" class="val">700 Hz</span>
+    </div>
+  </div>
+
+  <!-- Surround (Haas) -->
+  <div class="settings-section">
+    <h3>Surround (Haas)</h3>
+    <div class="setting-row">
+      <label for="surr-enabled">Delay</label>
+      <select id="surr-enabled" disabled>
+        <option value="0" selected>Off</option>
+        <option value="5">5 ms</option>
+        <option value="8">8 ms</option>
+        <option value="10">10 ms</option>
+        <option value="15">15 ms</option>
+        <option value="30">30 ms</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="surr-balance">Balance</label>
+      <input id="surr-balance" type="range" min="0" max="99" value="50" step="1" disabled>
+      <span id="surr-balance-val" class="val">50%</span>
+    </div>
+    <div class="setting-row">
+      <label for="surr-fx1">LP cutoff</label>
+      <input id="surr-fx1" type="range" min="600" max="8000" value="1200" step="100" disabled>
+      <span id="surr-fx1-val" class="val">1200 Hz</span>
+    </div>
+    <div class="setting-row">
+      <label for="surr-fx2">HP cutoff</label>
+      <input id="surr-fx2" type="range" min="40" max="400" value="100" step="10" disabled>
+      <span id="surr-fx2-val" class="val">100 Hz</span>
+    </div>
+    <div class="setting-row">
+      <label for="surr-mix">Mix</label>
+      <input id="surr-mix" type="range" min="0" max="100" value="100" step="1" disabled>
+      <span id="surr-mix-val" class="val">100%</span>
+    </div>
+    <div class="setting-row">
+      <label for="surr-method2">Method 2</label>
+      <input id="surr-method2" type="checkbox" disabled>
+    </div>
+  </div>
+
+  <!-- DSP extras -->
+  <div class="settings-section">
+    <h3>DSP extras</h3>
+    <div class="setting-row">
+      <label for="dithering">Dithering</label>
+      <input id="dithering" type="checkbox" disabled>
+    </div>
+    <div class="setting-row">
+      <label for="afr">AFR mode</label>
+      <select id="afr" disabled>
+        <option value="0" selected>Off</option>
+        <option value="1">Mode 1</option>
+        <option value="2">Mode 2</option>
+        <option value="3">Mode 3</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="pbe">PBE strength</label>
+      <select id="pbe" disabled>
+        <option value="0" selected>Off</option>
+        <option value="1">Low</option>
+        <option value="2">Medium</option>
+        <option value="3">High</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label for="pbe-precut">PBE pre-cut</label>
+      <input id="pbe-precut" type="range" min="0" max="240" value="0" step="10" disabled>
+      <span id="pbe-precut-val" class="val">0.0 dB</span>
+    </div>
+    <div class="setting-row">
+      <label for="timestretch">Time-stretch</label>
+      <input id="timestretch" type="range" min="0" max="250" value="0" step="5" disabled
+             title="0 = disabled; 35–250 = speed % (100 = normal)">
+      <span id="timestretch-val" class="val">off</span>
     </div>
   </div>
 
@@ -372,38 +516,27 @@ setEnabled(
   'eq-enabled', 'eq-precut',
   'cf-mode', 'cf-fi-dur', 'cf-fo-dur', 'cf-fi-delay', 'cf-fo-delay', 'cf-mixmode',
   'rg-type', 'rg-preamp', 'rg-noclip',
+  'bass', 'treble',
+  'balance', 'channel-mode', 'stereo-width',
+  'xfd-type', 'xfd-direct', 'xfd-cross', 'xfd-hf-att', 'xfd-hf-cut',
+  'surr-enabled', 'surr-balance', 'surr-fx1', 'surr-fx2', 'surr-mix', 'surr-method2',
+  'dithering', 'afr', 'pbe', 'pbe-precut', 'timestretch',
 );
 EQ_BAND_LABELS.forEach((_, i) => setEnabled(`eq-band-${i}`));
 
 // ── Restore persisted state ───────────────────────────────────────────────────
 
-const resumeInfo = player.restoreState();
-if (resumeInfo && resumeInfo.resumeElapsed > 0) {
-  const mins = Math.floor(resumeInfo.resumeElapsed / 60000);
-  const secs = Math.floor((resumeInfo.resumeElapsed % 60000) / 1000);
-  $('restore-msg').textContent =
-    `Saved queue restored. Resume from ${mins}:${secs.toString().padStart(2,'0')}?`;
-  $('restore-banner').style.display = 'flex';
-  $('btn-restore-yes').addEventListener('click', async () => {
-    await player.resumeAudio();
-    player.jumpTo(resumeInfo.resumeIndex);
-    setTimeout(() => player.seek(resumeInfo.resumeElapsed), 400);
-    player.play();
-    $('restore-banner').style.display = 'none';
-    log('▶ Resumed from saved position.');
-  });
-  $('btn-restore-no').addEventListener('click', () => {
-    $('restore-banner').style.display = 'none';
-  });
-} else if (resumeInfo) {
-  // Queue restored but no meaningful elapsed position — just show log.
-  log('Playlist restored from saved state.');
-}
+// Re-apply DSP/EQ settings from localStorage mirror into the firmware.
+// Playlist + resume position are restored natively by the firmware from the
+// files pre-loaded into MEMFS by _initPersistence() before daemon boot.
+player.restoreState();
 
 // ── Load current settings into UI ────────────────────────────────────────────
 
 function syncSettingsUi() {
-  const s = player.getSettings();
+  // Use the local JS mirror (not firmware) so we show the restored/saved
+  // values immediately, before the wasm_cmd thread has processed the queue.
+  const s = player.getLocalSettings();
 
   // EQ
   $('eq-enabled').checked = !!s.eq?.enabled;
@@ -435,6 +568,59 @@ function syncSettingsUi() {
   $('rg-preamp').value = rg.preamp ?? 0;
   $('rg-preamp-val').textContent = ((rg.preamp ?? 0) / 10).toFixed(1) + ' dB';
   $('rg-noclip').checked = !!rg.noclip;
+
+  // Tone controls
+  const bass = s.bass ?? 0;
+  $('bass').value   = bass;
+  $('bass-val').textContent = (bass >= 0 ? '+' : '') + bass + ' dB';
+  const treble = s.treble ?? 0;
+  $('treble').value = treble;
+  $('treble-val').textContent = (treble >= 0 ? '+' : '') + treble + ' dB';
+
+  // Balance / channel / width
+  const bal = s.balance ?? 0;
+  $('balance').value    = bal;
+  $('balance-val').textContent = bal > 0 ? `+${bal}%R` : bal < 0 ? `${Math.abs(bal)}%L` : 'C';
+  $('channel-mode').value  = s.channel_mode ?? 0;
+  const sw = s.stereo_width ?? 100;
+  $('stereo-width').value  = sw;
+  $('stereo-width-val').textContent = sw + '%';
+
+  // Crossfeed
+  const xfd = s.crossfeed ?? {};
+  $('xfd-type').value      = xfd.type ?? 0;
+  $('xfd-direct').value    = xfd.direct_gain    ?? -115;
+  $('xfd-cross').value     = xfd.cross_gain     ?? -320;
+  $('xfd-hf-att').value    = xfd.hf_attenuation ?? -160;
+  $('xfd-hf-cut').value    = xfd.hf_cutoff      ?? 700;
+  $('xfd-direct-val').textContent  = ((xfd.direct_gain    ?? -115) / 10).toFixed(1) + ' dB';
+  $('xfd-cross-val').textContent   = ((xfd.cross_gain     ?? -320) / 10).toFixed(1) + ' dB';
+  $('xfd-hf-att-val').textContent  = ((xfd.hf_attenuation ?? -160) / 10).toFixed(1) + ' dB';
+  $('xfd-hf-cut-val').textContent  = (xfd.hf_cutoff ?? 700) + ' Hz';
+
+  // Surround
+  const surr = s.surround ?? {};
+  $('surr-enabled').value  = surr.enabled ?? 0;
+  $('surr-balance').value  = surr.balance ?? 50;
+  $('surr-fx1').value      = surr.fx1 ?? 1200;
+  $('surr-fx2').value      = surr.fx2 ?? 100;
+  $('surr-mix').value      = surr.mix ?? 100;
+  $('surr-method2').checked = !!(surr.method2);
+  $('surr-balance-val').textContent = (surr.balance ?? 50) + '%';
+  $('surr-fx1-val').textContent     = (surr.fx1 ?? 1200) + ' Hz';
+  $('surr-fx2-val').textContent     = (surr.fx2 ?? 100) + ' Hz';
+  $('surr-mix-val').textContent     = (surr.mix ?? 100) + '%';
+
+  // DSP extras
+  $('dithering').checked = !!(s.dithering);
+  $('afr').value      = s.afr ?? 0;
+  $('pbe').value      = s.pbe ?? 0;
+  const pbePre = s.pbe_precut ?? 0;
+  $('pbe-precut').value = pbePre;
+  $('pbe-precut-val').textContent = (pbePre / 10).toFixed(1) + ' dB';
+  const ts = s.timestretch ?? 0;
+  $('timestretch').value = ts;
+  $('timestretch-val').textContent = ts > 0 ? ts + '%' : 'off';
 }
 syncSettingsUi();
 
@@ -492,6 +678,8 @@ EQ_BAND_LABELS.forEach((_, i) => {
     // q=70 is Rockbox's default Q factor (7.0 × 10)
     const defaultCutoffs = [60,200,500,1000,2000,4000,7000,10000,14000,20000];
     player.setEqBand(i, defaultCutoffs[i], 70, gain);
+    // Reflect auto-enable in the checkbox when setEqBand turns on EQ.
+    if (gain !== 0) $('eq-enabled').checked = true;
   });
 });
 
@@ -545,16 +733,133 @@ $('rg-preamp').addEventListener('input', (e) => {
   applyReplaygain();
 });
 
-// ── Save state ────────────────────────────────────────────────────────────────
+// ── Tone control bindings ─────────────────────────────────────────────────────
 
-// Settings auto-save on every set*() call — btn-save-state only needs to
-// capture the current playlist.
-$('btn-save-state').addEventListener('click', () => {
-  player.persistState();
-  log('Playlist saved.');
+$('bass').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('bass-val').textContent = (v >= 0 ? '+' : '') + v + ' dB';
+  player.setBass(v);
 });
 
-// Auto-persist playlist when user navigates away.
+$('treble').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('treble-val').textContent = (v >= 0 ? '+' : '') + v + ' dB';
+  player.setTreble(v);
+});
+
+// ── Stereo bindings ───────────────────────────────────────────────────────────
+
+$('balance').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('balance-val').textContent = v > 0 ? `+${v}%R` : v < 0 ? `${Math.abs(v)}%L` : 'C';
+  player.setBalance(v);
+});
+
+$('channel-mode').addEventListener('change', (e) => {
+  player.setChannelMode(parseInt(e.target.value, 10));
+});
+
+$('stereo-width').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('stereo-width-val').textContent = v + '%';
+  player.setStereoWidth(v);
+});
+
+// ── Crossfeed bindings ────────────────────────────────────────────────────────
+
+function applyCrossfeed2() {
+  player.setCrossfeed(parseInt($('xfd-type').value, 10), {
+    directGain:    parseInt($('xfd-direct').value, 10),
+    crossGain:     parseInt($('xfd-cross').value, 10),
+    hfAttenuation: parseInt($('xfd-hf-att').value, 10),
+    hfCutoff:      parseInt($('xfd-hf-cut').value, 10),
+  });
+}
+
+$('xfd-type').addEventListener('change', applyCrossfeed2);
+
+$('xfd-direct').addEventListener('input', (e) => {
+  $('xfd-direct-val').textContent = (parseInt(e.target.value, 10) / 10).toFixed(1) + ' dB';
+  applyCrossfeed2();
+});
+$('xfd-cross').addEventListener('input', (e) => {
+  $('xfd-cross-val').textContent = (parseInt(e.target.value, 10) / 10).toFixed(1) + ' dB';
+  applyCrossfeed2();
+});
+$('xfd-hf-att').addEventListener('input', (e) => {
+  $('xfd-hf-att-val').textContent = (parseInt(e.target.value, 10) / 10).toFixed(1) + ' dB';
+  applyCrossfeed2();
+});
+$('xfd-hf-cut').addEventListener('input', (e) => {
+  $('xfd-hf-cut-val').textContent = e.target.value + ' Hz';
+  applyCrossfeed2();
+});
+
+// ── Surround bindings ─────────────────────────────────────────────────────────
+
+function applySurround() {
+  player.setSurround({
+    enabled: parseInt($('surr-enabled').value, 10),
+    balance: parseInt($('surr-balance').value, 10),
+    fx1:     parseInt($('surr-fx1').value, 10),
+    fx2:     parseInt($('surr-fx2').value, 10),
+    mix:     parseInt($('surr-mix').value, 10),
+    method2: $('surr-method2').checked ? 1 : 0,
+  });
+}
+
+$('surr-enabled').addEventListener('change', applySurround);
+$('surr-method2').addEventListener('change', applySurround);
+
+$('surr-balance').addEventListener('input', (e) => {
+  $('surr-balance-val').textContent = e.target.value + '%';
+  applySurround();
+});
+$('surr-fx1').addEventListener('input', (e) => {
+  $('surr-fx1-val').textContent = e.target.value + ' Hz';
+  applySurround();
+});
+$('surr-fx2').addEventListener('input', (e) => {
+  $('surr-fx2-val').textContent = e.target.value + ' Hz';
+  applySurround();
+});
+$('surr-mix').addEventListener('input', (e) => {
+  $('surr-mix-val').textContent = e.target.value + '%';
+  applySurround();
+});
+
+// ── DSP extras bindings ───────────────────────────────────────────────────────
+
+$('dithering').addEventListener('change', (e) => player.setDithering(e.target.checked));
+$('afr').addEventListener('change', (e) => player.setAfr(parseInt(e.target.value, 10)));
+$('pbe').addEventListener('change', () => {
+  player.setPbe(
+    parseInt($('pbe').value, 10),
+    parseInt($('pbe-precut').value, 10),
+  );
+});
+$('pbe-precut').addEventListener('input', (e) => {
+  $('pbe-precut-val').textContent = (parseInt(e.target.value, 10) / 10).toFixed(1) + ' dB';
+  player.setPbe(
+    parseInt($('pbe').value, 10),
+    parseInt(e.target.value, 10),
+  );
+});
+$('timestretch').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  $('timestretch-val').textContent = v > 0 ? v + '%' : 'off';
+  player.setTimestretch(v);
+});
+
+// ── Save state ────────────────────────────────────────────────────────────────
+
+// Flush firmware state + settings to MEMFS and push to IndexedDB.
+$('btn-save-state').addEventListener('click', () => {
+  player.persistState();
+  log('State saved to IndexedDB.');
+});
+
+// Auto-persist when user navigates away.
 window.addEventListener('beforeunload', () => player.persistState());
 
 // ── Status polling ────────────────────────────────────────────────────────────

@@ -47,6 +47,18 @@ static int32_t  s_write_idx = 0;         /* written by wa_thread             */
 static int32_t  s_read_idx  = 0;         /* written by AudioWorklet (JS)     */
 static int32_t  s_sample_rate_hz = 44100;
 
+/* Balance: -100 (full left) … 0 (centre) … +100 (full right).
+ * Applied in ring_push() so changes take effect on the next ring write,
+ * bypassing the ~3 s pcmbuf pre-decode delay. */
+static int32_t  s_balance = 0;
+
+void rb_pcm_set_balance(int balance)
+{
+    if (balance < -100) balance = -100;
+    if (balance >  100) balance =  100;
+    __atomic_store_n(&s_balance, balance, __ATOMIC_RELEASE);
+}
+
 /* These are called from rockbox.js after the module loads.  They return WASM
  * linear-memory byte offsets so the AudioWorklet can build typed-array views
  * into Module.HEAP8.buffer (a SharedArrayBuffer in the pthread build). */
@@ -58,9 +70,16 @@ int32_t *rb_pcm_sample_rate_ptr(void) { return &s_sample_rate_hz;   }
 
 /* Push n_frames stereo S16LE frames into the ring.
  * Blocks with 1ms nanosleep when the ring is full (AudioWorklet will catch up
- * before the sleep expires at normal playback rates). */
+ * before the sleep expires at normal playback rates).
+ * Balance (-100…+100) is applied here so changes take effect immediately
+ * without waiting for the Rockbox pcmbuf to drain (~3 s). */
 static void ring_push(const int16_t *src, int n_frames)
 {
+    /* Read balance once before the loop to avoid per-sample atomic loads. */
+    int32_t bal    = __atomic_load_n(&s_balance, __ATOMIC_ACQUIRE);
+    int32_t l_gain = (bal > 0) ? (100 - bal) : 100; /* 0..100 */
+    int32_t r_gain = (bal < 0) ? (100 + bal) : 100; /* 0..100 */
+
     for (int i = 0; i < n_frames; ) {
         int32_t wi     = __atomic_load_n(&s_write_idx, __ATOMIC_SEQ_CST);
         int32_t ri     = __atomic_load_n(&s_read_idx,  __ATOMIC_SEQ_CST);
@@ -71,8 +90,10 @@ static void ring_push(const int16_t *src, int n_frames)
             nanosleep(&t, NULL);
             continue;
         }
-        s_ring[wi * 2]     = src[i * 2];
-        s_ring[wi * 2 + 1] = src[i * 2 + 1];
+        /* Integer balance: multiply by gain (0..100) and divide by 100.
+         * When l_gain == r_gain == 100 the result is identical to src. */
+        s_ring[wi * 2]     = (int16_t)((int32_t)src[i * 2]     * l_gain / 100);
+        s_ring[wi * 2 + 1] = (int16_t)((int32_t)src[i * 2 + 1] * r_gain / 100);
         __atomic_store_n(&s_write_idx, nxt_wi, __ATOMIC_SEQ_CST);
         i++;
     }

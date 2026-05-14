@@ -14,7 +14,7 @@ import fs   from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PORT    = parseInt(process.env.PORT ?? '8080', 10);
+const PORT    = parseInt(process.env.PORT ?? '8090', 10);
 const ROOTDIR = path.resolve(fileURLToPath(import.meta.url), '../../web');
 
 const MIME = {
@@ -47,6 +47,7 @@ const server = http.createServer((req, res) => {
       'Content-Type':                MIME[ext] ?? 'application/octet-stream',
       'Cross-Origin-Opener-Policy':  'same-origin',
       'Cross-Origin-Embedder-Policy':'require-corp',
+      'Cache-Control':               'no-store',
     });
     res.end(data);
   });

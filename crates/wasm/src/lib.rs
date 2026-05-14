@@ -41,7 +41,6 @@ extern "C" {
     fn rb_wasm_playlist_json() -> *mut c_char;
     fn rb_wasm_audio_status() -> c_int;
     fn rb_wasm_settings_json() -> *mut c_char;
-    fn rb_wasm_playlist_state_json() -> *mut c_char;
 }
 
 // ── Command IDs — must match WASM_CMD_* in wasm-bridge.c ─────────────────────
@@ -63,6 +62,17 @@ const WASM_CMD_SET_EQ_BAND: c_long = 13;
 const WASM_CMD_SET_CROSSFADE: c_long = 14;
 const WASM_CMD_SET_REPLAYGAIN: c_long = 15;
 const WASM_CMD_SAVE_SETTINGS: c_long = 16;
+const WASM_CMD_SET_BALANCE: c_long = 17;
+const WASM_CMD_SET_CHANNEL_MODE: c_long = 18;
+const WASM_CMD_SET_STEREO_WIDTH: c_long = 19;
+const WASM_CMD_SET_CROSSFEED: c_long = 20;
+const WASM_CMD_SET_SURROUND: c_long = 21;
+const WASM_CMD_SET_BASS: c_long = 22;
+const WASM_CMD_SET_TREBLE: c_long = 23;
+const WASM_CMD_SET_DITHERING: c_long = 24;
+const WASM_CMD_SET_AFR: c_long = 25;
+const WASM_CMD_SET_PBE: c_long = 26;
+const WASM_CMD_SET_TIMESTRETCH: c_long = 27;
 
 // ── Payload structs for complex settings commands ─────────────────────────────
 // Layouts must match the C typedefs in wasm-bridge.c.
@@ -90,6 +100,31 @@ struct WasmReplaygainCmd {
     noclip: c_int,
     type_: c_int,
     preamp: c_int,
+}
+
+#[repr(C)]
+struct WasmPbeCmd {
+    pbe: c_int,
+    precut: c_int,
+}
+
+#[repr(C)]
+struct WasmCrossfeedDspCmd {
+    type_: c_int,
+    direct_gain: c_int,
+    cross_gain: c_int,
+    hf_attenuation: c_int,
+    hf_cutoff: c_int,
+}
+
+#[repr(C)]
+struct WasmSurroundCmd {
+    enabled: c_int,
+    balance: c_int,
+    fx1: c_int,
+    fx2: c_int,
+    method2: c_int,
+    mix: c_int,
 }
 
 // ── Daemon state ──────────────────────────────────────────────────────────────
@@ -372,17 +407,6 @@ pub extern "C" fn rb_settings_json() -> *mut c_char {
     unsafe { rb_wasm_settings_json() }
 }
 
-/// Returns the full playlist state as JSON — every queued URL plus resume info.
-/// Shape: `{urls: [string], index: number, elapsed: number, amount: number}`.
-/// Use this to persist the queue across page reloads (store to localStorage /
-/// IndexedDB, then restore via `rb_enqueue_url` + `rb_jump_to_queue_position`
-/// + `rb_seek`).
-/// Caller must free with `rb_free_string`.
-#[no_mangle]
-pub extern "C" fn rb_playlist_state_json() -> *mut c_char {
-    unsafe { rb_wasm_playlist_state_json() }
-}
-
 /// Enable or disable the equalizer.  `enabled` = 0 (off) or 1 (on).
 /// Applies immediately and persists to the Rockbox config file.
 #[no_mangle]
@@ -455,6 +479,133 @@ pub extern "C" fn rb_set_replaygain(noclip: c_int, type_: c_int, preamp: c_int) 
     unsafe { rb_wasm_cmd_post(WASM_CMD_SET_REPLAYGAIN, Box::into_raw(cmd) as isize) };
     0
 }
+
+/// Set balance (-100 = full left, 0 = centre, +100 = full right).
+#[no_mangle]
+pub extern "C" fn rb_set_balance(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_BALANCE, value as isize) };
+    0
+}
+
+/// Set channel mode. Values: 0=stereo, 1=mono, 2=custom, 3=mono-L, 4=mono-R,
+/// 5=karaoke, 6=swap.
+#[no_mangle]
+pub extern "C" fn rb_set_channel_mode(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_CHANNEL_MODE, value as isize) };
+    0
+}
+
+/// Set stereo width (0–250, where 100 = normal stereo).
+#[no_mangle]
+pub extern "C" fn rb_set_stereo_width(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_STEREO_WIDTH, value as isize) };
+    0
+}
+
+/// Set crossfeed (headphone DSP) parameters.
+/// `type_`: 0=off, 1=Meier, 2=custom.
+/// `direct_gain`, `cross_gain`, `hf_attenuation`: in tenths of dB (e.g. -60 = -6.0 dB).
+/// `hf_cutoff`: in Hz (500–2000).
+#[no_mangle]
+pub extern "C" fn rb_set_crossfeed(
+    type_: c_int,
+    direct_gain: c_int,
+    cross_gain: c_int,
+    hf_attenuation: c_int,
+    hf_cutoff: c_int,
+) -> c_int {
+    let cmd = Box::new(WasmCrossfeedDspCmd {
+        type_,
+        direct_gain,
+        cross_gain,
+        hf_attenuation,
+        hf_cutoff,
+    });
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_CROSSFEED, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Set surround (Haas effect) parameters.
+/// `enabled`: 0=off, or delay in ms (5, 8, 10, 15, 30).
+/// `balance`: 0–99 %.
+/// `fx1`: low-pass cutoff Hz (600–8000).
+/// `fx2`: high-pass cutoff Hz (40–400).
+/// `method2`: 0=method1, 1=method2.
+/// `mix`: 0–100 %.
+#[no_mangle]
+pub extern "C" fn rb_set_surround(
+    enabled: c_int,
+    balance: c_int,
+    fx1: c_int,
+    fx2: c_int,
+    method2: c_int,
+    mix: c_int,
+) -> c_int {
+    let cmd = Box::new(WasmSurroundCmd {
+        enabled,
+        balance,
+        fx1,
+        fx2,
+        method2,
+        mix,
+    });
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_SURROUND, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Set bass tone control in whole dB (-24..+24).
+/// Applies immediately via the software tone-control DSP and persists.
+#[no_mangle]
+pub extern "C" fn rb_set_bass(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_BASS, value as isize) };
+    0
+}
+
+/// Set treble tone control in whole dB (-24..+24).
+#[no_mangle]
+pub extern "C" fn rb_set_treble(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_TREBLE, value as isize) };
+    0
+}
+
+/// Enable or disable dithered output.  `enabled` = 0 (off) or 1 (on).
+#[no_mangle]
+pub extern "C" fn rb_set_dithering(enabled: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_DITHERING, enabled as isize) };
+    0
+}
+
+/// Set Adaptive Frequency Response (AFR) mode.  `value` = 0 (off) or 1–3.
+#[no_mangle]
+pub extern "C" fn rb_set_afr(value: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_AFR, value as isize) };
+    0
+}
+
+/// Set Perceptual Bass Enhancement (PBE).
+/// `pbe` = 0 (off) or 1–3 (strength).
+/// `precut` = pre-cut in tenths of dB (0–240).
+#[no_mangle]
+pub extern "C" fn rb_set_pbe(pbe: c_int, precut: c_int) -> c_int {
+    let cmd = Box::new(WasmPbeCmd { pbe, precut });
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_PBE, Box::into_raw(cmd) as isize) };
+    0
+}
+
+/// Enable/disable time-stretch and set stretch percentage.
+/// `stretch_pct` = 0 to disable, or 35–250 (100 = normal speed).
+/// Internally the firmware uses `stretch_pct * 100` as the precision value.
+#[no_mangle]
+pub extern "C" fn rb_set_timestretch(stretch_pct: c_int) -> c_int {
+    let data = if stretch_pct <= 0 {
+        0isize
+    } else {
+        (stretch_pct as isize) * 100 // × PITCH_SPEED_PRECISION
+    };
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_TIMESTRETCH, data) };
+    0
+}
+
 
 /// Flush all current settings to the Rockbox config file (MEMFS).
 /// Call this explicitly if you want to ensure persistence without changing any

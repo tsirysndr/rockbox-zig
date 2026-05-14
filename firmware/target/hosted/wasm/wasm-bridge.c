@@ -26,12 +26,22 @@
 #include "kernel.h"
 #include "thread.h"
 #include "settings.h"
+#include "misc.h"
+#include "sound.h"
 #include "eq.h"
+#include "pcmbuf.h"
+#include "audio_thread.h"
+#include "channel_mode.h"
+#include "surround.h"
+#include "crossfeed.h"
+#include "tone_controls.h"
+#include "afr.h"
+#include "pbe.h"
+#include "tdspeed.h"
+#include "dsp_misc.h"
 
-/* Declared in pcm-webapi.c — atomically resets the ring-buffer write index to
- * the current read index so new DSP settings (EQ/replaygain) take effect in
- * <10 ms instead of waiting ~1.5 s for the ring to drain naturally. */
-extern void rb_pcm_flush(void);
+/* Declared here; defined in pcm-webapi.c. */
+extern void rb_pcm_set_balance(int balance);
 
 /* Escape a string for JSON: replace " → \" and \ → \\. */
 static void json_escape(char *dst, size_t dsz, const char *src)
@@ -66,12 +76,11 @@ static void json_escape(char *dst, size_t dsz, const char *src)
 
 #define TRACK_JSON_BUFSZ    1200
 #define PLAYLIST_JSON_BUFSZ   64
-#define SETTINGS_JSON_BUFSZ 1600
+#define SETTINGS_JSON_BUFSZ 3072
 
 static char            s_track_json[TRACK_JSON_BUFSZ]       = "{\"error\":\"not ready\"}";
 static char            s_playlist_json[PLAYLIST_JSON_BUFSZ]  = "{\"index\":0,\"amount\":0}";
 static char            s_settings_json[SETTINGS_JSON_BUFSZ]  = "{}";
-static char           *s_playlist_state_json                 = NULL; /* dynamic: URLs + resume info */
 static pthread_mutex_t s_info_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 /* Build settings JSON into buf (must be SETTINGS_JSON_BUFSZ bytes). */
@@ -104,43 +113,52 @@ static void build_settings_json(char *buf, size_t sz)
         global_settings.crossfade_fade_out_mixmode);
 #endif
 
-    snprintf(buf + n, sz - n,
-        ",\"replaygain\":{\"noclip\":%s,\"type\":%d,\"preamp\":%d}}",
+    n += snprintf(buf + n, sz - n,
+        ",\"replaygain\":{\"noclip\":%s,\"type\":%d,\"preamp\":%d}",
         global_settings.replaygain_settings.noclip ? "true" : "false",
         global_settings.replaygain_settings.type,
         global_settings.replaygain_settings.preamp);
+
+    n += snprintf(buf + n, sz - n,
+        ",\"balance\":%d,\"channel_mode\":%d,\"stereo_width\":%d",
+        global_settings.balance,
+        global_settings.channel_config,
+        global_settings.stereo_width);
+
+    n += snprintf(buf + n, sz - n,
+        ",\"crossfeed\":{\"type\":%d,\"direct_gain\":%d"
+        ",\"cross_gain\":%d,\"hf_attenuation\":%d,\"hf_cutoff\":%d}",
+        global_settings.crossfeed,
+        global_settings.crossfeed_direct_gain,
+        global_settings.crossfeed_cross_gain,
+        global_settings.crossfeed_hf_attenuation,
+        global_settings.crossfeed_hf_cutoff);
+
+    n += snprintf(buf + n, sz - n,
+        ",\"surround\":{\"enabled\":%d,\"balance\":%d"
+        ",\"fx1\":%d,\"fx2\":%d,\"method2\":%s,\"mix\":%d}",
+        global_settings.surround_enabled,
+        global_settings.surround_balance,
+        global_settings.surround_fx1,
+        global_settings.surround_fx2,
+        global_settings.surround_method2 ? "true" : "false",
+        global_settings.surround_mix);
+
+    n += snprintf(buf + n, sz - n,
+        ",\"bass\":%d,\"treble\":%d"
+        ",\"dithering\":%s,\"afr\":%d"
+        ",\"pbe\":%d,\"pbe_precut\":%d"
+        ",\"timestretch\":%s}",
+        global_settings.bass,
+        global_settings.treble,
+        global_settings.dithering_enabled ? "true" : "false",
+        global_settings.afr_enabled,
+        global_settings.pbe,
+        global_settings.pbe_precut,
+        global_settings.timestretch_enabled ? "true" : "false");
+    (void)n;
 }
 
-/* Build a JSON object containing every URL in the current playlist plus the
- * resume position.  Returns a malloc'd string; caller must free(). */
-static char *build_playlist_state_json(unsigned long elapsed)
-{
-    struct playlist_info *pl = playlist_get_current();
-    int amount = playlist_amount();
-    int display_idx = playlist_get_display_index();
-    int idx_0based  = (display_idx > 0) ? (display_idx - 1) : 0;
-
-    /* Generous upper bound: header + per-track (escaped URL ≤ 2*MAX_PATH) */
-    size_t per_track = (size_t)MAX_PATH * 2 + 8;
-    size_t total     = 96 + (size_t)amount * per_track + 8;
-    char  *buf       = malloc(total);
-    if (!buf) return NULL;
-
-    int n = snprintf(buf, total,
-        "{\"index\":%d,\"elapsed\":%lu,\"amount\":%d,\"urls\":[",
-        idx_0based, elapsed, amount);
-
-    for (int i = 0; i < amount && n < (int)total - 4; i++) {
-        struct playlist_track_info info;
-        if (playlist_get_track_info(pl, i, &info) < 0) continue;
-        char escaped[MAX_PATH * 2 + 4];
-        json_escape(escaped, sizeof(escaped), info.filename);
-        n += snprintf(buf + n, total - n,
-            "%s\"%s\"", i > 0 ? "," : "", escaped);
-    }
-    snprintf(buf + n, total - n, "]}");
-    return buf;
-}
 
 /* Called only from rb_wasm_cmd_thread — a proper Rockbox kernel thread that
  * may safely acquire id3_mutex via the cooperative scheduler. */
@@ -179,16 +197,11 @@ static void rb_wasm_refresh_cache(void)
     char settings_buf[SETTINGS_JSON_BUFSZ];
     build_settings_json(settings_buf, sizeof(settings_buf));
 
-    /* ── playlist state (full URLs + resume info; dynamic alloc) ── */
-    char *new_playlist_state = build_playlist_state_json(elapsed);
-
     /* ── atomic store ── */
     pthread_mutex_lock(&s_info_mtx);
     memcpy(s_track_json,    track_buf,    sizeof(track_buf));
     memcpy(s_playlist_json, playlist_buf, sizeof(playlist_buf));
     memcpy(s_settings_json, settings_buf, sizeof(settings_buf));
-    free(s_playlist_state_json);
-    s_playlist_state_json = new_playlist_state;
     pthread_mutex_unlock(&s_info_mtx);
 }
 
@@ -237,17 +250,9 @@ char *rb_wasm_settings_json(void)
 
 char *rb_wasm_playlist_state_json(void)
 {
-    static const char *fallback =
-        "{\"urls\":[],\"index\":0,\"elapsed\":0,\"amount\":0}";
-    if (pthread_mutex_trylock(&s_info_mtx) != 0) {
-        char *r = malloc(strlen(fallback) + 1);
-        if (r) strcpy(r, fallback);
-        return r;
-    }
-    const char *src = s_playlist_state_json ? s_playlist_state_json : fallback;
-    char *r = malloc(strlen(src) + 1);
-    if (r) strcpy(r, src);
-    pthread_mutex_unlock(&s_info_mtx);
+    static const char stub[] = "{\"urls\":[],\"index\":0,\"elapsed\":0,\"amount\":0}";
+    char *r = malloc(sizeof(stub));
+    if (r) memcpy(r, stub, sizeof(stub));
     return r;
 }
 
@@ -310,6 +315,17 @@ static volatile int rb_firmware_ready_flag = 0;
 #define WASM_CMD_SET_CROSSFADE   14L /* data = malloc'd wasm_crossfade_cmd_t*; thread frees */
 #define WASM_CMD_SET_REPLAYGAIN  15L /* data = malloc'd wasm_replaygain_cmd_t*; thread frees */
 #define WASM_CMD_SAVE_SETTINGS   16L /* calls settings_save() */
+#define WASM_CMD_SET_BALANCE     17L /* data = int -100..100 */
+#define WASM_CMD_SET_CHANNEL_MODE 18L /* data = int 0..6 */
+#define WASM_CMD_SET_STEREO_WIDTH 19L /* data = int 0..250 (percent) */
+#define WASM_CMD_SET_CROSSFEED   20L /* data = malloc'd wasm_crossfeed_dsp_cmd_t*; thread frees */
+#define WASM_CMD_SET_SURROUND    21L /* data = malloc'd wasm_surround_cmd_t*; thread frees */
+#define WASM_CMD_SET_BASS        22L /* data = int (whole dB) */
+#define WASM_CMD_SET_TREBLE      23L /* data = int (whole dB) */
+#define WASM_CMD_SET_DITHERING   24L /* data = 0 or 1 */
+#define WASM_CMD_SET_AFR         25L /* data = int (0=off, 1-3=mode) */
+#define WASM_CMD_SET_PBE         26L /* data = malloc'd wasm_pbe_cmd_t*; thread frees */
+#define WASM_CMD_SET_TIMESTRETCH 27L /* data = int (0=off, else stretch% * PITCH_SPEED_PRECISION) */
 
 /* Payload structs for complex settings commands. */
 typedef struct { int band; int cutoff; int q; int gain; } wasm_eq_band_cmd_t;
@@ -317,6 +333,13 @@ typedef struct {
     int mode; int fi_delay; int fo_delay; int fi_dur; int fo_dur; int mixmode;
 } wasm_crossfade_cmd_t;
 typedef struct { int noclip; int type; int preamp; } wasm_replaygain_cmd_t;
+typedef struct {
+    int type_; int direct_gain; int cross_gain; int hf_attenuation; int hf_cutoff;
+} wasm_crossfeed_dsp_cmd_t;
+typedef struct {
+    int enabled; int balance; int fx1; int fx2; int method2; int mix;
+} wasm_surround_cmd_t;
+typedef struct { int pbe; int precut; } wasm_pbe_cmd_t;
 
 static struct event_queue rb_wasm_cmd_q;
 static long               rb_wasm_cmd_stack[8192 / sizeof(long)];
@@ -335,7 +358,9 @@ static void rb_wasm_cmd_thread(void)
             case WASM_CMD_RESUME:  audio_resume();                            break;
             case WASM_CMD_STOP:    audio_hard_stop();                         break;
             case WASM_CMD_SEEK:    audio_ff_rewind((int)ev.data);             break;
-            case WASM_CMD_PLAY_AT: playlist_start((int)ev.data, 0UL, 0UL);   break;
+            case WASM_CMD_PLAY_AT:
+                playlist_start((int)ev.data, 0UL, 0UL);
+                break;
             case WASM_CMD_PLAY_URL: {
                 char *url = (char *)(uintptr_t)ev.data;
                 playlist_remove_all_tracks(playlist_get_current());
@@ -360,16 +385,12 @@ static void rb_wasm_cmd_thread(void)
                 break;
             case WASM_CMD_SET_EQ_ENABLED: {
                 global_settings.eq_enabled = (bool)(int)ev.data;
-                settings_apply(false);
-                rb_pcm_flush();
-                settings_save();
+                dsp_eq_enable(global_settings.eq_enabled);
                 break;
             }
             case WASM_CMD_SET_EQ_PRECUT: {
                 global_settings.eq_precut = (unsigned int)(int)ev.data;
-                settings_apply(false);
-                rb_pcm_flush();
-                settings_save();
+                dsp_set_eq_precut((int)global_settings.eq_precut);
                 break;
             }
             case WASM_CMD_SET_EQ_BAND: {
@@ -379,11 +400,10 @@ static void rb_wasm_cmd_thread(void)
                     global_settings.eq_band_settings[cmd->band].cutoff = cmd->cutoff;
                     global_settings.eq_band_settings[cmd->band].q      = cmd->q;
                     global_settings.eq_band_settings[cmd->band].gain   = cmd->gain;
+                    dsp_set_eq_coefs(cmd->band,
+                                     &global_settings.eq_band_settings[cmd->band]);
                 }
                 free(cmd);
-                settings_apply(false);
-                rb_pcm_flush();
-                settings_save();
                 break;
             }
             case WASM_CMD_SET_CROSSFADE: {
@@ -398,10 +418,28 @@ static void rb_wasm_cmd_thread(void)
                     global_settings.crossfade_fade_out_duration = cmd->fo_dur;
                     global_settings.crossfade_fade_out_mixmode  = cmd->mixmode;
                 }
+                /* Register the new crossfade mode.  audio_set_crossfade()
+                 * calls audio_queue_send() (blocking) which deadlocks when
+                 * called while playback is stopped (audio thread never replies).
+                 *
+                 * Strategy:
+                 * - Always call pcmbuf_request_crossfade_enable() so crossfade_enable_request
+                 *   is up to date.
+                 * - When PLAYING: post REMAKE so the audio thread calls pcmbuf_play_stop +
+                 *   pcmbuf_init with the new request, taking effect immediately.
+                 * - When STOPPED: do NOT post REMAKE.  audio_fill_file_buffer() checks
+                 *   pcmbuf_is_same_size() when the next track starts and calls
+                 *   audio_reset_buffer() → pcmbuf_init() naturally.
+                 *   Calling pcmbuf_is_same_size() from this thread is avoided because it
+                 *   modifies crossfade_setting (via pcmbuf_finish_crossfade_enable) without
+                 *   holding the audio-thread lock, creating a race. */
+                pcmbuf_request_crossfade_enable(
+                    cmd ? cmd->mode : CROSSFADE_ENABLE_OFF);
+                if (audio_status() & AUDIO_STATUS_PLAY) {
+                    audio_queue_post(Q_AUDIO_REMAKE_AUDIO_BUFFER, 0);
+                }
 #endif
                 free(cmd);
-                settings_apply(false);
-                settings_save();
                 break;
             }
             case WASM_CMD_SET_REPLAYGAIN: {
@@ -413,17 +451,106 @@ static void rb_wasm_cmd_thread(void)
                     global_settings.replaygain_settings.preamp = cmd->preamp;
                 }
                 free(cmd);
-                settings_apply(false);
-                rb_pcm_flush();
-                settings_save();
+                replaygain_update();
                 break;
             }
             case WASM_CMD_SAVE_SETTINGS:
-                settings_apply(false);
                 settings_save();
+                break;
+            case WASM_CMD_SET_BALANCE:
+                global_settings.balance = (int)ev.data;
+                sound_set_balance(global_settings.balance);
+                /* sound_set_balance() → audiohw_set_volume() is a no-op in
+                 * the WASM build.  rb_pcm_set_balance() applies the balance
+                 * at the ring_push() level; change takes effect on the next
+                 * pcmbuf chunk (~46 ms) with no gap or cut. */
+                rb_pcm_set_balance(global_settings.balance);
+                break;
+            case WASM_CMD_SET_CHANNEL_MODE:
+                global_settings.channel_config = (int)ev.data;
+                channel_mode_set_config(global_settings.channel_config);
+                break;
+            case WASM_CMD_SET_STEREO_WIDTH:
+                global_settings.stereo_width = (int)ev.data;
+                channel_mode_custom_set_width(global_settings.stereo_width);
+                break;
+            case WASM_CMD_SET_CROSSFEED: {
+                wasm_crossfeed_dsp_cmd_t *cmd =
+                    (wasm_crossfeed_dsp_cmd_t *)(uintptr_t)ev.data;
+                if (cmd) {
+                    global_settings.crossfeed               = cmd->type_;
+                    global_settings.crossfeed_direct_gain   = cmd->direct_gain;
+                    global_settings.crossfeed_cross_gain    = cmd->cross_gain;
+                    global_settings.crossfeed_hf_attenuation = cmd->hf_attenuation;
+                    global_settings.crossfeed_hf_cutoff     = cmd->hf_cutoff;
+                    dsp_set_crossfeed_type(cmd->type_);
+                    dsp_set_crossfeed_direct_gain(cmd->direct_gain);
+                    dsp_set_crossfeed_cross_params(cmd->cross_gain,
+                                                   cmd->hf_attenuation,
+                                                   cmd->hf_cutoff);
+                }
+                free(cmd);
+                break;
+            }
+            case WASM_CMD_SET_SURROUND: {
+                wasm_surround_cmd_t *cmd =
+                    (wasm_surround_cmd_t *)(uintptr_t)ev.data;
+                if (cmd) {
+                    global_settings.surround_enabled = cmd->enabled;
+                    global_settings.surround_balance = cmd->balance;
+                    global_settings.surround_fx1     = cmd->fx1;
+                    global_settings.surround_fx2     = cmd->fx2;
+                    global_settings.surround_method2 = (bool)cmd->method2;
+                    global_settings.surround_mix     = cmd->mix;
+                    dsp_surround_set_balance(cmd->balance);
+                    dsp_surround_set_cutoff(cmd->fx1, cmd->fx2);
+                    dsp_surround_side_only((bool)cmd->method2);
+                    dsp_surround_mix(cmd->mix);
+                    dsp_surround_enable(cmd->enabled);
+                }
+                free(cmd);
+                break;
+            }
+            case WASM_CMD_SET_BASS:
+                global_settings.bass = (int)ev.data;
+                tone_set_bass(global_settings.bass * 10);
+                break;
+            case WASM_CMD_SET_TREBLE:
+                global_settings.treble = (int)ev.data;
+                tone_set_treble(global_settings.treble * 10);
+                break;
+            case WASM_CMD_SET_DITHERING:
+                global_settings.dithering_enabled = (bool)(int)ev.data;
+                dsp_dither_enable(global_settings.dithering_enabled);
+                break;
+            case WASM_CMD_SET_AFR:
+                global_settings.afr_enabled = (int)ev.data;
+                dsp_afr_enable(global_settings.afr_enabled);
+                break;
+            case WASM_CMD_SET_PBE: {
+                wasm_pbe_cmd_t *cmd = (wasm_pbe_cmd_t *)(uintptr_t)ev.data;
+                if (cmd) {
+                    global_settings.pbe        = cmd->pbe;
+                    global_settings.pbe_precut = cmd->precut;
+                    dsp_pbe_precut(cmd->precut);
+                    dsp_pbe_enable(cmd->pbe);
+                }
+                free(cmd);
+                break;
+            }
+            case WASM_CMD_SET_TIMESTRETCH:
+                if ((int)ev.data == 0) {
+                    global_settings.timestretch_enabled = false;
+                    dsp_timestretch_enable(false);
+                } else {
+                    global_settings.timestretch_enabled = true;
+                    dsp_timestretch_enable(true);
+                    dsp_set_timestretch((int32_t)ev.data);
+                }
                 break;
             }
         }
+
         rb_wasm_refresh_cache();
     }
 }
@@ -445,6 +572,14 @@ void rb_wasm_cmd_post(long id, intptr_t data)
 
 void rb_signal_firmware_ready(void)
 {
+    /* settings_apply() already applied all loaded settings (including EQ).
+     * On first boot with no config, restoreState() will enable EQ if needed.
+     *
+     * Low-latency mode caps the pcmbuf pre-decode window to ~250 ms.
+     * Without it the pcmbuf fills to 3 s ahead, meaning EQ/DSP changes take
+     * up to 3 s to become audible.  With low-latency mode, rb_pcm_flush()
+     * after each EQ change makes the new coefs heard in ~250 ms, cut-free. */
+    pcmbuf_set_low_latency(true);
     rb_wasm_cmd_init();
     rb_firmware_ready_flag = 1;
 }
