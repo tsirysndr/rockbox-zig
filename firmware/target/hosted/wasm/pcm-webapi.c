@@ -52,6 +52,12 @@ static int32_t  s_sample_rate_hz = 44100;
  * bypassing the ~3 s pcmbuf pre-decode delay. */
 static int32_t  s_balance = 0;
 
+/* Set to 1 by rb_pcm_flush() to abort any in-progress ring_push() call.
+ * Without this, wa_thread may have already dequeued a large chunk of old
+ * audio into its local `raw` pointer and will write it back into the ring
+ * after the flush resets s_write_idx, undoing the flush entirely. */
+static int32_t  s_flush_pending = 0;
+
 void rb_pcm_set_balance(int balance)
 {
     if (balance < -100) balance = -100;
@@ -81,6 +87,12 @@ static void ring_push(const int16_t *src, int n_frames)
     int32_t r_gain = (bal < 0) ? (100 + bal) : 100; /* 0..100 */
 
     for (int i = 0; i < n_frames; ) {
+        /* Abort if rb_pcm_flush() was called while we hold old audio data.
+         * The caller (wa_thread) will discard the remaining frames and enter
+         * the silence/DMA-complete path so the decoder can refill from the
+         * new seek position. */
+        if (__atomic_load_n(&s_flush_pending, __ATOMIC_ACQUIRE))
+            return;
         int32_t wi     = __atomic_load_n(&s_write_idx, __ATOMIC_SEQ_CST);
         int32_t ri     = __atomic_load_n(&s_read_idx,  __ATOMIC_SEQ_CST);
         int32_t nxt_wi = (wi + 1) % RING_FRAMES;
@@ -167,17 +179,24 @@ static void *wa_thread(void *arg)
 }
 
 /* Discard all buffered audio so the AudioWorklet immediately picks up any DSP
- * setting change (EQ, replaygain, …) rather than waiting ~1.5 s for the ring
- * to drain.  The worklet outputs a brief silence (~5–10 ms) while the decoder
- * refills the ring with newly processed frames.
+ * setting change (EQ, replaygain, …) or seek rather than waiting up to ~1.5 s
+ * for the ring to drain.
  *
- * Thread-safety: s_write_idx and s_read_idx are int32 atomics; we atomically
- * reset write to the current read, making the ring appear empty.  The writer
- * pthread and the AudioWorklet both tolerate an empty ring gracefully. */
+ * The flush has two parts:
+ *   1. Set s_flush_pending so that any in-progress ring_push() call in
+ *      wa_thread exits early and discards the remaining old-audio frames.
+ *      Without this, wa_thread would re-fill the ring with those frames
+ *      immediately after we reset the indices, undoing the flush.
+ *   2. Atomically reset s_write_idx = s_read_idx so the AudioWorklet sees
+ *      an empty ring on its next process() call.
+ * After clearing the flag, wa_thread's next ring_push (silence or new audio)
+ * proceeds normally. */
 void rb_pcm_flush(void)
 {
+    __atomic_store_n(&s_flush_pending, 1, __ATOMIC_RELEASE);
     int32_t ri = __atomic_load_n(&s_read_idx, __ATOMIC_SEQ_CST);
     __atomic_store_n(&s_write_idx, ri, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&s_flush_pending, 0, __ATOMIC_RELEASE);
 }
 
 /* ── pcm_sink ops ─────────────────────────────────────────────────────── */

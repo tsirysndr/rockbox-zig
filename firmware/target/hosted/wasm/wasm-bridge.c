@@ -42,6 +42,7 @@
 
 /* Declared here; defined in pcm-webapi.c. */
 extern void rb_pcm_set_balance(int balance);
+extern void rb_pcm_flush(void);
 
 /* Escape a string for JSON: replace " → \" and \ → \\. */
 static void json_escape(char *dst, size_t dsz, const char *src)
@@ -148,14 +149,16 @@ static void build_settings_json(char *buf, size_t sz)
         ",\"bass\":%d,\"treble\":%d"
         ",\"dithering\":%s,\"afr\":%d"
         ",\"pbe\":%d,\"pbe_precut\":%d"
-        ",\"timestretch\":%s}",
+        ",\"timestretch\":%s"
+        ",\"repeat\":%d}",
         global_settings.bass,
         global_settings.treble,
         global_settings.dithering_enabled ? "true" : "false",
         global_settings.afr_enabled,
         global_settings.pbe,
         global_settings.pbe_precut,
-        global_settings.timestretch_enabled ? "true" : "false");
+        global_settings.timestretch_enabled ? "true" : "false",
+        global_settings.repeat_mode);
     (void)n;
 }
 
@@ -326,6 +329,7 @@ static volatile int rb_firmware_ready_flag = 0;
 #define WASM_CMD_SET_AFR         25L /* data = int (0=off, 1-3=mode) */
 #define WASM_CMD_SET_PBE         26L /* data = malloc'd wasm_pbe_cmd_t*; thread frees */
 #define WASM_CMD_SET_TIMESTRETCH 27L /* data = int (0=off, else stretch% * PITCH_SPEED_PRECISION) */
+#define WASM_CMD_SET_REPEAT 28L
 
 /* Payload structs for complex settings commands. */
 typedef struct { int band; int cutoff; int q; int gain; } wasm_eq_band_cmd_t;
@@ -357,7 +361,36 @@ static void rb_wasm_cmd_thread(void)
             case WASM_CMD_PAUSE:   audio_pause();                             break;
             case WASM_CMD_RESUME:  audio_resume();                            break;
             case WASM_CMD_STOP:    audio_hard_stop();                         break;
-            case WASM_CMD_SEEK:    audio_ff_rewind((int)ev.data);             break;
+            case WASM_CMD_SEEK: {
+                /* audio_ff_rewind() triggers codec_seek_buffer_callback which
+                 * calls bufseek().  When the seek target is outside the
+                 * currently-buffered window bufseek posts Q_REBUFFER_HANDLE
+                 * (blocking) to the buffering thread, which then walks the
+                 * HTTP stream chunk-by-chunk to the new position.  For seeks
+                 * deep into a file this takes several seconds.
+                 *
+                 * Fix: use playlist_start() with a byte offset calculated from
+                 * the elapsed/duration ratio.  The buffering layer starts
+                 * fetching from that byte offset directly, so the codec never
+                 * needs to seek through the buffer — it just decodes from
+                 * the new position. */
+                long elapsed_ms = (long)ev.data;
+                int cur_idx = playlist_get_display_index() - 1;
+                if (cur_idx < 0) cur_idx = 0;
+
+                unsigned long byte_offset = 0;
+                struct mp3entry *id3 = audio_current_track();
+                if (id3 && id3->length > 0 && id3->filesize > 0) {
+                    byte_offset = (unsigned long)(
+                        (uint64_t)elapsed_ms * (uint64_t)id3->filesize
+                        / (uint64_t)id3->length
+                    );
+                }
+
+                playlist_start(cur_idx, (unsigned long)elapsed_ms, byte_offset);
+                rb_pcm_flush();
+                break;
+            }
             case WASM_CMD_PLAY_AT:
                 playlist_start((int)ev.data, 0UL, 0UL);
                 break;
@@ -551,6 +584,11 @@ static void rb_wasm_cmd_thread(void)
                     dsp_timestretch_enable(true);
                     dsp_set_timestretch((int32_t)ev.data);
                 }
+                break;
+            case WASM_CMD_SET_REPEAT:
+                global_settings.repeat_mode = (int)ev.data;
+                if (audio_status() & AUDIO_STATUS_PLAY)
+                    audio_flush_and_reload_tracks();
                 break;
             }
         }

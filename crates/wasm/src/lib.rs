@@ -73,6 +73,7 @@ const WASM_CMD_SET_DITHERING: c_long = 24;
 const WASM_CMD_SET_AFR: c_long = 25;
 const WASM_CMD_SET_PBE: c_long = 26;
 const WASM_CMD_SET_TIMESTRETCH: c_long = 27;
+const WASM_CMD_SET_REPEAT: c_long = 28;
 
 // ── Payload structs for complex settings commands ─────────────────────────────
 // Layouts must match the C typedefs in wasm-bridge.c.
@@ -603,6 +604,13 @@ pub extern "C" fn rb_set_timestretch(stretch_pct: c_int) -> c_int {
         (stretch_pct as isize) * 100 // × PITCH_SPEED_PRECISION
     };
     unsafe { rb_wasm_cmd_post(WASM_CMD_SET_TIMESTRETCH, data) };
+    0
+}
+
+/// Set repeat mode. 0=off, 1=all, 2=one, 3=shuffle.
+#[no_mangle]
+pub extern "C" fn rb_set_repeat(mode: c_int) -> c_int {
+    unsafe { rb_wasm_cmd_post(WASM_CMD_SET_REPEAT, mode as isize) };
     0
 }
 

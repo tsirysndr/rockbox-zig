@@ -203,6 +203,7 @@ EXPORTED_FUNCTIONS='["_malloc","_free",
     "_rb_set_crossfeed","_rb_set_surround",
     "_rb_set_bass","_rb_set_treble",
     "_rb_set_dithering","_rb_set_afr","_rb_set_pbe","_rb_set_timestretch",
+    "_rb_set_repeat",
     "_rb_pcm_ring_ptr","_rb_pcm_ring_frames",
     "_rb_pcm_write_idx_ptr","_rb_pcm_read_idx_ptr","_rb_pcm_sample_rate_ptr"]'
 # Flatten to a single line (no whitespace inside the JSON array).

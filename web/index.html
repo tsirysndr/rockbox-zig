@@ -144,6 +144,12 @@
       border-radius: 6px; padding: .3rem .5rem; font-size: .85rem; flex: 1;
     }
     .persist-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    /* Progress / seek */
+    .seek-row { display: flex; align-items: center; gap: .6rem; font-size: .78rem; color: #888; }
+    .seek-row input[type=range] { flex: 1; accent-color: #3b82f6; cursor: pointer; }
+    .seek-time { min-width: 3.2rem; text-align: right; font-variant-numeric: tabular-nums; }
+    /* Repeat button */
+    button.repeat-active { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
   </style>
 </head>
 <body>
@@ -172,12 +178,20 @@
     <button id="btn-stop"  disabled>⏹</button>
     <button id="btn-shuffle" disabled>⇄ Shuffle</button>
     <button id="btn-clear"   disabled>✕ Clear</button>
+    <button id="btn-repeat" disabled title="Repeat: off">↩ Repeat</button>
   </div>
 
   <!-- Now playing -->
   <div>
     <div id="track-title">—</div>
     <div id="track-artist"></div>
+  </div>
+
+  <!-- Seek / progress -->
+  <div class="seek-row">
+    <span id="elapsed-time" class="seek-time">0:00</span>
+    <input id="seek-slider" type="range" min="0" max="100" value="0" step="1" disabled>
+    <span id="duration-time" class="seek-time">0:00</span>
   </div>
 
   <!-- Status + volume -->
@@ -521,6 +535,7 @@ setEnabled(
   'xfd-type', 'xfd-direct', 'xfd-cross', 'xfd-hf-att', 'xfd-hf-cut',
   'surr-enabled', 'surr-balance', 'surr-fx1', 'surr-fx2', 'surr-mix', 'surr-method2',
   'dithering', 'afr', 'pbe', 'pbe-precut', 'timestretch',
+  'btn-repeat', 'seek-slider',
 );
 EQ_BAND_LABELS.forEach((_, i) => setEnabled(`eq-band-${i}`));
 
@@ -862,31 +877,86 @@ $('btn-save-state').addEventListener('click', () => {
 // Auto-persist when user navigates away.
 window.addEventListener('beforeunload', () => player.persistState());
 
-// ── Status polling ────────────────────────────────────────────────────────────
+// ── Status polling via RockboxPlayer events ───────────────────────────────────
 
 const STATE_LABEL = ['stopped', 'playing', 'paused'];
+const REPEAT_LABEL = ['↩ off', '↩ all', '↩ one', '⇄ shuf'];
 
-function poll() {
-  const { status } = player.status()     ?? { status: 0 };
-  const track      = player.currentTrack() ?? {};
-  const queue      = player.playlist()     ?? {};
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
+// Seek slider: track scrubbing state and freeze progress display after commit.
+// seekFrozenUntil prevents the 200 ms poll from snapping the slider back to the
+// old firmware elapsed_ms while the ring drains and the codec re-decodes.
+let seeking         = false;
+let seekFrozenUntil = 0;
+let seekTargetMs    = 0;
+
+$('seek-slider').addEventListener('mousedown',  () => { seeking = true; });
+$('seek-slider').addEventListener('touchstart', () => { seeking = true; }, { passive: true });
+
+function commitSeek() {
+  seeking      = false;
+  seekTargetMs = parseInt($('seek-slider').value, 10);
+  seekFrozenUntil = Date.now() + 1000; // 1 s covers ring flush + codec re-decode
+  $('elapsed-time').textContent = fmtTime(seekTargetMs);
+  player.seek(seekTargetMs);
+}
+$('seek-slider').addEventListener('mouseup',  commitSeek);
+$('seek-slider').addEventListener('touchend', commitSeek);
+
+// Repeat button cycles 0→1→2→3→0
+let repeatMode = player.getRepeat();
+function updateRepeatBtn() {
+  const btn = $('btn-repeat');
+  btn.textContent = REPEAT_LABEL[repeatMode] ?? REPEAT_LABEL[0];
+  btn.title = `Repeat: ${['off','all','one','shuffle'][repeatMode] ?? 'off'}`;
+  btn.classList.toggle('repeat-active', repeatMode !== 0);
+}
+updateRepeatBtn();
+$('btn-repeat').addEventListener('click', () => {
+  repeatMode = (repeatMode + 1) % 4;
+  player.setRepeat(repeatMode);
+  updateRepeatBtn();
+});
+
+player.on('progress', ({ elapsed_ms, duration_ms, status, track }) => {
   const pill = $('status-pill');
   pill.textContent   = STATE_LABEL[status] ?? 'unknown';
   pill.dataset.state = STATE_LABEL[status] ?? '';
 
-  $('track-title').textContent  = track.title  || (status ? '(unknown title)' : '—');
-  $('track-artist').textContent = [track.artist, track.album].filter(Boolean).join(' · ');
-
-  if (queue.amount > 0) {
-    $('queue-info').textContent = `track ${queue.index ?? 1} / ${queue.amount}`;
-  } else {
-    $('queue-info').textContent = '';
+  // While scrubbing or within the post-seek freeze window, keep the slider
+  // and elapsed display at the target position so the UI feels instant.
+  const frozen = seeking || Date.now() < seekFrozenUntil;
+  if (duration_ms > 0) {
+    $('seek-slider').max = duration_ms;
+    if (!frozen) $('seek-slider').value = elapsed_ms;
   }
-}
+  $('elapsed-time').textContent  = frozen ? fmtTime(seekTargetMs) : fmtTime(elapsed_ms);
+  $('duration-time').textContent = duration_ms > 0 ? fmtTime(duration_ms) : '0:00';
+});
 
-setInterval(poll, 500);
-poll();
+player.on('track', (track) => {
+  $('track-title').textContent  = track.title  || '(unknown title)';
+  $('track-artist').textContent = [track.artist, track.album].filter(Boolean).join(' · ');
+});
+
+player.on('playlist', ({ index, amount }) => {
+  $('queue-info').textContent = amount > 0 ? `track ${index} / ${amount}` : '';
+});
+
+player.on('status', ({ status }) => {
+  if (status === 0) {
+    $('track-title').textContent  = '—';
+    $('track-artist').textContent = '';
+    $('queue-info').textContent   = '';
+    $('seek-slider').value        = 0;
+    $('elapsed-time').textContent  = '0:00';
+    $('duration-time').textContent = '0:00';
+  }
+});
 </script>
 
 </body>

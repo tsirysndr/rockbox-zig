@@ -70,6 +70,7 @@ function _defaultSettings() {
     pbe: 0,
     pbe_precut: 0,
     timestretch: 0,
+    repeat: 0,
   };
 }
 
@@ -107,6 +108,7 @@ export class RockboxPlayer {
     await this._initPersistence(configDir);
     this._bootDaemon(configDir, musicDir);
     await this._waitForDaemon();
+    this._startPolling();
   }
 
   // ── Playback ─────────────────────────────────────────────────────────────
@@ -442,8 +444,85 @@ export class RockboxPlayer {
     this._call('rb_set_timestretch', [stretchPct | 0]);
   }
 
+  /**
+   * Set repeat mode.
+   * @param {number} mode  0=off, 1=all, 2=one, 3=shuffle.
+   */
+  setRepeat(mode) {
+    this._settings.repeat = mode | 0;
+    this._saveSettings();
+    this._call('rb_set_repeat', [mode | 0]);
+  }
+
+  /** Returns the current repeat mode from the JS settings mirror. */
+  getRepeat() { return this._settings.repeat ?? 0; }
+
   /** Flush current settings to the Rockbox config file (no-op before rebuild). */
   saveSettings() { this._call('rb_save_settings'); }
+
+  // ── Event emitter ─────────────────────────────────────────────────────────
+
+  /**
+   * Subscribe to a player event.
+   * @param {'progress'|'track'|'status'|'playlist'} event
+   * @param {Function} callback
+   *   progress → { elapsed_ms, duration_ms, status, track }
+   *   track    → { title, artist, album, path, duration_ms }
+   *   status   → { status: 0|1|2 }
+   *   playlist → { index: number, amount: number }
+   */
+  on(event, callback) {
+    if (!this._listeners) this._listeners = {};
+    if (!this._listeners[event]) this._listeners[event] = new Set();
+    this._listeners[event].add(callback);
+    return this; // chainable
+  }
+
+  /** Unsubscribe a previously registered callback. */
+  off(event, callback) {
+    this._listeners?.[event]?.delete(callback);
+    return this;
+  }
+
+  _emit(event, data) {
+    this._listeners?.[event]?.forEach(cb => { try { cb(data); } catch(_) {} });
+  }
+
+  _startPolling(intervalMs = 200) {
+    let lastPath           = null;
+    let lastStatus         = -1;
+    let lastPlaylistIndex  = -1;
+    let lastPlaylistAmount = -1;
+    const tick = () => {
+      if (!this._mod) return;
+      const { status } = this.status() ?? { status: 0 };
+      const track      = this.currentTrack() ?? {};
+      const pl         = this.playlist() ?? {};
+      const progress = {
+        elapsed_ms:  track.elapsed_ms  ?? 0,
+        duration_ms: track.duration_ms ?? 0,
+        status,
+        track,
+      };
+      this._emit('progress', progress);
+      if (status !== lastStatus) {
+        lastStatus = status;
+        this._emit('status', { status });
+      }
+      if (track.path !== lastPath) {
+        lastPath = track.path ?? null;
+        if (track.path) this._emit('track', track);
+      }
+      const plIdx = pl.index  ?? -1;
+      const plAmt = pl.amount ?? 0;
+      if (plIdx !== lastPlaylistIndex || plAmt !== lastPlaylistAmount) {
+        lastPlaylistIndex  = plIdx;
+        lastPlaylistAmount = plAmt;
+        this._emit('playlist', { index: plIdx, amount: plAmt });
+      }
+    };
+    this._pollHandle = setInterval(tick, intervalMs);
+  }
 
   // ── Persistence helpers ───────────────────────────────────────────────────
 
@@ -508,6 +587,7 @@ export class RockboxPlayer {
       if (s.afr != null) this.setAfr(s.afr);
       if (s.pbe != null) this.setPbe(s.pbe, s.pbe_precut ?? 0);
       if (s.timestretch != null) this.setTimestretch(s.timestretch);
+      if (s.repeat != null) this.setRepeat(s.repeat);
     } catch (e) {
       console.warn('[Rockbox] restoreState failed:', e);
     }
