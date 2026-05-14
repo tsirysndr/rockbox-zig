@@ -108,7 +108,7 @@
           version = "0.1.0";
           src     = ./webui/rockbox;
 
-          npmDepsHash = lib.fakeHash;
+          npmDepsHash = "sha256-nv3Uom0BpJ3oakwyuC8PZJ3MlJGumvfNEUoSlCknMbI=";
 
           # Only the compiled dist/ is needed; skip npm's default pack step.
           installPhase = ''
