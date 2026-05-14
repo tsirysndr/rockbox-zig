@@ -77,7 +77,14 @@ static inline unsigned int data_level(int quarter_secs)
 /* Number of bytes played per second */
 #define BYTERATE            (mixer_get_frequency() * PCMBUF_SAMPLE_SIZE)
 
-#if MEMORYSIZE > 2
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
+/* WASM: 1 s base buffer so DSP/EQ changes are audible sooner (~1 s vs 3 s).
+ * low_latency_mode is NOT set, so crossfade works normally; the crossfade
+ * path adds fade_out_delay+duration on top of MIN_BUFFER_SIZE when needed. */
+#define PCMBUF_WATERMARK    (BYTERATE / 2)
+#define MIN_BUFFER_SIZE     (BYTERATE * 1)
+#define LOW_DATA            data_level(4)
+#elif MEMORYSIZE > 2
 /* Keep watermark high for large memory target - at least (2s) */
 #define PCMBUF_WATERMARK    (BYTERATE * 2)
 #define MIN_BUFFER_SIZE     (BYTERATE * 3)

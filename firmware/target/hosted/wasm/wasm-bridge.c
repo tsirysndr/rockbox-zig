@@ -513,11 +513,15 @@ static void rb_wasm_cmd_thread(void)
             }
             case WASM_CMD_SET_BASS:
                 global_settings.bass = (int)ev.data;
-                tone_set_bass(global_settings.bass * 10);
+                /* sound_set_bass() calls audiohw_set_bass (→ tone_set_bass) AND
+                 * set_prescaled_volume (→ tone_set_prescale → update_filter +
+                 * dsp_proc_enable).  Direct tone_set_bass() alone never triggers
+                 * update_filter, so the DSP proc would stay off. */
+                sound_set_bass(global_settings.bass);
                 break;
             case WASM_CMD_SET_TREBLE:
                 global_settings.treble = (int)ev.data;
-                tone_set_treble(global_settings.treble * 10);
+                sound_set_treble(global_settings.treble);
                 break;
             case WASM_CMD_SET_DITHERING:
                 global_settings.dithering_enabled = (bool)(int)ev.data;
@@ -573,13 +577,9 @@ void rb_wasm_cmd_post(long id, intptr_t data)
 void rb_signal_firmware_ready(void)
 {
     /* settings_apply() already applied all loaded settings (including EQ).
-     * On first boot with no config, restoreState() will enable EQ if needed.
-     *
-     * Low-latency mode caps the pcmbuf pre-decode window to ~250 ms.
-     * Without it the pcmbuf fills to 3 s ahead, meaning EQ/DSP changes take
-     * up to 3 s to become audible.  With low-latency mode, rb_pcm_flush()
-     * after each EQ change makes the new coefs heard in ~250 ms, cut-free. */
-    pcmbuf_set_low_latency(true);
+     * pcmbuf uses a 1 s base buffer (WASM-specific MIN_BUFFER_SIZE in
+     * pcmbuf.c) so EQ/DSP changes are audible in ~1 s without disabling
+     * crossfade (low_latency_mode is never set). */
     rb_wasm_cmd_init();
     rb_firmware_ready_flag = 1;
 }
