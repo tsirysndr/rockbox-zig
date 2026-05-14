@@ -3,6 +3,7 @@
 //  Rockbox
 //
 
+import CryptoKit
 import Foundation
 import SwiftUI
 
@@ -15,6 +16,8 @@ enum FilesMode {
     case plexBrowse
     case jellyfinServers
     case jellyfinBrowse
+    case navidromeServers
+    case navidromeBrowse
 }
 
 enum JellyfinAuthMode {
@@ -40,6 +43,12 @@ struct FilesListView: View {
     @State private var jellyfinApiKey = ""
     @State private var showJellyfinManualEntry = false
     @State private var jellyfinManualUrl = ""
+    @State private var showNavidromeEntry = false
+    @State private var navidromeUrl = ""
+    @State private var navidromeUsername = ""
+    @State private var navidromePassword = ""
+    @State private var navidromeError: String? = nil
+    @State private var navidromeConnecting = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -196,6 +205,46 @@ struct FilesListView: View {
             .padding(24)
             .frame(width: 360)
         }
+        .sheet(isPresented: $showNavidromeEntry) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Connect to Navidrome")
+                    .font(.headline)
+                Text("Enter your server URL, username, and password.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                TextField("http://192.168.1.x:4533", text: $navidromeUrl)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(navidromeConnecting)
+                TextField("Username", text: $navidromeUsername)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(navidromeConnecting)
+                SecureField("Password", text: $navidromePassword)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(navidromeConnecting)
+                if let err = navidromeError {
+                    Text(err)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        showNavidromeEntry = false
+                        navidromeError = nil
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(navidromeConnecting)
+                    Button(navidromeConnecting ? "Connecting…" : "Connect") {
+                        Task { await connectToNavidrome() }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(navidromeConnecting)
+                }
+            }
+            .padding(24)
+            .frame(width: 360)
+        }
     }
 
     // MARK: - Root landing
@@ -214,6 +263,10 @@ struct FilesListView: View {
                 }
                 rootRow(name: "Jellyfin", systemImage: "", imageName: "jellyfin") {
                     navigate(to: .jellyfinServers, path: "jellyfin://")
+                }
+                rootRow(name: "Navidrome", systemImage: "", imageName: "navidrome") {
+                    navigate(to: .navidromeServers, path: "navidrome://")
+                    showNavidromeEntry = true
                 }
             }
         }
@@ -283,6 +336,22 @@ struct FilesListView: View {
                     .buttonStyle(.plain)
                     .foregroundColor(.secondary)
                 }
+                if mode == .navidromeServers {
+                    Button(action: { showNavidromeEntry = true }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "plus.circle")
+                                .frame(width: 20, height: 20)
+                            Text("Connect to Navidrome…")
+                                .font(.system(size: 13))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -304,6 +373,9 @@ struct FilesListView: View {
         case .jellyfinServers: return "Jellyfin Servers"
         case .jellyfinBrowse:
             return currentPath?.split(separator: "/").last.map(String.init) ?? "Jellyfin"
+        case .navidromeServers: return "Navidrome"
+        case .navidromeBrowse:
+            return currentPath?.split(separator: "/").last.map(String.init) ?? "Navidrome"
         }
     }
 
@@ -341,6 +413,8 @@ struct FilesListView: View {
             pendingJellyfinServer = file.path
         } else if file.path.hasPrefix("jellyfin://") {
             navigate(to: .jellyfinBrowse, path: file.path)
+        } else if file.path.hasPrefix("navidrome://") {
+            navigate(to: .navidromeBrowse, path: file.path)
         } else {
             navigate(to: .local, path: file.path)
         }
@@ -452,6 +526,65 @@ struct FilesListView: View {
         } catch {
             jellyfinError = "Network error: \(error.localizedDescription)"
         }
+    }
+
+    private func connectToNavidrome() async {
+        let baseUrl = navidromeUrl.trimmingCharacters(in: .whitespaces)
+        let username = navidromeUsername.trimmingCharacters(in: .whitespaces)
+        guard !baseUrl.isEmpty, !username.isEmpty else {
+            navidromeError = "Server URL and username are required."
+            return
+        }
+        let trimmedBase = baseUrl.hasSuffix("/") ? String(baseUrl.dropLast()) : baseUrl
+        let salt = generateSalt()
+        let token = md5Hash(navidromePassword + salt)
+        let pingUrlStr = "\(trimmedBase)/rest/ping.view?u=\(username)&t=\(token)&s=\(salt)&v=1.16.1&c=rockbox&f=json"
+        guard let pingUrl = URL(string: pingUrlStr) else {
+            navidromeError = "Invalid server URL."
+            return
+        }
+
+        navidromeConnecting = true
+        navidromeError = nil
+        defer { navidromeConnecting = false }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: pingUrl)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                navidromeError = "Server returned an error. Check the URL."
+                return
+            }
+            guard
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let inner = json["subsonic-response"] as? [String: Any],
+                inner["status"] as? String == "ok"
+            else {
+                navidromeError = "Authentication failed. Check username and password."
+                return
+            }
+            let authSuffix = "?nd_user=\(username)&nd_token=\(token)&nd_salt=\(salt)"
+            guard let encoded = "\(trimmedBase)\(authSuffix)"
+                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            else {
+                navidromeError = "Failed to encode server URL."
+                return
+            }
+            let navPath = "navidrome://\(encoded)"
+            showNavidromeEntry = false
+            navigate(to: .navidromeBrowse, path: navPath)
+        } catch {
+            navidromeError = "Network error: \(error.localizedDescription)"
+        }
+    }
+
+    private func generateSalt() -> String {
+        let chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+        return String((0..<8).compactMap { _ in chars.randomElement() })
+    }
+
+    private func md5Hash(_ input: String) -> String {
+        let digest = Insecure.MD5.hash(data: Data(input.utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     private func goBack() {

@@ -1,0 +1,19 @@
+[package]
+name = "rockbox-navidrome"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+anyhow = { workspace = true }
+md5 = "0.7.0"
+tokio = { workspace = true }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

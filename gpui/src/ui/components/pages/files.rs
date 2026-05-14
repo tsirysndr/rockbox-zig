@@ -4,6 +4,7 @@ use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{
     FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode, JellyfinAuthState,
+    NavidromeAuthState,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -35,6 +36,9 @@ pub struct FilesView {
     jellyfin_password_input: Entity<TextInput>,
     jellyfin_api_key_input: Entity<TextInput>,
     jellyfin_manual_url_input: Entity<TextInput>,
+    navidrome_url_input: Entity<TextInput>,
+    navidrome_username_input: Entity<TextInput>,
+    navidrome_password_input: Entity<TextInput>,
 }
 
 impl FilesView {
@@ -42,9 +46,10 @@ impl FilesView {
         cx.set_global(FilesBrowseState::default());
         cx.set_global(FileContextMenuState::default());
         cx.set_global(JellyfinAuthState::default());
+        cx.set_global(NavidromeAuthState::default());
 
-        // Prefetch UPnP, Plex, and Jellyfin device lists so the first open is instant.
-        for prefix in ["upnp://", "plex://", "jellyfin://"] {
+        // Prefetch UPnP, Plex, Jellyfin, and Navidrome device lists so the first open is instant.
+        for prefix in ["upnp://", "plex://", "jellyfin://", "navidrome://"] {
             let path = prefix.to_string();
             let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
             cx.global::<Controller>().rt().spawn(async move {
@@ -72,9 +77,12 @@ impl FilesView {
 
         let plex_token_input = cx.new(|cx| TextInput::new("Plex token (optional)", cx));
         let jellyfin_username_input = cx.new(|cx| TextInput::new("Username", cx));
-        let jellyfin_password_input = cx.new(|cx| TextInput::new("Password", cx));
+        let jellyfin_password_input = cx.new(|cx| TextInput::new("Password", cx).masked());
         let jellyfin_api_key_input = cx.new(|cx| TextInput::new("API Key", cx));
         let jellyfin_manual_url_input = cx.new(|cx| TextInput::new("http://192.168.1.x:8096", cx));
+        let navidrome_url_input = cx.new(|cx| TextInput::new("http://192.168.1.x:4533", cx));
+        let navidrome_username_input = cx.new(|cx| TextInput::new("Username", cx));
+        let navidrome_password_input = cx.new(|cx| TextInput::new("Password", cx).masked());
 
         FilesView {
             entries: Vec::new(),
@@ -86,6 +94,9 @@ impl FilesView {
             jellyfin_password_input,
             jellyfin_api_key_input,
             jellyfin_manual_url_input,
+            navidrome_url_input,
+            navidrome_username_input,
+            navidrome_password_input,
         }
     }
 
@@ -112,12 +123,15 @@ impl FilesView {
             FilesMode::PlexBrowse => browse.current_path.clone(),
             FilesMode::JellyfinServers => Some("jellyfin://".to_string()),
             FilesMode::JellyfinBrowse => browse.current_path.clone(),
+            FilesMode::NavidromeServers => Some("navidrome://".to_string()),
+            FilesMode::NavidromeBrowse => browse.current_path.clone(),
             _ => None,
         };
         let ttl = match browse.mode {
             FilesMode::UpnpDevices
             | FilesMode::PlexServers
-            | FilesMode::JellyfinServers => DEVICE_LIST_TTL,
+            | FilesMode::JellyfinServers
+            | FilesMode::NavidromeServers => DEVICE_LIST_TTL,
             _ => CONTENT_TTL,
         };
 
@@ -292,6 +306,60 @@ impl FilesView {
         cx.global_mut::<JellyfinAuthState>().error = None;
         cx.global_mut::<JellyfinAuthState>().auth_mode = crate::ui::components::JellyfinAuthMode::Credentials;
     }
+
+    fn spawn_navidrome_auth(&self, cx: &mut Context<Self>) {
+        let raw_url = self.navidrome_url_input.read(cx).value.clone();
+        let username = self.navidrome_username_input.read(cx).value.clone();
+        let password = self.navidrome_password_input.read(cx).value.clone();
+
+        if raw_url.trim().is_empty() || username.trim().is_empty() {
+            cx.global_mut::<NavidromeAuthState>().error =
+                Some("Server URL and username are required.".to_string());
+            return;
+        }
+
+        let base_url = raw_url.trim().to_string();
+        let salt = crate::navidrome::random_salt();
+        let token = crate::navidrome::compute_token(&password, &salt);
+        let base_url2 = base_url.clone();
+        let user2 = username.clone();
+        let token2 = token.clone();
+        let salt2 = salt.clone();
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let ok = crate::navidrome::ping(&base_url, &username, &token, &salt).await;
+            let _ = tx.send(ok);
+        });
+        cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
+            if let Ok(ok) = rx.await {
+                if ok {
+                    let nav_path = format!(
+                        "navidrome://{}",
+                        pct_encode(&format!(
+                            "{}?nd_user={}&nd_token={}&nd_salt={}",
+                            base_url2, user2, token2, salt2
+                        ))
+                    );
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<NavidromeAuthState>().pending_server = None;
+                        cx.global_mut::<NavidromeAuthState>().authenticating = false;
+                        cx.global_mut::<NavidromeAuthState>().error = None;
+                        cx.global_mut::<NavidromeAuthState>().show_add_manually = false;
+                        cx.global_mut::<FilesBrowseState>()
+                            .navigate(FilesMode::NavidromeBrowse, Some(nav_path));
+                    });
+                } else {
+                    let _ = this.update(cx, |_, cx| {
+                        cx.global_mut::<NavidromeAuthState>().authenticating = false;
+                        cx.global_mut::<NavidromeAuthState>().error =
+                            Some("Authentication failed. Check URL, username, and password.".to_string());
+                    });
+                }
+            }
+        })
+        .detach();
+    }
 }
 
 impl Render for FilesView {
@@ -332,6 +400,13 @@ impl Render for FilesView {
                 .and_then(|p| p.rsplit('/').next())
                 .unwrap_or("Jellyfin")
                 .to_string(),
+            FilesMode::NavidromeServers => "Navidrome".to_string(),
+            FilesMode::NavidromeBrowse => browse
+                .current_path
+                .as_deref()
+                .and_then(|p| p.rsplit('/').next())
+                .unwrap_or("Navidrome")
+                .to_string(),
         };
 
         let current_dir = browse.current_path.clone().unwrap_or_default();
@@ -345,6 +420,10 @@ impl Render for FilesView {
         let jellyfin_password_input = self.jellyfin_password_input.clone();
         let jellyfin_api_key_input = self.jellyfin_api_key_input.clone();
         let jellyfin_manual_url_input = self.jellyfin_manual_url_input.clone();
+        let navidrome_auth = cx.global::<NavidromeAuthState>().clone();
+        let navidrome_url_input = self.navidrome_url_input.clone();
+        let navidrome_username_input = self.navidrome_username_input.clone();
+        let navidrome_password_input = self.navidrome_password_input.clone();
 
         div()
             .size_full()
@@ -703,6 +782,75 @@ impl Render for FilesView {
                         .into_any_element()
                 }
 
+                // ── Navidrome add server form ─────────────────────────────────
+                FilesMode::NavidromeServers => {
+                    let authenticating = navidrome_auth.authenticating;
+                    let error = navidrome_auth.error.clone();
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .justify_center()
+                        .gap_y_3()
+                        .p_6()
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_text)
+                                .child("Connect to Navidrome"),
+                        )
+                        .child(
+                            div()
+                                .text_xs()
+                                .text_color(theme.library_header_text)
+                                .child("Enter your Navidrome server URL, username, and password."),
+                        )
+                        .child(div().w(px(280.0)).child(navidrome_url_input))
+                        .child(div().w(px(280.0)).child(navidrome_username_input))
+                        .child(div().w(px(280.0)).child(navidrome_password_input))
+                        .when_some(error, |this, err| {
+                            this.child(
+                                div()
+                                    .text_xs()
+                                    .text_color(gpui::red())
+                                    .child(err),
+                            )
+                        })
+                        .child(if authenticating {
+                            div()
+                                .text_sm()
+                                .text_color(theme.library_header_text)
+                                .child("Connecting…")
+                                .into_any_element()
+                        } else {
+                            div()
+                                .flex()
+                                .gap_x_2()
+                                .child(
+                                    div()
+                                        .id("navidrome_connect")
+                                        .px_3()
+                                        .py_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_text)
+                                        .bg(theme.switcher_active)
+                                        .on_click(cx.listener(|this, _, _, cx| {
+                                            cx.global_mut::<NavidromeAuthState>().authenticating =
+                                                true;
+                                            cx.global_mut::<NavidromeAuthState>().error = None;
+                                            this.spawn_navidrome_auth(cx);
+                                        }))
+                                        .child("Connect"),
+                                )
+                                .into_any_element()
+                        })
+                        .into_any_element()
+                }
+
                 _ if loading => render_loading(theme).into_any_element(),
                 _ => render_entries(entries, current_dir, mode, theme).into_any_element(),
             })
@@ -869,6 +1017,41 @@ fn render_root(theme: Theme) -> AnyElement {
                         .child("Jellyfin"),
                 ),
         )
+        .child(
+            div()
+                .id("root_navidrome")
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_3()
+                .px_4()
+                .py_2p5()
+                .cursor_pointer()
+                .hover(|t| t.bg(theme.library_track_bg_hover))
+                .on_click(|_, _, cx: &mut App| {
+                    cx.global_mut::<FilesBrowseState>()
+                        .navigate(FilesMode::NavidromeServers, Some("navidrome://".to_string()));
+                })
+                .child(
+                    div()
+                        .w(px(22.0))
+                        .h(px(22.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .items_center()
+                        .text_color(theme.library_text)
+                        .child(Icon::new(Icons::Navidrome).size_5()),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_sm()
+                        .truncate()
+                        .text_color(theme.library_text)
+                        .child("Navidrome"),
+                ),
+        )
         .into_any_element()
 }
 
@@ -880,7 +1063,10 @@ fn render_entries(
 ) -> AnyElement {
     let is_device_list = matches!(
         mode,
-        FilesMode::UpnpDevices | FilesMode::PlexServers | FilesMode::JellyfinServers
+        FilesMode::UpnpDevices
+            | FilesMode::PlexServers
+            | FilesMode::JellyfinServers
+            | FilesMode::NavidromeServers
     );
     let mode_for_icon = mode.clone();
     let mode_for_nav = mode.clone();
@@ -902,12 +1088,14 @@ fn render_entries(
                 let is_upnp = entry.path.starts_with("upnp://");
                 let is_plex = entry.path.starts_with("plex://");
                 let is_jellyfin = entry.path.starts_with("jellyfin://");
+                let is_navidrome = entry.path.starts_with("navidrome://");
                 let mode_nav = mode_for_nav.clone();
 
                 let dir_icon = match mode_for_icon {
                     FilesMode::UpnpDevices => Icons::Device,
                     FilesMode::PlexServers => Icons::Plex,
                     FilesMode::JellyfinServers => Icons::Jellyfin,
+                    FilesMode::NavidromeServers => Icons::Navidrome,
                     _ => Icons::Directory,
                 };
 
@@ -1008,6 +1196,8 @@ fn render_entries(
                                             FilesMode::PlexBrowse
                                         } else if is_jellyfin {
                                             FilesMode::JellyfinBrowse
+                                        } else if is_navidrome {
+                                            FilesMode::NavidromeBrowse
                                         } else {
                                             FilesMode::Local
                                         };

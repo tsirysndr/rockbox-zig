@@ -7,6 +7,7 @@ use gpui::{
 pub struct TextInput {
     pub value: String,
     pub placeholder: String,
+    pub masked: bool,
     pub focus_handle: FocusHandle,
     _focus_out_sub: Option<Subscription>,
 }
@@ -16,9 +17,15 @@ impl TextInput {
         TextInput {
             value: String::new(),
             placeholder: placeholder.into(),
+            masked: false,
             focus_handle: cx.focus_handle(),
             _focus_out_sub: None,
         }
+    }
+
+    pub fn masked(mut self) -> Self {
+        self.masked = true;
+        self
     }
 }
 
@@ -36,6 +43,8 @@ impl Render for TextInput {
 
         let display = if self.value.is_empty() && !is_focused {
             self.placeholder.clone()
+        } else if self.masked {
+            "•".repeat(self.value.chars().count())
         } else {
             self.value.clone()
         };
@@ -71,7 +80,7 @@ impl Render for TextInput {
                     }
                 } else if (cmd || ctrl) && key == "a" {
                     // select-all: no cursor support, just a no-op so the key isn't swallowed
-                } else if (cmd || ctrl) && key == "c" {
+                } else if (cmd || ctrl) && key == "c" && !this.masked {
                     cx.write_to_clipboard(ClipboardItem::new_string(this.value.clone()));
                 } else if !cmd && !ctrl {
                     if let Some(c) = &event.keystroke.key_char {

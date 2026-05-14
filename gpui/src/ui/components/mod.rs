@@ -54,6 +54,10 @@ pub enum FilesMode {
     JellyfinServers,
     /// Browsing a Jellyfin server's library.
     JellyfinBrowse,
+    /// Listing manually-added Navidrome servers (no discovery).
+    NavidromeServers,
+    /// Browsing a Navidrome server's library.
+    NavidromeBrowse,
 }
 
 impl Default for FilesMode {
@@ -92,6 +96,16 @@ impl FilesBrowseState {
         self.pending_plex_server = None;
     }
 }
+
+#[derive(Clone, Default)]
+pub struct NavidromeAuthState {
+    /// base_url (percent-encoded, prefixed with "navidrome://") of the server waiting for auth.
+    pub pending_server: Option<String>,
+    pub authenticating: bool,
+    pub error: Option<String>,
+    pub show_add_manually: bool,
+}
+impl gpui::Global for NavidromeAuthState {}
 
 impl gpui::Global for FilesBrowseState {}
 
