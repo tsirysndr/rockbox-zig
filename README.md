@@ -101,8 +101,8 @@ music_dir    = "/path/to/your/Music"
 audio_output = "builtin"   # CPAL audio — see Audio Output for other options
 playlist_shuffle = false
 repeat_mode = 1
-bass = 0
-treble = 0
+bass = 3
+treble = 3
 bass_cutoff = 0
 treble_cutoff = 0
 crossfade = 5
@@ -124,55 +124,56 @@ channel_config = 0
 player_name = ""
 eq_enabled = true
 
+
 [[eq_band_settings]]
-cutoff = 0
-q = 64
+cutoff = 60
+q = 70
+gain = 25
+
+[[eq_band_settings]]
+cutoff = 200
+q = 70
+gain = 55
+
+[[eq_band_settings]]
+cutoff = 500
+q = 70
+gain = 40
+
+[[eq_band_settings]]
+cutoff = 1000
+q = 70
+gain = -140
+
+[[eq_band_settings]]
+cutoff = 2000
+q = 70
+gain = -115
+
+[[eq_band_settings]]
+cutoff = 4000
+q = 70
+gain = -60
+
+[[eq_band_settings]]
+cutoff = 7000
+q = 70
 gain = 10
 
 [[eq_band_settings]]
-cutoff = 3
-q = 125
-gain = 10
+cutoff = 10000
+q = 70
+gain = 50
 
 [[eq_band_settings]]
-cutoff = 19
-q = 250
-gain = 10
+cutoff = 14000
+q = 70
+gain = 65
 
 [[eq_band_settings]]
-cutoff = 5
-q = 500
-gain = 10
-
-[[eq_band_settings]]
-cutoff = -16
-q = 1000
-gain = 10
-
-[[eq_band_settings]]
-cutoff = -66
-q = 2000
-gain = 10
-
-[[eq_band_settings]]
-cutoff = -31
-q = 4000
-gain = 10
-
-[[eq_band_settings]]
-cutoff = 9
-q = 8000
-gain = 10
-
-[[eq_band_settings]]
-cutoff = 32
-q = 16000
-gain = 7
-
-[[eq_band_settings]]
-cutoff = 34
-q = 0
-gain = 0
+cutoff = 20000
+q = 70
+gain = 50
 
 [replaygain_settings]
 noclip = true

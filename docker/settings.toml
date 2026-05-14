@@ -29,37 +29,37 @@ eq_enabled = true
 [[eq_band_settings]]
 cutoff = 60
 q = 70
-gain = 55
+gain = 25
 
 [[eq_band_settings]]
 cutoff = 200
 q = 70
-gain = 100
+gain = 55
 
 [[eq_band_settings]]
 cutoff = 500
 q = 70
-gain = 90
+gain = 40
 
 [[eq_band_settings]]
 cutoff = 1000
 q = 70
-gain = -70
+gain = -140
 
 [[eq_band_settings]]
 cutoff = 2000
 q = 70
-gain = -25
+gain = -115
 
 [[eq_band_settings]]
 cutoff = 4000
 q = 70
-gain = -10
+gain = -60
 
 [[eq_band_settings]]
 cutoff = 7000
 q = 70
-gain = 30
+gain = 10
 
 [[eq_band_settings]]
 cutoff = 10000
@@ -74,7 +74,7 @@ gain = 65
 [[eq_band_settings]]
 cutoff = 20000
 q = 70
-gain = 75
+gain = 50
 
 [replaygain_settings]
 noclip = true
