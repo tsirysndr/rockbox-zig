@@ -1,7 +1,15 @@
-use crate::{DspBuffer, DspConfig};
+use crate::{DspBuffer, DspConfig, EqBandSetting};
 
 pub fn set_crossfeed_type(r#type: i32) {
     unsafe { crate::dsp_set_crossfeed_type(r#type) }
+}
+
+pub fn set_crossfeed_direct_gain(gain: i32) {
+    unsafe { crate::dsp_set_crossfeed_direct_gain(gain) }
+}
+
+pub fn set_crossfeed_cross_params(lf_gain: i64, hf_gain: i64, cutoff: i64) {
+    unsafe { crate::dsp_set_crossfeed_cross_params(lf_gain, hf_gain, cutoff) }
 }
 
 pub fn eq_enable(enable: bool) {
@@ -9,9 +17,29 @@ pub fn eq_enable(enable: bool) {
     unsafe { crate::dsp_eq_enable(enable) }
 }
 
+pub fn set_eq_precut(precut: i32) {
+    unsafe { crate::dsp_set_eq_precut(precut) }
+}
+
+pub fn set_eq_coefs(band: i32, setting: &EqBandSetting) {
+    unsafe { crate::dsp_set_eq_coefs(band, setting as *const EqBandSetting) }
+}
+
 pub fn dither_enable(enable: bool) {
     let enable = if enable { 1 } else { 0 };
     unsafe { crate::dsp_dither_enable(enable) }
+}
+
+pub fn afr_enable(var: i32) {
+    unsafe { crate::dsp_afr_enable(var) }
+}
+
+pub fn pbe_enable(var: i32) {
+    unsafe { crate::dsp_pbe_enable(var) }
+}
+
+pub fn pbe_precut(var: i32) {
+    unsafe { crate::dsp_pbe_precut(var) }
 }
 
 pub fn get_timestretch() -> i32 {

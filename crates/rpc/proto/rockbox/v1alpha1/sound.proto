@@ -107,6 +107,49 @@ message KeyclickClickRequest {
 
 message KeyclickClickResponse { }
 
+message EqBandSettingMessage {
+  int32 cutoff = 1;
+  int32 q      = 2;
+  int32 gain   = 3;
+}
+
+message SetEqRequest {
+  bool                       enabled    = 1;
+  int32                      precut     = 2;
+  repeated EqBandSettingMessage bands   = 3;
+}
+
+message SetEqResponse { }
+
+message SetCrossfeedRequest {
+  int32  type             = 1;
+  int32  direct_gain      = 2;
+  int64  cross_gain       = 3;
+  int64  hf_attenuation   = 4;
+  int64  hf_cutoff        = 5;
+}
+
+message SetCrossfeedResponse { }
+
+message SetDitheringRequest {
+  bool enabled = 1;
+}
+
+message SetDitheringResponse { }
+
+message SetAfrRequest {
+  int32 mode = 1;
+}
+
+message SetAfrResponse { }
+
+message SetPbeRequest {
+  int32 mode   = 1;
+  int32 precut = 2;
+}
+
+message SetPbeResponse { }
+
 service SoundService {
   rpc AdjustVolume(AdjustVolumeRequest) returns (AdjustVolumeResponse);
   rpc SoundSet(SoundSetRequest) returns (SoundSetResponse);
@@ -123,4 +166,9 @@ service SoundService {
   rpc PcmbufSetLowLatency(PcmbufSetLowLatencyRequest) returns (PcmbufSetLowLatencyResponse);
   rpc SystemSoundPlay(SystemSoundPlayRequest) returns (SystemSoundPlayResponse);
   rpc KeyclickClick(KeyclickClickRequest) returns (KeyclickClickResponse);
+  rpc SetEq(SetEqRequest) returns (SetEqResponse);
+  rpc SetCrossfeed(SetCrossfeedRequest) returns (SetCrossfeedResponse);
+  rpc SetDithering(SetDitheringRequest) returns (SetDitheringResponse);
+  rpc SetAfr(SetAfrRequest) returns (SetAfrResponse);
+  rpc SetPbe(SetPbeRequest) returns (SetPbeResponse);
 }

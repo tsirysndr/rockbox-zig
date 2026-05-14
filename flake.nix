@@ -147,11 +147,13 @@
             echo "  Rust: $(rustc --version)"
             echo ""
             echo "SDL build (rockboxd with SDL audio):"
+            echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
             echo "  cd build-lib && make lib -j\$(nproc)"
             echo "  cargo build --release -p rockbox-cli -p rockbox-server"
             echo "  cd zig && zig build"
             echo ""
             echo "Headless / cpal build (no SDL):"
+            echo "  cd webui/rockbox && deno install --allow-scripts && deno task build && cd ../.."
             echo "  bash scripts/build-headless.sh"
             echo ""
             echo "CLI binary (rockbox):"
@@ -197,23 +199,27 @@
 
         # ── Convenience build scripts (nix run .#<name>) ─────────────────────
         apps = {
-          # Full headless build: firmware + Rust crates + Zig link.
+          # Full headless build: webui → firmware → Rust crates → Zig link.
           # Run from the repository root: nix run .#build-headless
           build-headless = {
             type    = "app";
             program = "${pkgs.writeShellScript "build-headless" ''
               set -euo pipefail
+              echo "==> Step 0: WebUI"
+              (cd webui/rockbox && deno install --allow-scripts && deno task build)
               exec bash scripts/build-headless.sh "$@"
             ''}";
           };
 
-          # SDL build: make lib → cargo → zig build.
+          # SDL build: webui → make lib → cargo → zig build.
           # Run from the repository root: nix run .#build-sdl
           build-sdl = {
             type    = "app";
             program = "${pkgs.writeShellScript "build-sdl" ''
               set -euo pipefail
               NCPU=$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)
+              echo "==> Step 0: WebUI"
+              (cd webui/rockbox && deno install --allow-scripts && deno task build)
               echo "==> Step 1: firmware (build-lib)"
               (cd build-lib && make lib -j"$NCPU")
               echo "==> Step 2: Rust crates"

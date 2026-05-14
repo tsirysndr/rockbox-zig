@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::rockbox_url;
+use crate::{rockbox_url, schema::objects::eq_band_setting::EqBandSettingInput};
 
 #[derive(SimpleObject)]
 struct VolumeInfo {
@@ -97,5 +97,87 @@ impl SoundMutation {
 
     async fn keyclick_click(&self) -> String {
         "keyclick click".to_string()
+    }
+
+    async fn set_eq(
+        &self,
+        ctx: &Context<'_>,
+        enabled: Option<bool>,
+        precut: Option<i32>,
+        bands: Option<Vec<EqBandSettingInput>>,
+    ) -> Result<bool, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "enabled": enabled,
+            "precut":  precut,
+            "bands":   bands.as_ref().map(|bs| bs.iter().map(|b| serde_json::json!({
+                "cutoff": b.cutoff,
+                "q":      b.q,
+                "gain":   b.gain,
+            })).collect::<Vec<_>>()),
+        });
+        let url = format!("{}/player/eq", rockbox_url());
+        client.put(&url).json(&body).send().await?;
+        Ok(true)
+    }
+
+    async fn set_crossfeed(
+        &self,
+        ctx: &Context<'_>,
+        r#type: Option<i32>,
+        direct_gain: Option<i32>,
+        cross_gain: Option<i64>,
+        hf_attenuation: Option<i64>,
+        hf_cutoff: Option<i64>,
+    ) -> Result<bool, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "type":           r#type,
+            "direct_gain":    direct_gain,
+            "cross_gain":     cross_gain,
+            "hf_attenuation": hf_attenuation,
+            "hf_cutoff":      hf_cutoff,
+        });
+        let url = format!("{}/player/crossfeed", rockbox_url());
+        client.put(&url).json(&body).send().await?;
+        Ok(true)
+    }
+
+    async fn set_dithering(&self, ctx: &Context<'_>, enabled: bool) -> Result<bool, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/dithering", rockbox_url());
+        client
+            .put(&url)
+            .json(&serde_json::json!({ "enabled": enabled }))
+            .send()
+            .await?;
+        Ok(true)
+    }
+
+    async fn set_afr(&self, ctx: &Context<'_>, mode: i32) -> Result<bool, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/afr", rockbox_url());
+        client
+            .put(&url)
+            .json(&serde_json::json!({ "mode": mode }))
+            .send()
+            .await?;
+        Ok(true)
+    }
+
+    async fn set_pbe(
+        &self,
+        ctx: &Context<'_>,
+        mode: Option<i32>,
+        precut: Option<i32>,
+    ) -> Result<bool, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/pbe", rockbox_url());
+        client
+            .put(&url)
+            .json(&serde_json::json!({ "mode": mode, "precut": precut }))
+            .send()
+            .await?;
+        Ok(true)
     }
 }

@@ -332,6 +332,17 @@ async fn run_http_server() -> Result<(), Error> {
                 "/player/volume",
                 web::put().to(handlers::player::adjust_volume),
             )
+            .route("/player/eq", web::put().to(handlers::dsp::set_eq))
+            .route(
+                "/player/crossfeed",
+                web::put().to(handlers::dsp::set_crossfeed),
+            )
+            .route(
+                "/player/dithering",
+                web::put().to(handlers::dsp::set_dithering),
+            )
+            .route("/player/afr", web::put().to(handlers::dsp::set_afr))
+            .route("/player/pbe", web::put().to(handlers::dsp::set_pbe))
             // Playlists — fixed routes before parametric ones
             .route(
                 "/playlists/start",

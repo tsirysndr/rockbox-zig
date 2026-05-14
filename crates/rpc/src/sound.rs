@@ -134,4 +134,98 @@ impl SoundService for Sound {
     ) -> Result<tonic::Response<KeyclickClickResponse>, tonic::Status> {
         Ok(tonic::Response::new(KeyclickClickResponse::default()))
     }
+
+    async fn set_eq(
+        &self,
+        request: tonic::Request<SetEqRequest>,
+    ) -> Result<tonic::Response<SetEqResponse>, tonic::Status> {
+        let req = request.into_inner();
+        let body = serde_json::json!({
+            "enabled": req.enabled,
+            "precut": req.precut,
+            "bands": req.bands.iter().map(|b| serde_json::json!({
+                "cutoff": b.cutoff,
+                "q":      b.q,
+                "gain":   b.gain,
+            })).collect::<Vec<_>>(),
+        });
+        let url = format!("{}/player/eq", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(SetEqResponse::default()))
+    }
+
+    async fn set_crossfeed(
+        &self,
+        request: tonic::Request<SetCrossfeedRequest>,
+    ) -> Result<tonic::Response<SetCrossfeedResponse>, tonic::Status> {
+        let req = request.into_inner();
+        let body = serde_json::json!({
+            "type":           req.r#type,
+            "direct_gain":    req.direct_gain,
+            "cross_gain":     req.cross_gain,
+            "hf_attenuation": req.hf_attenuation,
+            "hf_cutoff":      req.hf_cutoff,
+        });
+        let url = format!("{}/player/crossfeed", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(SetCrossfeedResponse::default()))
+    }
+
+    async fn set_dithering(
+        &self,
+        request: tonic::Request<SetDitheringRequest>,
+    ) -> Result<tonic::Response<SetDitheringResponse>, tonic::Status> {
+        let req = request.into_inner();
+        let body = serde_json::json!({ "enabled": req.enabled });
+        let url = format!("{}/player/dithering", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(SetDitheringResponse::default()))
+    }
+
+    async fn set_afr(
+        &self,
+        request: tonic::Request<SetAfrRequest>,
+    ) -> Result<tonic::Response<SetAfrResponse>, tonic::Status> {
+        let req = request.into_inner();
+        let body = serde_json::json!({ "mode": req.mode });
+        let url = format!("{}/player/afr", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(SetAfrResponse::default()))
+    }
+
+    async fn set_pbe(
+        &self,
+        request: tonic::Request<SetPbeRequest>,
+    ) -> Result<tonic::Response<SetPbeResponse>, tonic::Status> {
+        let req = request.into_inner();
+        let body = serde_json::json!({ "mode": req.mode, "precut": req.precut });
+        let url = format!("{}/player/pbe", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(SetPbeResponse::default()))
+    }
 }
