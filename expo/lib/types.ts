@@ -70,4 +70,11 @@ export type FilesMode =
   | "root"
   | "local"
   | "upnp-devices"
-  | "upnp-browse";
+  | "upnp-browse"
+  | "plex-servers"
+  | "plex-browse"
+  | "jellyfin-servers"
+  | "jellyfin-browse"
+  | "navidrome-browse"
+  | "kodi-servers"
+  | "kodi-browse";
