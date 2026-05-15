@@ -20,16 +20,12 @@ Rockbox open source high quality audio player
 
 %install
 mkdir -p %{buildroot}/usr/local/bin
-mkdir -p %{buildroot}/usr/local/lib
-mkdir -p %{buildroot}/usr/local/share
 cp -r %{_sourcedir}/amd64/usr %{buildroot}/
 
 %files
 /usr/local/bin/rockbox
 /usr/local/bin/rockboxd
 /usr/local/bin/typesense-server
-/usr/local/lib/rockbox/*
-/usr/local/share/rockbox/*
 /usr/bin/rockbox-gpui
 /usr/share/applications/rockbox-gpui.desktop
 /usr/share/pixmaps/rockbox-gpui.png
