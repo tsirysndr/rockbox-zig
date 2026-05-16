@@ -236,7 +236,7 @@ const ControlBarWithData: FC = () => {
     setTimeout(() => {
       setControlBarState((state) => ({
         ...state,
-        locked: true,
+        locked: false,
       }));
     }, 3000);
   };
