@@ -72,6 +72,7 @@ mod imp {
     pub async fn get_devices() -> Result<Vec<BluetoothDevice>> {
         let session = bluer::Session::new().await?;
         let adapter = session.default_adapter().await?;
+        adapter.set_powered(true).await?;
 
         let addrs = adapter.device_addresses().await?;
         let mut devices = Vec::new();
@@ -105,6 +106,7 @@ mod imp {
     pub async fn disconnect(address: &str) -> Result<()> {
         let session = bluer::Session::new().await?;
         let adapter = session.default_adapter().await?;
+        adapter.set_powered(true).await?;
 
         let addr = Address::from_str(address)?;
         let device = adapter.device(addr)?;
