@@ -13,6 +13,9 @@ import PlaylistDetailsPage from "./Containers/PlaylistDetails";
 import SmartPlaylistDetailsPage from "./Containers/PlaylistDetails/SmartPlaylistDetailsPage";
 import GenresPage from "./Containers/Genres";
 import GenreDetailsPage from "./Containers/GenreDetails";
+import BottomTabs from "./Components/BottomTabs/BottomTabs";
+import MiniPlayer from "./Components/MiniPlayer/MiniPlayer";
+import MobilePlayer from "./Components/MobilePlayer/MobilePlayer";
 
 function App() {
   return (
@@ -36,6 +39,9 @@ function App() {
           element={<SmartPlaylistDetailsPage />}
         />
       </Routes>
+      <MiniPlayer />
+      <BottomTabs />
+      <MobilePlayer />
     </BrowserRouter>
   );
 }

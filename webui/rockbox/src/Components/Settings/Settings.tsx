@@ -13,8 +13,8 @@ const Settings: FC = () => {
       <Sidebar active="settings" />
       <MainView>
         <ControlBar />
-        <div className="h-[calc(100vh-60px)] overflow-y-auto">
-          <div className="w-[60vw] mx-auto mb-[100px] mt-[30px] min-w-[435px] max-w-[800px]">
+        <div className="h-[var(--content-area-height)] overflow-y-auto">
+          <div className="w-full md:w-[60vw] mx-auto mb-[100px] mt-[30px] px-4 md:px-0 md:min-w-[435px] max-w-[800px]">
             <div className="text-2xl font-[RockfordSansMedium] mx-auto mb-10">
               Settings
             </div>

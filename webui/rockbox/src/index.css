@@ -22,6 +22,7 @@
 
 @layer base {
   :root {
+    --content-area-height: calc(100dvh - 124px); /* mobile: miniplayer 64px + bottom tabs 60px */
     --theme-text:                    #000;
     --theme-background:              #fff;
     --theme-surface:                 #f6f9fc;
@@ -41,6 +42,12 @@
     --text-color:                    #000;
     --secondary-text:                rgba(0, 0, 0, 0.542);
     --separator-color:               #e0e0e0cc;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --content-area-height: calc(100dvh - 60px); /* desktop: only the control bar */
+    }
   }
 
   .dark {
@@ -106,6 +113,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-y: hidden;
+}
+
+@media (max-width: 767px) {
+  body {
+    overflow-y: auto;
+  }
 }
 
 tbody > tr:hover {

@@ -186,7 +186,7 @@ const Likes: FC<TracksProps> = (props) => {
       <Sidebar active="likes" />
       <MainView>
         <ControlBar />
-        <div className="overflow-y-auto h-[calc(100vh-60px)] px-5 relative" ref={containerRef}>
+        <div className="overflow-y-auto h-[var(--content-area-height)] px-5 relative" ref={containerRef}>
           <div className="text-2xl font-[RockfordSansMedium] mb-5">Likes</div>
           {props.loading && (
             <div style={{ marginBottom: 60 }}>

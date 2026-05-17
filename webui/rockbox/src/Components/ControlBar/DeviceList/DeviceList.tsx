@@ -119,7 +119,7 @@ const DeviceList: FC<DeviceListProps> = ({
     null;
 
   return (
-    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-[370px] min-h-[200px]">
+    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-full md:w-[370px] min-h-[200px]">
       {/* Current device header */}
       <div className="h-[60px] flex mx-[25px] items-center">
         <div className="mt-[3px] mr-4">

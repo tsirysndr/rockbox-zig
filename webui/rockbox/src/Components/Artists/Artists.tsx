@@ -24,7 +24,7 @@ const Artists: FC<ArtistsProps> = (props) => {
       <Sidebar active="artists" />
       <MainView>
         <ControlBar />
-        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+        <div className="h-[var(--content-area-height)] overflow-y-auto">
           <div className="text-2xl font-[RockfordSansMedium] mx-auto mb-5 px-5">
             Artists
           </div>

@@ -55,7 +55,7 @@ const BluetoothList: FC<BluetoothListProps> = ({
   };
 
   return (
-    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-[280px] min-h-[120px]">
+    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-full md:w-[280px] min-h-[120px]">
       {devices.length > 0 && !loading && (
         <div className="m-[10px] mx-[25px] font-[RockfordSansBold]">Bluetooth speakers</div>
       )}

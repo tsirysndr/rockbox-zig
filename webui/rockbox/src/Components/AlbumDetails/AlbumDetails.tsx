@@ -97,16 +97,16 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
       cell: (info) => (
         <div
           style={{
-            minWidth: 150,
+            minWidth: 80,
             width: "calc(100% - 20px)",
-            maxWidth: "calc(100vw - 800px)",
+            maxWidth: "250px",
             fontSize: 14,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-[var(--theme-text)]"
+          className="text-[var(--theme-text)] hidden md:block"
         >
           <Link
             className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
@@ -149,7 +149,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
         cover={props.enableBlur ? (props.album?.albumArt as any) : undefined}
       >
         <ControlBar />
-        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+        <div className="pl-4 pr-4 md:pl-[30px] md:pr-[30px] overflow-y-auto h-[var(--content-area-height)]">
           <button
             className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={() => props.onGoBack()}
@@ -165,37 +165,30 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             </div>
           )}
           {!props.loading && <div style={{ marginBottom: 100 }}>
-            <div className="flex flex-row items-center mb-5 mt-[90px]">
+            <div className="flex flex-col md:flex-row md:items-center mb-5 mt-[90px] gap-5">
               <img
-                className="h-[240px] w-[240px] rounded-[3px]"
+                className="h-[160px] w-[160px] md:h-[240px] md:w-[240px] rounded-[3px] self-center md:self-auto"
                 src={props.album?.albumArt || AlbumArt}
               />
-              <div className="flex flex-col ml-[26px] h-[240px] justify-center">
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    height: "calc(240px - 12px)",
-                  }}
-                >
-                  <div className="text-[32px] font-[RockfordSansBold] text-[var(--theme-text)]">
+              <div className="flex flex-col md:ml-[26px] md:h-[240px] justify-center">
+                <div className="flex flex-col justify-center">
+                  <div className="text-[24px] md:text-[32px] font-[RockfordSansBold] text-[var(--theme-text)] text-center md:text-left">
                     {props.album?.title}
                   </div>
                   <Link
-                    className="text-[var(--theme-text)] no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
+                    className="text-[var(--theme-text)] no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline text-center md:text-left"
                     to={`/artists/${props.album?.artistId}`}
                   >
                     {props.album?.artist}
                   </Link>
-                  <div className="mt-[25px] font-normal text-sm text-[var(--theme-secondary-text)]">
+                  <div className="mt-[25px] font-normal text-sm text-[var(--theme-secondary-text)] text-center md:text-left">
                     {props.tracks.length || props.volumes.flat().length} TRACKS
                   </div>
-                  <div className="mt-[15px] font-normal text-sm mb-[10px] text-[var(--theme-secondary-text)]">
+                  <div className="mt-[15px] font-normal text-sm mb-[10px] text-[var(--theme-secondary-text)] text-center md:text-left">
                     {props.album?.year}
                   </div>
                 </div>
-                <div className="flex flex-row items-center">
+                <div className="flex flex-row items-center justify-center md:justify-start">
                   <Button onClick={() => props.onPlayAll()} kind="primary">
                     <div className="flex flex-row items-center">
                       <Play small color="#fff" />

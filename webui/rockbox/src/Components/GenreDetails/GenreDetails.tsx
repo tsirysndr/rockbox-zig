@@ -103,9 +103,9 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
   return (
     <div className="flex flex-row w-full h-full">
       <Sidebar active="genres" />
-      <div className="flex flex-1 flex-col w-[calc(100%-240px)]">
+      <div className="flex flex-1 flex-col w-full md:w-[calc(100%-240px)] bg-[var(--theme-background)]">
         <ControlBar />
-        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+        <div className="pl-4 pr-4 md:pl-[30px] md:pr-[30px] overflow-y-auto h-[var(--content-area-height)]">
           <button
             className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[18px] absolute z-[1]"
             onClick={() => props.onGoBack()}

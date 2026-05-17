@@ -60,11 +60,11 @@ const Home: FC<HomeProps> = ({
       <Sidebar active="home" />
       <MainView>
         <ControlBar />
-        <div className="h-[calc(100vh-60px)] overflow-y-auto">
-          <div className="text-[28px] font-[RockfordSansMedium] ml-[30px] mt-6 mb-6">Home</div>
+        <div className="h-[var(--content-area-height)] overflow-y-auto">
+          <div className="text-[28px] font-[RockfordSansMedium] ml-4 md:ml-[30px] mt-6 mb-6">Home</div>
 
           {quickPicks.length > 0 && (
-            <div className="grid grid-cols-2 gap-[10px] pl-[30px] pr-[30px] mb-5">
+            <div className="grid grid-cols-2 gap-[10px] pl-4 md:pl-[30px] pr-4 md:pr-[30px] mb-5">
               {quickPicks.map((p) => (
                 <Link
                   key={p.id}
@@ -92,8 +92,8 @@ const Home: FC<HomeProps> = ({
 
           {recentlyPlayed.length > 0 && (
             <>
-              <div className="text-[20px] font-semibold ml-[30px] mt-[30px] mb-[14px]">Recently played</div>
-              <div className="flex flex-row gap-4 pl-[30px] pr-[30px] overflow-x-auto pb-2 no-scrollbar">
+              <div className="text-[20px] font-semibold ml-4 md:ml-[30px] mt-[30px] mb-[14px]">Recently played</div>
+              <div className="flex flex-row gap-4 pl-4 md:pl-[30px] pr-4 md:pr-[30px] overflow-x-auto pb-2 no-scrollbar">
                 {recentlyPlayed.map((a) => (
                   <Link
                     key={a.id}
@@ -126,8 +126,8 @@ const Home: FC<HomeProps> = ({
 
           {madeForYou.length > 0 && (
             <>
-              <div className="text-[20px] font-semibold ml-[30px] mt-[30px] mb-[14px]">Made for you</div>
-              <div className="flex flex-row gap-4 pl-[30px] pr-[30px] overflow-x-auto pb-2 no-scrollbar">
+              <div className="text-[20px] font-semibold ml-4 md:ml-[30px] mt-[30px] mb-[14px]">Made for you</div>
+              <div className="flex flex-row gap-4 pl-4 md:pl-[30px] pr-4 md:pr-[30px] overflow-x-auto pb-2 no-scrollbar">
                 {madeForYou.map((p) => (
                   <Link
                     key={p.id}
@@ -162,8 +162,8 @@ const Home: FC<HomeProps> = ({
 
           {topArtists.length > 0 && (
             <>
-              <div className="text-[20px] font-semibold ml-[30px] mt-[30px] mb-[14px]">Your top artists</div>
-              <div className="flex flex-row gap-4 pl-[30px] pr-[30px] overflow-x-auto pb-2 no-scrollbar">
+              <div className="text-[20px] font-semibold ml-4 md:ml-[30px] mt-[30px] mb-[14px]">Your top artists</div>
+              <div className="flex flex-row gap-4 pl-4 md:pl-[30px] pr-4 md:pr-[30px] overflow-x-auto pb-2 no-scrollbar">
                 {topArtists.map((a) => (
                   <Link
                     key={a.id}
@@ -196,8 +196,8 @@ const Home: FC<HomeProps> = ({
 
           {popularAlbums.length > 0 && (
             <>
-              <div className="text-[20px] font-semibold ml-[30px] mt-[30px] mb-[14px]">Popular albums</div>
-              <div className="flex flex-row gap-4 pl-[30px] pr-[30px] overflow-x-auto pb-2 no-scrollbar" style={{ marginBottom: 80 }}>
+              <div className="text-[20px] font-semibold ml-4 md:ml-[30px] mt-[30px] mb-[14px]">Popular albums</div>
+              <div className="flex flex-row gap-4 pl-4 md:pl-[30px] pr-4 md:pr-[30px] overflow-x-auto pb-2 no-scrollbar" style={{ marginBottom: 80 }}>
                 {popularAlbums.map((a) => (
                   <Link
                     key={a.id}

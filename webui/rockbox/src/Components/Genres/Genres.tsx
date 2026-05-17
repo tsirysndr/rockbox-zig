@@ -26,7 +26,7 @@ const Genres: FC<GenresProps> = ({ genres, loading }) => {
       <Sidebar active="genres" />
       <MainView>
         <ControlBar />
-        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+        <div className="h-[var(--content-area-height)] overflow-y-auto">
           <div className="text-2xl font-[RockfordSansMedium] max-w-[96%] mx-auto mb-5 px-5">
             Genres
           </div>

@@ -64,7 +64,7 @@ const PlayQueue: FC<PlayQueueProps> = ({
 
   const tracks = active === "playqueue" ? nextTracks! : previousTracks!;
   return (
-    <div className="h-[calc(100vh-113px)] w-[370px]">
+    <div className="h-[calc(100vh-113px)] w-full md:w-[370px]">
       <div className="flex flex-row">
         <div className="text-sm ml-4 mr-4 pt-5 mb-5 flex-1">
           {active === "playqueue" ? "Play Queue" : "History"}

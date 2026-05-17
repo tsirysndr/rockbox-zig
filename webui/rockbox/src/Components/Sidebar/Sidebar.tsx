@@ -20,7 +20,7 @@ export type SidebarProps = {
 
 const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
   return (
-    <div className={`flex flex-col h-screen w-[222px] p-5 ${cover ? 'bg-[var(--theme-background)]' : 'bg-[var(--theme-surface)]'}`}>
+    <div className={`hidden md:flex flex-col h-screen w-[222px] p-5 ${cover ? 'bg-[var(--theme-background)]' : 'bg-[var(--theme-surface)]'}`}>
       <div className="flex flex-row items-center justify-between">
         <a href="/" style={{ textDecoration: "none" }}>
           <img

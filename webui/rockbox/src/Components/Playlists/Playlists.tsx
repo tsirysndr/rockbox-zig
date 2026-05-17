@@ -39,16 +39,9 @@ const Playlists: FC<PlaylistsProps> = ({
       <Sidebar active="playlists" />
       <MainView>
         <ControlBar />
-        <div className="h-[calc(100vh-60px)] overflow-y-auto">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingRight: 20,
-            }}
-          >
-            <div className="text-2xl font-[RockfordSansMedium] max-w-[96%] mx-auto mb-5 px-5">Playlists</div>
+        <div className="h-[var(--content-area-height)] overflow-y-auto">
+          <div className="flex items-center justify-between pr-5 pl-5 mt-6 mb-5">
+            <div className="text-2xl font-[RockfordSansMedium]">Playlists</div>
             <button
               onClick={() => setCreateModalOpen(true)}
               style={{

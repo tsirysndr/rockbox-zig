@@ -131,14 +131,14 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
         <div
           style={{
             width: "calc(100% - 20px)",
-            maxWidth: "calc(100vw - 800px)",
+            maxWidth: "250px",
             fontSize: 14,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-[var(--theme-text)]"
+          className="text-[var(--theme-text)] hidden md:block"
         >
           <Link
             className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
@@ -180,9 +180,9 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
   return (
     <div className="flex flex-row w-full h-full">
       <Sidebar active="artists" />
-      <div className="flex flex-1 flex-col w-[calc(100%-240px)]">
+      <div className="flex flex-1 flex-col w-full md:w-[calc(100%-240px)] bg-[var(--theme-background)]">
         <ControlBar />
-        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+        <div className="pl-4 pr-4 md:pl-[30px] md:pr-[30px] overflow-y-auto h-[var(--content-area-height)]">
           <button
             className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={() => props.onGoBack()}
@@ -212,25 +212,25 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
               </div>
             </div>
           )}
-          {!loading && <><div className="flex flex-row items-end gap-6 mt-[30px] mb-8">
+          {!loading && <><div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mt-[30px] mb-8 items-center">
             {image ? (
               <img
-                className="w-[160px] h-[160px] rounded-full object-cover flex-shrink-0"
+                className="w-[120px] h-[120px] md:w-[160px] md:h-[160px] rounded-full object-cover flex-shrink-0"
                 src={image}
                 alt={props.name}
               />
             ) : (
-              <div className="w-[160px] h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0">
-                <ArtistIcon width={64} height={64} color="#bbb" />
+              <div className="w-[120px] h-[120px] md:w-[160px] md:h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0">
+                <ArtistIcon width={48} height={48} color="#bbb" />
               </div>
             )}
-            <div>
-              <div className="font-[RockfordSansMedium] text-[30px] mb-1">
+            <div className="text-center md:text-left">
+              <div className="font-[RockfordSansMedium] text-[24px] md:text-[30px] mb-1">
                 {props.name}
               </div>
             </div>
           </div>
-          <div className="flex flex-row items-center">
+          <div className="flex flex-row items-center justify-center md:justify-start">
             <Button onClick={props.onPlayAll} kind="primary">
               <div className="flex flex-row items-center">
                 <Play small color="#fff" />

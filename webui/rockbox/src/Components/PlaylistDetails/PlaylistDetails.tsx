@@ -148,7 +148,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
       <Sidebar active="playlists" />
       <MainView>
         <ControlBar />
-        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+        <div className="pl-4 pr-4 md:pl-[30px] md:pr-[30px] overflow-y-auto h-[var(--content-area-height)]">
           <button
             className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={onGoBack}
@@ -164,31 +164,22 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             </div>
           )}
           {!loading && <div style={{ marginBottom: 100 }}>
-            <div className="flex flex-row items-center mb-5 mt-[90px]">
+            <div className="flex flex-col md:flex-row md:items-center mb-5 mt-[90px] gap-5">
               <div
-                className="h-[240px] w-[240px] rounded-[6px] bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0"
+                className="h-[160px] w-[160px] md:h-[240px] md:w-[240px] rounded-[6px] bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0 self-center md:self-auto"
                 style={playlist?.image ? { backgroundImage: `url(${playlist.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
               >
-                {!playlist?.image && <Music size={64} color="#bbb" />}
+                {!playlist?.image && <Music size={48} color="#bbb" />}
               </div>
-              <div className="flex flex-col ml-[26px] h-[240px] justify-center">
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    height: "calc(240px - 12px)",
-                  }}
-                >
-                  <div className="text-[32px] font-[RockfordSansBold]">{playlist?.name}</div>
-                  {playlist?.description && (
-                    <div className="text-sm text-[#555] mt-2">
-                      {playlist.description}
-                    </div>
-                  )}
-                  <div className="mt-[25px] font-normal text-sm">{tracks.length} TRACKS</div>
-                </div>
-                <div className="flex flex-row items-center mt-5">
+              <div className="flex flex-col md:ml-[26px] md:h-[240px] justify-center text-center md:text-left">
+                <div className="text-[24px] md:text-[32px] font-[RockfordSansBold]">{playlist?.name}</div>
+                {playlist?.description && (
+                  <div className="text-sm text-[#555] mt-2">
+                    {playlist.description}
+                  </div>
+                )}
+                <div className="mt-[25px] font-normal text-sm">{tracks.length} TRACKS</div>
+                <div className="flex flex-row items-center mt-5 justify-center md:justify-start">
                   <Button onClick={onPlayAll} kind="primary">
                     <div className="flex flex-row items-center">
                       <Play small color="#fff" />

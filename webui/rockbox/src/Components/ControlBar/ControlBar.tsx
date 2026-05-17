@@ -45,7 +45,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
   };
 
   return (
-    <div className="flex flex-row h-[60px] mt-[5px] mb-5 pr-5">
+    <div className="hidden md:flex flex-row h-[60px] mt-[5px] mb-5 pr-5">
       <div className="flex items-center justify-center flex-[0.3]">
         <div className="flex items-center justify-between flex-row w-[160px]">
           <button

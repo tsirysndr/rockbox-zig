@@ -232,7 +232,7 @@ const Files: FC<FilesProps> = (props) => {
       <Sidebar active="files" />
       <MainView>
         <ControlBar />
-        <div className="overflow-y-auto h-[calc(100vh-100px)] px-5">
+        <div className="overflow-y-auto h-[var(--content-area-height)] px-5">
           {props.canGoBack && (
             <button
               className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] left-5 rounded-[15px] bg-[var(--theme-back-button)] mt-[45px] mb-[46px] absolute z-[1]"
