@@ -6,6 +6,7 @@ use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::repo;
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files};
 use rockbox_sys as rb;
+use tracing::warn;
 #[cfg(not(feature = "fts5"))]
 use rockbox_typesense::{client::*, types::*};
 use serde::Deserialize;
@@ -59,9 +60,9 @@ pub async fn scan_library(
         return Ok(HttpResponse::Ok().body("0"));
     }
 
-    update_metadata(state.pool.clone())
-        .await
-        .map_err(ErrorInternalServerError)?;
+    if let Err(e) = update_metadata(state.pool.clone()).await {
+        warn!("Failed to update artist metadata from Rocksky: {}", e);
+    }
 
     if !rebuild_index {
         SimpleBroker::publish(ScanCompleted);
