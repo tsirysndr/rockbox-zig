@@ -6,7 +6,7 @@ exports[`PlayQueue > should render 1`] = `
     class=""
   >
     <div
-      class="h-[calc(100vh-113px)] w-[370px]"
+      class="h-[calc(100vh-113px)] w-full md:w-[370px]"
     >
       <div
         class="flex flex-row"

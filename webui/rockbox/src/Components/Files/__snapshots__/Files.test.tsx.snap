@@ -9,7 +9,7 @@ exports[`Files > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
+        class="hidden md:flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -274,13 +274,13 @@ exports[`Files > should render 1`] = `
         </a>
       </div>
       <div
-        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-[var(--theme-background)] bg-center bg-no-repeat bg-cover"
+        class="flex flex-1 flex-col relative w-full md:w-[calc(100%-240px)] bg-[var(--theme-background)] bg-center bg-no-repeat bg-cover"
       >
         <div
           class="h-screen"
         >
           <div
-            class="flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
+            class="hidden md:flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
           >
             <div
               class="flex items-center justify-center flex-[0.3]"
@@ -470,7 +470,7 @@ exports[`Files > should render 1`] = `
             </div>
           </div>
           <div
-            class="overflow-y-auto h-[calc(100vh-100px)] px-5"
+            class="overflow-y-auto h-[var(--content-area-height)] px-5"
           >
             <button
               class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] left-5 rounded-[15px] bg-[var(--theme-back-button)] mt-[45px] mb-[46px] absolute z-[1]"

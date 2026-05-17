@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.17]
+
+### Added
+- Web UI mobile layout — bottom-tab navigation bar, persistent mini-player dock, and a full-screen player modal; mirrors the Expo mobile app information architecture on small viewports
+
+### Fixed
+- Web UI: resuming a paused track now calls `resume` instead of restarting the track from the beginning — `useResumePlaylist` now scopes the playlist-reload logic to `status === 0` (stopped) only, preserves `nowPlaying` fields while paused, and fixes an `onPause` timeout that was permanently locking subscription updates after any pause
+- Bluetooth: adapter is powered on before listing paired devices or disconnecting, preventing `BluetoothError::NotPowered` on adapters that idle to off
+
 ## [2026.05.15]
 
 ### Added

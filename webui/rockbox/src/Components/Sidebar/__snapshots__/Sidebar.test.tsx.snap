@@ -6,7 +6,7 @@ exports[`Sidebar > should render 1`] = `
     class=""
   >
     <div
-      class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
+      class="hidden md:flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
     >
       <div
         class="flex flex-row items-center justify-between"

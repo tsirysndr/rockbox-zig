@@ -9,7 +9,7 @@ exports[`ArtistDetails > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
+        class="hidden md:flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -274,10 +274,10 @@ exports[`ArtistDetails > should render 1`] = `
         </a>
       </div>
       <div
-        class="flex flex-1 flex-col w-[calc(100%-240px)]"
+        class="flex flex-1 flex-col w-full md:w-[calc(100%-240px)] bg-[var(--theme-background)]"
       >
         <div
-          class="flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
+          class="hidden md:flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
         >
           <div
             class="flex items-center justify-center flex-[0.3]"
@@ -467,7 +467,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </div>
         <div
-          class="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]"
+          class="pl-4 pr-4 md:pl-[30px] md:pr-[30px] overflow-y-auto h-[var(--content-area-height)]"
         >
           <button
             class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
@@ -498,15 +498,15 @@ exports[`ArtistDetails > should render 1`] = `
             </div>
           </button>
           <div
-            class="flex flex-row items-end gap-6 mt-[30px] mb-8"
+            class="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mt-[30px] mb-8 items-center"
           >
             <div
-              class="w-[160px] h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0"
+              class="w-[120px] h-[120px] md:w-[160px] md:h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0"
             >
               <svg
-                height="64"
+                height="48"
                 viewBox="0 0 24 24"
-                width="64"
+                width="48"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -515,16 +515,18 @@ exports[`ArtistDetails > should render 1`] = `
                 />
               </svg>
             </div>
-            <div>
+            <div
+              class="text-center md:text-left"
+            >
               <div
-                class="font-[RockfordSansMedium] text-[30px] mb-1"
+                class="font-[RockfordSansMedium] text-[24px] md:text-[30px] mb-1"
               >
                 Daft Punk
               </div>
             </div>
           </div>
           <div
-            class="flex flex-row items-center"
+            class="flex flex-row items-center justify-center md:justify-start"
           >
             <button
               class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn"
@@ -692,8 +694,8 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-[var(--theme-text)]"
-                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
+                    class="text-[var(--theme-text)] hidden md:block"
+                    style="width: calc(100% - 20px); max-width: 250px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
                       class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
@@ -895,8 +897,8 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-[var(--theme-text)]"
-                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
+                    class="text-[var(--theme-text)] hidden md:block"
+                    style="width: calc(100% - 20px); max-width: 250px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
                       class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
@@ -1098,8 +1100,8 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-[var(--theme-text)]"
-                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
+                    class="text-[var(--theme-text)] hidden md:block"
+                    style="width: calc(100% - 20px); max-width: 250px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
                       class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"

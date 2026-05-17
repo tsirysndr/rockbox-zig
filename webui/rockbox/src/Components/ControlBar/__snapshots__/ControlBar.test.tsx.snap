@@ -6,7 +6,7 @@ exports[`ControlBar > should render 1`] = `
     class=""
   >
     <div
-      class="flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
+      class="hidden md:flex flex-row h-[60px] mt-[5px] mb-5 pr-5"
     >
       <div
         class="flex items-center justify-center flex-[0.3]"
