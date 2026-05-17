@@ -6,10 +6,10 @@ use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::repo;
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files};
 use rockbox_sys as rb;
-use tracing::warn;
 #[cfg(not(feature = "fts5"))]
 use rockbox_typesense::{client::*, types::*};
 use serde::Deserialize;
+use tracing::warn;
 
 use crate::http::AppState;
 
