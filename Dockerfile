@@ -102,5 +102,7 @@ EXPOSE 6600
 EXPOSE 1704
 EXPOSE 1705
 EXPOSE 1780
+# navidrome
+EXPOSE 4533
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
