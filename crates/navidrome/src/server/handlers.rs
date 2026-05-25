@@ -652,30 +652,28 @@ pub async fn get_cover_art(
         None => return HttpResponse::NotFound().finish(),
     };
 
-    // id may be "al-<albumId>", "ar-<artistId>", a track id, or a bare album id.
+    // id may be "al-<albumId>", "ar-<artistId>", or a bare id (some clients
+    // omit the prefix). Try: track → album → artist.
     let art_path = if let Some(album_id) = id.strip_prefix("al-") {
         cover_art_for_album(&state, album_id).await
     } else if let Some(artist_id) = id.strip_prefix("ar-") {
         cover_art_for_artist(&state, artist_id).await
-    } else {
-        // Try as track id first; fall back through the track's album art, then
-        // treat the id as a bare album id (some clients omit the "al-" prefix).
-        match repo::track::find(state.pool.clone(), id)
-            .await
-            .ok()
-            .flatten()
-        {
-            Some(track) => {
-                if track.album_art.is_some() {
-                    track.album_art
-                } else if !track.album_id.is_empty() {
-                    cover_art_for_album(&state, &track.album_id).await
-                } else {
-                    None
-                }
-            }
-            None => cover_art_for_album(&state, id).await,
+    } else if let Some(track) = repo::track::find(state.pool.clone(), id)
+        .await
+        .ok()
+        .flatten()
+    {
+        if track.album_art.is_some() {
+            track.album_art
+        } else if !track.album_id.is_empty() {
+            cover_art_for_album(&state, &track.album_id).await
+        } else {
+            None
         }
+    } else if let Some(art) = cover_art_for_album(&state, id).await {
+        Some(art)
+    } else {
+        cover_art_for_artist(&state, id).await
     };
 
     match art_path {
