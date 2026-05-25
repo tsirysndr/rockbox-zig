@@ -5,11 +5,12 @@ icon: 'plug'
 ---
 
 | Service                                | Port  | Protocol           | Override                    |
-|----------------------------------------|-------|--------------------|-----------------------------|
+| -------------------------------------- | ----- | ------------------ | --------------------------- |
 | gRPC                                   | 6061  | gRPC / gRPC-Web    | `ROCKBOX_RPC_PORT`          |
 | GraphQL + Web UI                       | 6062  | HTTP / WS          | `ROCKBOX_GRAPHQL_PORT`      |
 | HTTP REST                              | 6063  | HTTP               | `ROCKBOX_TCP_PORT`          |
 | MPD server                             | 6600  | MPD protocol       | `ROCKBOX_MPD_PORT`          |
+| Subsonic / Navidrome API               | 4533  | HTTP               | `subsonic_port`             |
 | Slim Protocol (squeezelite)            | 3483  | TCP                | `squeezelite_port`          |
 | HTTP PCM stream (squeezelite)          | 9999  | HTTP               | `squeezelite_http_port`     |
 | Chromecast WAV stream                  | 7881  | HTTP               | `chromecast_http_port`      |
@@ -40,6 +41,7 @@ inbound on these is needed:
 - `6062/tcp` — for the web UI and GraphQL
 - `6063/tcp` — for the REST API
 - `6600/tcp` — for MPD clients
+- `4533/tcp` — for Subsonic/Navidrome clients (Cassette, Symfonium, DSub, …)
 - `5353/udp` — mDNS (multicast)
 - `1900/udp` — SSDP (multicast)
 

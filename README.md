@@ -43,6 +43,7 @@ and Squeezelite.
 - [x] HTTP REST API
 - [x] [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server — compatible with all MPD clients
 - [x] [MPRIS](https://specifications.freedesktop.org/mpris-spec/) — desktop media key and taskbar integration
+- [x] Subsonic/Navidrome API — compatible with Cassette, Symfonium, DSub, Ultrasonic and more
 - [x] Fast search powered by [Typesense](https://typesense.org)
 - [x] Navigate by folders or tag database
 - [x] UPnP/DLNA
@@ -207,6 +208,7 @@ rockbox
 | GraphQL + Web UI                     | 6062         | HTTP            |
 | HTTP REST API                        | 6063         | HTTP            |
 | MPD server                           | 6600         | MPD protocol    |
+| Subsonic / Navidrome API             | 4533         | HTTP            |
 | Slim Protocol (squeezelite)          | 3483         | TCP             |
 | HTTP PCM stream (squeezelite)        | 9999         | HTTP            |
 | Chromecast WAV stream                | 7881         | HTTP            |

@@ -15,6 +15,14 @@ Keys not listed here are ignored.
 | `audio_output` | string  | `"builtin"` | `builtin` / `fifo` / `airplay` / `squeezelite` / `chromecast` / `snapcast_tcp` / `upnp` |
 | `player_name`  | string  | `""`        | Name advertised to MPD clients and the UI        |
 
+## Subsonic / Navidrome API server
+
+| Key                   | Type   | Default  | Description                                            |
+| --------------------- | ------ | -------- | ------------------------------------------------------ |
+| `subsonic_username`   | string | `admin`  | Username clients must authenticate with                |
+| `subsonic_password`   | string | —        | Password; server is **disabled** when this is empty    |
+| `subsonic_port`       | int    | `4533`   | TCP port the Subsonic API listens on                   |
+
 ## FIFO / pipe sink
 
 | Key         | Type   | Default        | Description                                |

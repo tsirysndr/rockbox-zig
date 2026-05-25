@@ -243,7 +243,11 @@ fn mime_for_path(path: &str) -> &'static str {
 }
 
 /// Build artist index (alphabetical grouping A-Z + #).
-fn build_artist_index(artists: &[rockbox_library::entity::artist::Artist]) -> Vec<Value> {
+/// `album_counts` maps artist_id → number of albums.
+fn build_artist_index(
+    artists: &[rockbox_library::entity::artist::Artist],
+    album_counts: &HashMap<String, usize>,
+) -> Vec<Value> {
     let mut groups: HashMap<String, Vec<Value>> = HashMap::new();
     for a in artists {
         let first = a
@@ -257,20 +261,18 @@ fn build_artist_index(artists: &[rockbox_library::entity::artist::Artist]) -> Ve
         } else {
             "#".to_string()
         };
-        groups
-            .entry(key)
-            .or_default()
-            .push(json!({"id": a.id, "name": a.name, "albumCount": 0, "coverArt": format!("ar-{}", a.id)}));
+        let count = album_counts.get(&a.id).copied().unwrap_or(0);
+        groups.entry(key).or_default().push(json!({
+            "id": a.id,
+            "name": a.name,
+            "albumCount": count,
+            "coverArt": format!("ar-{}", a.id),
+        }));
     }
     let mut keys: Vec<String> = groups.keys().cloned().collect();
     keys.sort();
     keys.into_iter()
-        .map(|k| {
-            json!({
-                "name": k,
-                "artist": groups[&k],
-            })
-        })
+        .map(|k| json!({ "name": k, "artist": groups[&k] }))
         .collect()
 }
 
@@ -350,7 +352,10 @@ pub async fn get_artists(
             return response::respond_error(f, 0, "database error");
         }
     };
-    let index = build_artist_index(&artists);
+    let album_counts = repo::album::count_by_artist(state.pool.clone())
+        .await
+        .unwrap_or_default();
+    let index = build_artist_index(&artists, &album_counts);
     let json_data = json!({
         "artists": {
             "ignoredArticles": "The An A Die Das Ein",
@@ -1763,7 +1768,10 @@ pub async fn get_indexes(
     let artists = repo::artist::all(state.pool.clone())
         .await
         .unwrap_or_default();
-    let index = build_artist_index(&artists);
+    let album_counts = repo::album::count_by_artist(state.pool.clone())
+        .await
+        .unwrap_or_default();
+    let index = build_artist_index(&artists, &album_counts);
     let json_data = json!({
         "indexes": {
             "lastModified": 0,

@@ -1,0 +1,170 @@
+---
+title: "Subsonic / Navidrome clients"
+description: "Rockbox speaks the Subsonic REST API on port 4533, compatible with Cassette, Symfonium, DSub, Ultrasonic, Substreamer and more."
+icon: 'music'
+---
+
+`rockboxd` runs a built-in Subsonic-compatible API server on port **4533**.
+Any client that works with Navidrome or a standard Subsonic server will work
+with Rockbox out of the box.
+
+## Setup
+
+Add three lines to `~/.config/rockbox.org/settings.toml`:
+
+```toml
+subsonic_username = "admin"
+subsonic_password = "yourpassword"
+subsonic_port     = 4533   # optional, 4533 is the default
+```
+
+Restart `rockboxd`. The server is disabled if `subsonic_password` is empty.
+
+Then point your client at `http://<host>:4533` with the username and password
+above.
+
+<Note>
+The server uses the same SQLite library that all other Rockbox APIs share.
+A full library scan (`startScan`) populates it automatically.
+</Note>
+
+## Authentication
+
+Both Subsonic auth modes are supported:
+
+| Mode                 | Parameters                                                    |
+| -------------------- | ------------------------------------------------------------- |
+| Token (recommended)  | `u=`, `t=md5(password+salt)`, `s=<salt>`                      |
+| Plaintext            | `u=`, `p=<password>` or `p=enc:<hex-encoded-password>`        |
+
+## Implemented endpoints
+
+### System
+
+| Endpoint             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `ping`               | Connection check                                 |
+| `getUser`            | Returns the configured user with all roles       |
+| `getMusicFolders`    | Returns the configured `music_dir`               |
+| `getScanStatus`      | Whether a library scan is running                |
+| `startScan`          | Trigger a full library rescan                    |
+
+### Library — ID3 browsing
+
+| Endpoint             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `getArtists`         | Alphabetical artist index with album counts      |
+| `getArtist`          | Artist detail with album list                    |
+| `getAlbum`           | Album detail with track list                     |
+| `getSong`            | Single track metadata                            |
+
+### Library — folder browsing
+
+| Endpoint             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `getIndexes`         | Alphabetical artist index (folder-browsing mode) |
+| `getMusicDirectory`  | List artists → albums → tracks by folder ID      |
+
+### Genres
+
+| Endpoint             | Description                           |
+| -------------------- | ------------------------------------- |
+| `getGenres`          | All genres in the library             |
+| `getSongsByGenre`    | Tracks filtered by genre              |
+
+### Lists
+
+| Endpoint             | Description                                                 |
+| -------------------- | ----------------------------------------------------------- |
+| `getAlbumList`       | Folder-browsing album list (alias for `getAlbumList2`)      |
+| `getAlbumList2`      | Album list sorted by name, artist, year, newest, or starred |
+| `getRandomSongs`     | Random tracks, optional year/genre filter                   |
+| `getStarred`         | Starred items (folder-browsing version)                     |
+| `getStarred2`        | Starred artists, albums and songs (ID3)                     |
+
+### Playback
+
+| Endpoint             | Description                                                      |
+| -------------------- | ---------------------------------------------------------------- |
+| `stream`             | Stream audio file; supports `Range` requests for seeking         |
+| `download`           | Alias for `stream`                                               |
+| `getCoverArt`        | Album or artist artwork; local files and remote URLs proxied     |
+| `scrobble`           | Record a play in the track stats                                 |
+| `getNowPlaying`      | Currently playing track pushed by the broker loop                |
+| `updateNowPlaying`   | No-op (accepted for client compatibility)                        |
+
+### Search
+
+| Endpoint   | Description                              |
+| ---------- | ---------------------------------------- |
+| `search2`  | Artist / album / song search (older API) |
+| `search3`  | Artist / album / song search (ID3)       |
+
+### Playlists
+
+| Endpoint          | Description                                   |
+| ----------------- | --------------------------------------------- |
+| `getPlaylists`    | List all saved playlists                      |
+| `getPlaylist`     | Playlist detail with track list               |
+| `createPlaylist`  | Create or replace a playlist                  |
+| `updatePlaylist`  | Rename, add songs, remove songs by index      |
+| `deletePlaylist`  | Delete a playlist                             |
+
+### Starring
+
+| Endpoint  | Description                                                              |
+| --------- | ------------------------------------------------------------------------ |
+| `star`    | Star a track, album or artist; mirrors to Rocksky if a token is present  |
+| `unstar`  | Unstar; mirrors removal to Rocksky                                       |
+
+### Artist & album info
+
+| Endpoint            | Description                                         |
+| ------------------- | --------------------------------------------------- |
+| `getArtistInfo`     | Artist biography and image URL                      |
+| `getArtistInfo2`    | Same as `getArtistInfo` (ID3)                       |
+| `getAlbumInfo`      | Album info (returns empty; no external lookup)      |
+| `getAlbumInfo2`     | Same as `getAlbumInfo` (ID3)                        |
+| `getSimilarSongs`   | Returns empty list (no recommendation engine)       |
+| `getSimilarSongs2`  | Same as `getSimilarSongs` (ID3)                     |
+| `getTopSongs`       | Top tracks for an artist name (library search)      |
+| `getLyrics`         | Returns empty (no lyrics source)                    |
+
+## Recommended clients
+
+| Client        | Platform              | Notes                                              |
+| ------------- | --------------------- | -------------------------------------------------- |
+| Cassette      | iOS / Android         | Clean UI, full ID3 browsing                        |
+| Symfonium     | Android               | Feature-rich, gapless, EQ                          |
+| Substreamer   | iOS                   | Offline sync, CarPlay support                      |
+| DSub          | Android               | Lightweight, open source                           |
+| Ultrasonic    | Android               | FOSS, F-Droid                                      |
+| Clementine    | macOS / Linux / Win   | Desktop client with Subsonic integration           |
+| Sublime Music | Linux                 | GTK desktop client                                 |
+
+## Cover art
+
+Cover art IDs follow the Navidrome convention:
+
+| ID format       | Resolves to                          |
+| --------------- | ------------------------------------ |
+| `al-{albumId}`  | Album artwork extracted by scanner   |
+| `ar-{artistId}` | Artist image from Rocksky (if any)   |
+| `{trackId}`     | Embedded art from the track file     |
+
+Artwork files are stored under `~/.config/rockbox.org/covers/`. Artist images
+from Rocksky are HTTP URLs and are proxied by the server.
+
+## Range requests
+
+The `stream` endpoint supports the `Range: bytes=N-M` header, so clients
+can seek in audio files without re-downloading from the start.
+
+## Notes
+
+- `bitRate` is returned in **kbps** (as the Subsonic spec requires).
+- `albumCount` in artist listings counts albums where the artist appears either
+  as primary album artist or as a track artist, so compilation contributors
+  and featured artists show the correct count.
+- Response format is JSON by default; pass `f=xml` for XML.
+- API version advertised: `1.16.1`.

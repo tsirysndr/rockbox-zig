@@ -79,11 +79,24 @@ pub async fn find_by_artist(
     pool: Pool<Sqlite>,
     artist_id: &str,
 ) -> Result<Vec<Album>, sqlx::Error> {
+    // Match albums where the artist is either the primary album artist
+    // OR appears as a track artist on any track in the album.
     match sqlx::query_as::<_, Album>(
         r#"
-        SELECT * FROM album WHERE artist_id = $1 AND EXISTS (
-          SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
-        ) ORDER BY title ASC
+        SELECT DISTINCT album.* FROM album
+        WHERE (
+            album.artist_id = $1
+            OR EXISTS (
+                SELECT 1 FROM track
+                WHERE track.album_id = album.id
+                  AND track.artist_id = $1
+                  AND track.is_remote = 0
+            )
+        )
+        AND EXISTS (
+            SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+        )
+        ORDER BY album.title ASC
         "#,
     )
     .bind(artist_id)
@@ -92,10 +105,38 @@ pub async fn find_by_artist(
     {
         Ok(albums) => Ok(albums),
         Err(e) => {
-            warn!("Error finding albums: {:?}", e);
+            warn!("Error finding albums by artist: {:?}", e);
             Err(e)
         }
     }
+}
+
+/// Returns a map of artist_id → number of distinct albums that artist appears in,
+/// either as primary album artist or as a track artist.
+pub async fn count_by_artist(
+    pool: Pool<Sqlite>,
+) -> Result<std::collections::HashMap<String, usize>, sqlx::Error> {
+    let rows: Vec<(String, i64)> = sqlx::query_as(
+        r#"
+        SELECT artist_id, COUNT(DISTINCT album_id) as cnt FROM (
+            SELECT album.artist_id, album.id AS album_id FROM album
+            WHERE EXISTS (
+                SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+            )
+            UNION
+            SELECT track.artist_id, track.album_id FROM track
+            WHERE track.is_remote = 0 AND track.artist_id != ''
+        )
+        GROUP BY artist_id
+        "#,
+    )
+    .fetch_all(&pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|(id, cnt)| (id, cnt as usize))
+        .collect())
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::Error> {
