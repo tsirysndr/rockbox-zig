@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.25]
+
+### Added
+- Subsonic / Navidrome API compatibility server on port **4533** — any client that works with Navidrome (Cassette, Symfonium, DSub, Ultrasonic, Substreamer, Clementine, Sublime Music, …) can browse and stream music from `rockboxd` without additional setup; enabled by adding `subsonic_username` and `subsonic_password` to `settings.toml`
+- Implemented endpoints: `ping`, `getUser`, `getMusicFolders`, `getScanStatus`, `startScan`, `getArtists`, `getArtist`, `getAlbum`, `getSong`, `getIndexes`, `getMusicDirectory`, `getGenres`, `getSongsByGenre`, `getAlbumList` / `getAlbumList2`, `getRandomSongs`, `getStarred` / `getStarred2`, `stream` (with HTTP `Range` / seek support), `download`, `getCoverArt`, `scrobble`, `getNowPlaying`, `updateNowPlaying`, `search2` / `search3`, `getPlaylists`, `getPlaylist`, `createPlaylist`, `updatePlaylist`, `deletePlaylist`, `star` / `unstar` (mirrored to Rocksky), `getArtistInfo` / `getArtistInfo2`, `getAlbumInfo` / `getAlbumInfo2`, `getSimilarSongs` / `getSimilarSongs2`, `getTopSongs`, `getLyrics`
+- Auth: MD5 token mode (`t` + `s`) and plaintext / `enc:<hex>` mode (`p`)
+- `getCoverArt` resolves bare filenames to `~/.config/rockbox.org/covers/` and proxies Rocksky HTTP URLs for artist images
+- Mintlify docs page `mintlify/clients/subsonic.mdx` covering setup, auth modes, all endpoints, recommended clients, cover art IDs, and range-request support
+
 ## [2026.05.17]
 
 ### Added
