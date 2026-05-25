@@ -576,6 +576,19 @@ pub extern "C" fn start_servers() {
             .enable_all()
             .build()
             .unwrap();
+        match runtime.block_on(rockbox_navidrome::server::start()) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error starting Subsonic API server: {}", e);
+            }
+        }
+    });
+
+    thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         match runtime.block_on(rockbox_graphql::server::start()) {
             Ok(_) => {}
             Err(e) => {
@@ -640,6 +653,12 @@ pub extern "C" fn start_broker() {
     let mut last_stats_track_id: Option<String> = None;
     let mut last_stats_elapsed: u64 = 0;
     let mut last_stats_length: u64 = 0;
+
+    // Username for the getNowPlaying Subsonic endpoint — read once at startup.
+    let subsonic_username = rockbox_settings::read_settings()
+        .ok()
+        .and_then(|s| s.subsonic_username)
+        .unwrap_or_else(|| "admin".to_string());
 
     loop {
         let mutex = GLOBAL_MUTEX.lock().unwrap();
@@ -725,6 +744,24 @@ pub extern "C" fn start_broker() {
                         track.album_artist = metadata.album_artist.clone();
                     }
                     SimpleBroker::publish(track.clone());
+                    rockbox_navidrome::server::set_now_playing(Some(
+                        rockbox_navidrome::server::NowPlayingInfo {
+                            track_id: track.id.clone(),
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album: track.album.clone(),
+                            path: track.path.clone(),
+                            elapsed_ms: track.elapsed,
+                            length_ms: track.length,
+                            album_id: track.album_id.clone(),
+                            artist_id: track.artist_id.clone(),
+                            album_art: track.album_art.clone(),
+                            bitrate: track.bitrate,
+                            year: track.year,
+                            track_number: track.tracknum,
+                            username: subsonic_username.clone(),
+                        },
+                    ));
 
                     let track_changed = if let Some(ref current) = current_scrobble_track {
                         current.path != track.path
@@ -787,6 +824,24 @@ pub extern "C" fn start_broker() {
                 } else {
                     // Track not in DB (e.g. an HTTP stream URL not yet scanned).
                     // Still publish so clients receive elapsed/status updates.
+                    rockbox_navidrome::server::set_now_playing(Some(
+                        rockbox_navidrome::server::NowPlayingInfo {
+                            track_id: track.id.clone(),
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album: track.album.clone(),
+                            path: track.path.clone(),
+                            elapsed_ms: track.elapsed,
+                            length_ms: track.length,
+                            album_id: track.album_id.clone(),
+                            artist_id: track.artist_id.clone(),
+                            album_art: track.album_art.clone(),
+                            bitrate: track.bitrate,
+                            year: track.year,
+                            track_number: track.tracknum,
+                            username: subsonic_username.clone(),
+                        },
+                    ));
                     SimpleBroker::publish(track);
                 }
             }

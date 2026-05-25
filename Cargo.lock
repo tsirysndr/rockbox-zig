@@ -9611,13 +9611,25 @@ dependencies = [
 name = "rockbox-navidrome"
 version = "0.1.0"
 dependencies = [
+ "actix-cors",
+ "actix-rt",
+ "actix-web",
  "anyhow",
+ "chrono",
  "md5",
+ "mime_guess",
+ "rand 0.8.5",
  "reqwest",
+ "rockbox-library",
+ "rockbox-playlists",
+ "rockbox-rocksky",
+ "rockbox-settings",
  "serde",
  "serde_json",
+ "sqlx",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -9748,6 +9760,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-mpd",
  "rockbox-mpris",
+ "rockbox-navidrome",
  "rockbox-network",
  "rockbox-playlists",
  "rockbox-rocksky",

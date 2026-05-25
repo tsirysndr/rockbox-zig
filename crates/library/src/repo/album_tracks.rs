@@ -43,10 +43,10 @@ pub async fn save(pool: Pool<Sqlite>, album_track: AlbumTracks) -> Result<(), sq
 pub async fn find_by_album(pool: Pool<Sqlite>, album_id: &str) -> Result<Vec<Track>, sqlx::Error> {
     match sqlx::query_as::<_, Track>(
         r#"
-        SELECT * FROM album_tracks
-        LEFT JOIN track ON album_tracks.track_id = track.id
-        WHERE album_tracks.album_id = $1 
-        ORDER BY disc_number, track_number ASC
+        SELECT track.* FROM album_tracks
+        INNER JOIN track ON album_tracks.track_id = track.id
+        WHERE album_tracks.album_id = $1
+        ORDER BY track.disc_number, track.track_number ASC
         "#,
     )
     .bind(album_id)
@@ -55,7 +55,7 @@ pub async fn find_by_album(pool: Pool<Sqlite>, album_id: &str) -> Result<Vec<Tra
     {
         Ok(album_tracks) => Ok(album_tracks),
         Err(e) => {
-            eprintln!("Error finding album tracks: {:?}", e);
+            tracing::error!("Error finding album tracks: {:?}", e);
             Err(e)
         }
     }

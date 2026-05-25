@@ -740,6 +740,13 @@ pub struct NewGlobalSettings {
     /// Enable real-time PCM loudness normalization (default: false).
     /// Equalises perceived volume across tracks, similar to Spotify's "Normalize Volume".
     pub normalize_volume: Option<bool>,
+
+    /// Subsonic/Navidrome-compatible API server username (for connecting clients).
+    pub subsonic_username: Option<String>,
+    /// Subsonic/Navidrome-compatible API server password.
+    pub subsonic_password: Option<String>,
+    /// Port for the Subsonic-compatible API server (default: 4533).
+    pub subsonic_port: Option<u16>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -805,6 +812,9 @@ impl From<UserSettings> for NewGlobalSettings {
             snapcast_tcp_host: None,
             snapcast_tcp_port: None,
             normalize_volume: None,
+            subsonic_username: None,
+            subsonic_password: None,
+            subsonic_port: None,
         }
     }
 }

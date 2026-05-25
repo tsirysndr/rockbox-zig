@@ -1,3 +1,5 @@
+pub mod server;
+
 use serde::Deserialize;
 use std::time::Duration;
 
