@@ -652,18 +652,30 @@ pub async fn get_cover_art(
         None => return HttpResponse::NotFound().finish(),
     };
 
-    // id may be "al-<albumId>", "ar-<artistId>", or a track id.
+    // id may be "al-<albumId>", "ar-<artistId>", a track id, or a bare album id.
     let art_path = if let Some(album_id) = id.strip_prefix("al-") {
         cover_art_for_album(&state, album_id).await
     } else if let Some(artist_id) = id.strip_prefix("ar-") {
         cover_art_for_artist(&state, artist_id).await
     } else {
-        // Treat as track id
-        repo::track::find(state.pool.clone(), id)
+        // Try as track id first; fall back through the track's album art, then
+        // treat the id as a bare album id (some clients omit the "al-" prefix).
+        match repo::track::find(state.pool.clone(), id)
             .await
             .ok()
             .flatten()
-            .and_then(|t| t.album_art)
+        {
+            Some(track) => {
+                if track.album_art.is_some() {
+                    track.album_art
+                } else if !track.album_id.is_empty() {
+                    cover_art_for_album(&state, &track.album_id).await
+                } else {
+                    None
+                }
+            }
+            None => cover_art_for_album(&state, id).await,
+        }
     };
 
     match art_path {

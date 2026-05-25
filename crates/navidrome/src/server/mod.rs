@@ -139,8 +139,14 @@ pub async fn start() -> anyhow::Result<()> {
             // System
             .route("/rest/ping{_:(\\.view)?}", web::get().to(handlers::ping))
             .route("/rest/ping{_:(\\.view)?}", web::post().to(handlers::ping))
-            .route("/rest/getUser{_:(\\.view)?}", web::get().to(handlers::get_user))
-            .route("/rest/getUser{_:(\\.view)?}", web::post().to(handlers::get_user))
+            .route(
+                "/rest/getUser{_:(\\.view)?}",
+                web::get().to(handlers::get_user),
+            )
+            .route(
+                "/rest/getUser{_:(\\.view)?}",
+                web::post().to(handlers::get_user),
+            )
             .route(
                 "/rest/getMusicFolders{_:(\\.view)?}",
                 web::get().to(handlers::get_music_folders),
@@ -157,8 +163,14 @@ pub async fn start() -> anyhow::Result<()> {
                 "/rest/getScanStatus{_:(\\.view)?}",
                 web::post().to(handlers::get_scan_status),
             )
-            .route("/rest/startScan{_:(\\.view)?}", web::get().to(handlers::start_scan))
-            .route("/rest/startScan{_:(\\.view)?}", web::post().to(handlers::start_scan))
+            .route(
+                "/rest/startScan{_:(\\.view)?}",
+                web::get().to(handlers::start_scan),
+            )
+            .route(
+                "/rest/startScan{_:(\\.view)?}",
+                web::post().to(handlers::start_scan),
+            )
             // Library — ID3-tag browsing
             .route(
                 "/rest/getArtists{_:(\\.view)?}",
@@ -168,12 +180,30 @@ pub async fn start() -> anyhow::Result<()> {
                 "/rest/getArtists{_:(\\.view)?}",
                 web::post().to(handlers::get_artists),
             )
-            .route("/rest/getArtist{_:(\\.view)?}", web::get().to(handlers::get_artist))
-            .route("/rest/getArtist{_:(\\.view)?}", web::post().to(handlers::get_artist))
-            .route("/rest/getAlbum{_:(\\.view)?}", web::get().to(handlers::get_album))
-            .route("/rest/getAlbum{_:(\\.view)?}", web::post().to(handlers::get_album))
-            .route("/rest/getSong{_:(\\.view)?}", web::get().to(handlers::get_song))
-            .route("/rest/getSong{_:(\\.view)?}", web::post().to(handlers::get_song))
+            .route(
+                "/rest/getArtist{_:(\\.view)?}",
+                web::get().to(handlers::get_artist),
+            )
+            .route(
+                "/rest/getArtist{_:(\\.view)?}",
+                web::post().to(handlers::get_artist),
+            )
+            .route(
+                "/rest/getAlbum{_:(\\.view)?}",
+                web::get().to(handlers::get_album),
+            )
+            .route(
+                "/rest/getAlbum{_:(\\.view)?}",
+                web::post().to(handlers::get_album),
+            )
+            .route(
+                "/rest/getSong{_:(\\.view)?}",
+                web::get().to(handlers::get_song),
+            )
+            .route(
+                "/rest/getSong{_:(\\.view)?}",
+                web::post().to(handlers::get_song),
+            )
             // Library — folder browsing (older clients)
             .route(
                 "/rest/getIndexes{_:(\\.view)?}",
@@ -192,8 +222,14 @@ pub async fn start() -> anyhow::Result<()> {
                 web::post().to(handlers::get_music_directory),
             )
             // Genres
-            .route("/rest/getGenres{_:(\\.view)?}", web::get().to(handlers::get_genres))
-            .route("/rest/getGenres{_:(\\.view)?}", web::post().to(handlers::get_genres))
+            .route(
+                "/rest/getGenres{_:(\\.view)?}",
+                web::get().to(handlers::get_genres),
+            )
+            .route(
+                "/rest/getGenres{_:(\\.view)?}",
+                web::post().to(handlers::get_genres),
+            )
             .route(
                 "/rest/getSongsByGenre{_:(\\.view)?}",
                 web::get().to(handlers::get_songs_by_genre),
@@ -228,10 +264,22 @@ pub async fn start() -> anyhow::Result<()> {
                 web::post().to(handlers::get_starred2),
             )
             // Playback
-            .route("/rest/stream{_:(\\.view)?}", web::get().to(handlers::stream))
-            .route("/rest/stream{_:(\\.view)?}", web::post().to(handlers::stream))
-            .route("/rest/download{_:(\\.view)?}", web::get().to(handlers::stream))
-            .route("/rest/download{_:(\\.view)?}", web::post().to(handlers::stream))
+            .route(
+                "/rest/stream{_:(\\.view)?}",
+                web::get().to(handlers::stream),
+            )
+            .route(
+                "/rest/stream{_:(\\.view)?}",
+                web::post().to(handlers::stream),
+            )
+            .route(
+                "/rest/download{_:(\\.view)?}",
+                web::get().to(handlers::stream),
+            )
+            .route(
+                "/rest/download{_:(\\.view)?}",
+                web::post().to(handlers::stream),
+            )
             .route(
                 "/rest/getCoverArt{_:(\\.view)?}",
                 web::get().to(handlers::get_cover_art),
@@ -240,8 +288,14 @@ pub async fn start() -> anyhow::Result<()> {
                 "/rest/getCoverArt{_:(\\.view)?}",
                 web::post().to(handlers::get_cover_art),
             )
-            .route("/rest/scrobble{_:(\\.view)?}", web::get().to(handlers::scrobble))
-            .route("/rest/scrobble{_:(\\.view)?}", web::post().to(handlers::scrobble))
+            .route(
+                "/rest/scrobble{_:(\\.view)?}",
+                web::get().to(handlers::scrobble),
+            )
+            .route(
+                "/rest/scrobble{_:(\\.view)?}",
+                web::post().to(handlers::scrobble),
+            )
             .route(
                 "/rest/getNowPlaying{_:(\\.view)?}",
                 web::get().to(handlers::get_now_playing),
@@ -259,8 +313,14 @@ pub async fn start() -> anyhow::Result<()> {
                 web::post().to(handlers::update_now_playing),
             )
             // Search
-            .route("/rest/search3{_:(\\.view)?}", web::get().to(handlers::search3))
-            .route("/rest/search3{_:(\\.view)?}", web::post().to(handlers::search3))
+            .route(
+                "/rest/search3{_:(\\.view)?}",
+                web::get().to(handlers::search3),
+            )
+            .route(
+                "/rest/search3{_:(\\.view)?}",
+                web::post().to(handlers::search3),
+            )
             // Playlists
             .route(
                 "/rest/getPlaylists{_:(\\.view)?}",
@@ -305,8 +365,14 @@ pub async fn start() -> anyhow::Result<()> {
             // Starring
             .route("/rest/star{_:(\\.view)?}", web::get().to(handlers::star))
             .route("/rest/star{_:(\\.view)?}", web::post().to(handlers::star))
-            .route("/rest/unstar{_:(\\.view)?}", web::get().to(handlers::unstar))
-            .route("/rest/unstar{_:(\\.view)?}", web::post().to(handlers::unstar))
+            .route(
+                "/rest/unstar{_:(\\.view)?}",
+                web::get().to(handlers::unstar),
+            )
+            .route(
+                "/rest/unstar{_:(\\.view)?}",
+                web::post().to(handlers::unstar),
+            )
             // Artist / album info
             .route(
                 "/rest/getArtistInfo{_:(\\.view)?}",
@@ -364,8 +430,14 @@ pub async fn start() -> anyhow::Result<()> {
                 "/rest/getTopSongs{_:(\\.view)?}",
                 web::post().to(handlers::get_top_songs),
             )
-            .route("/rest/getLyrics{_:(\\.view)?}", web::get().to(handlers::get_lyrics))
-            .route("/rest/getLyrics{_:(\\.view)?}", web::post().to(handlers::get_lyrics))
+            .route(
+                "/rest/getLyrics{_:(\\.view)?}",
+                web::get().to(handlers::get_lyrics),
+            )
+            .route(
+                "/rest/getLyrics{_:(\\.view)?}",
+                web::post().to(handlers::get_lyrics),
+            )
             // Aliases for older API versions
             .route(
                 "/rest/getAlbumList{_:(\\.view)?}",
@@ -383,8 +455,14 @@ pub async fn start() -> anyhow::Result<()> {
                 "/rest/getStarred{_:(\\.view)?}",
                 web::post().to(handlers::get_starred),
             )
-            .route("/rest/search2{_:(\\.view)?}", web::get().to(handlers::search2))
-            .route("/rest/search2{_:(\\.view)?}", web::post().to(handlers::search2))
+            .route(
+                "/rest/search2{_:(\\.view)?}",
+                web::get().to(handlers::search2),
+            )
+            .route(
+                "/rest/search2{_:(\\.view)?}",
+                web::post().to(handlers::search2),
+            )
     })
     .bind(addr)?
     .run()
