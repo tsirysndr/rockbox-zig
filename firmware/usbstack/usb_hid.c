@@ -121,11 +121,11 @@ static bool active = false;
 static bool currently_sending = false;
 static int usb_interface;
 
-struct usb_class_driver_ep_allocation usb_hid_ep_allocs[1] = {
-    {.type = USB_ENDPOINT_XFER_INT, .dir = DIR_IN, .optional = false},
+static struct usb_class_driver_ep_allocation ep_allocs[1] = {
+    {.type = USB_ENDPOINT_XFER_INT, .dir = DIR_IN, .optional = false, .mps = -1},
 };
 
-#define EP_IN (usb_hid_ep_allocs[0].ep)
+#define EP_IN (ep_allocs[0].ep)
 
 static void usb_hid_try_send_drv(void);
 
@@ -173,7 +173,7 @@ static void pack_parameter(unsigned char **dest, bool is_signed, bool mark_size,
     }
 }
 
-int usb_hid_set_first_interface(int interface)
+static int usb_hid_set_first_interface(int interface)
 {
     usb_interface = interface;
 
@@ -519,7 +519,7 @@ static void descriptor_hid_get(unsigned char **dest)
     PACK_DATA(dest, hid_descriptor);
 }
 
-int usb_hid_get_config_descriptor(unsigned char *dest, int max_packet_size)
+static int usb_hid_get_config_descriptor(unsigned char *dest, int max_packet_size)
 {
     (void)max_packet_size;
 
@@ -543,15 +543,16 @@ int usb_hid_get_config_descriptor(unsigned char *dest, int max_packet_size)
     return (int)(dest - orig_dest);
 }
 
-void usb_hid_init_connection(void)
+static int usb_hid_init_connection(void)
 {
     logf("hid: init connection");
     active = true;
     currently_sending = false;
+    return 0;
 }
 
 /* called by usb_core_init() */
-void usb_hid_init(void)
+static void usb_hid_init(void)
 {
     logf("hid: init");
 
@@ -565,7 +566,7 @@ void usb_hid_init(void)
     currently_sending = false;
 }
 
-void usb_hid_disconnect(void)
+static void usb_hid_disconnect(void)
 {
     logf("hid: disconnect");
     active = false;
@@ -573,7 +574,7 @@ void usb_hid_disconnect(void)
 }
 
 /* called by usb_core_transfer_complete() */
-void usb_hid_transfer_complete(int ep, int dir, int status, int length)
+static void usb_hid_transfer_complete(int ep, int dir, int status, int length)
 {
     (void)ep;
     (void)length;
@@ -593,9 +594,11 @@ void usb_hid_transfer_complete(int ep, int dir, int status, int length)
  * In order to allow sending info to the DAP, the Set Report mechanism can be
  * used by defining vendor specific output reports and send them from the host
  * to the DAP using the host's custom driver */
-static int usb_hid_set_report(struct usb_ctrlrequest *req, void *reqdata)
+static int usb_hid_set_report(struct usb_ctrlrequest *req, uint8_t* reqdata, size_t reqdata_size)
 {
-    static unsigned char buf[64] USB_DEVBSS_ATTR __attribute__((aligned(32)));
+    (void)reqdata;
+    (void)reqdata_size;
+
     int length;
 
     if ((req->wValue >> 8) != USB_HID_REPORT_TYPE_OUTPUT)
@@ -620,28 +623,22 @@ static int usb_hid_set_report(struct usb_ctrlrequest *req, void *reqdata)
         return 4;
     }
 
-    if(!reqdata) {
-        memset(buf, 0, length);
-        usb_drv_control_response(USB_CONTROL_RECEIVE, buf, length);
-        return 0;
-    }
-
 #ifdef LOGF_ENABLE
-    if (buf[1] & 0x01)
+    if (reqdata[1] & 0x01)
         logf("Num Lock enabled");
-    if (buf[1] & 0x02)
+    if (reqdata[1] & 0x02)
         logf("Caps Lock enabled");
-    if (buf[1] & 0x04)
+    if (reqdata[1] & 0x04)
         logf("Scroll Lock enabled");
-    if (buf[1] & 0x08)
+    if (reqdata[1] & 0x08)
         logf("Compose enabled");
-    if (buf[1] & 0x10)
+    if (reqdata[1] & 0x10)
         logf("Kana enabled");
 #endif
 
     /* Defining other LEDs and setting them from the USB host (OS) can be used
      * to send messages to the DAP */
-    usb_drv_control_response(USB_CONTROL_ACK, NULL, 0);
+    usb_core_control_response(USB_CONTROL_ACK, NULL, 0);
     return 0;
 }
 
@@ -673,15 +670,14 @@ static int usb_hid_get_report(struct usb_ctrlrequest *req, unsigned char* dest)
 
     dest[0] = 0;
     dest[1] = battery_level();
-    usb_drv_control_response(USB_CONTROL_ACK, dest, 2);
+    usb_core_control_response(USB_CONTROL_ACK, dest, 2);
     return 0;
 }
 
 /* called by usb_core_control_request() */
-bool usb_hid_control_request(struct usb_ctrlrequest *req, void *reqdata, unsigned char *dest)
+static bool usb_hid_control_request(struct usb_ctrlrequest *req, uint8_t* reqdata, size_t reqdata_size)
 {
-    (void)reqdata;
-
+    unsigned char* dest = reqdata;
     unsigned char *orig_dest = dest;
     switch (req->bRequestType & USB_TYPE_MASK)
     {
@@ -705,7 +701,7 @@ bool usb_hid_control_request(struct usb_ctrlrequest *req, void *reqdata, unsigne
 
         if (dest != orig_dest)
         {
-            usb_drv_control_response(USB_CONTROL_ACK, orig_dest, dest - orig_dest);
+            usb_core_control_response(USB_CONTROL_ACK, orig_dest, dest - orig_dest);
             return true;
         }
         break;
@@ -722,13 +718,13 @@ bool usb_hid_control_request(struct usb_ctrlrequest *req, void *reqdata, unsigne
         switch (req->bRequest)
         {
         case USB_HID_SET_REPORT:
-            rc = usb_hid_set_report(req, reqdata);
+            rc = usb_hid_set_report(req, reqdata, reqdata_size);
             break;
         case USB_HID_GET_REPORT:
             rc = usb_hid_get_report(req, dest);
             break;
         case USB_HID_SET_IDLE:
-            usb_drv_control_response(USB_CONTROL_ACK, NULL, 0);
+            usb_core_control_response(USB_CONTROL_ACK, NULL, 0);
             return true;
         default:
             /* all other requests are errors */
@@ -828,3 +824,18 @@ void usb_hid_send(usage_page_t usage_page, int id)
 
     usb_hid_try_send_drv();
 }
+
+struct usb_class_driver usb_cdrv_hid = {
+    .needs_exclusive_storage = false,
+    .needs_cpu_boost = false,
+    .config = 1,
+    .ep_allocs_size = ARRAYLEN(ep_allocs),
+    .ep_allocs = ep_allocs,
+    .set_first_interface = usb_hid_set_first_interface,
+    .get_config_descriptor = usb_hid_get_config_descriptor,
+    .init_connection = usb_hid_init_connection,
+    .init = usb_hid_init,
+    .disconnect = usb_hid_disconnect,
+    .transfer_complete = usb_hid_transfer_complete,
+    .control_request = usb_hid_control_request,
+};

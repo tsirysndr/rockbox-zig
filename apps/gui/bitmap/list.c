@@ -446,8 +446,6 @@ void list_draw(struct screen *display, struct gui_synclist *list)
 
         callback_draw_item(&list_info);
     }
-    display->set_viewport(parent);
-    display->update_viewport();
     display->set_viewport(last_vp);
 }
 

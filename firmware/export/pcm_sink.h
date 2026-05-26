@@ -21,6 +21,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "config.h"
+
 struct pcm_sink_caps {
     const unsigned long* samprs;
     uint16_t             num_samprs;
@@ -68,6 +70,9 @@ enum pcm_sink_ids {
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
 #endif
+#endif
+#ifdef USB_ENABLE_IAP
+    PCM_SINK_IAP,
 #endif
     PCM_SINK_NUM
 };

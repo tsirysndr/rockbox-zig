@@ -411,6 +411,7 @@ static void start_sound(void)
         .get_more = get_more,
     };
     rb->mixer_set_frequency(caps->samprs[sr_index]);
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
     rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     sound_playing = true;
@@ -424,6 +425,7 @@ static void stop_sound(void)
     if (!sound_playing)
         return;
 
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
     rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 

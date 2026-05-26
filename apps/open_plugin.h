@@ -35,6 +35,7 @@
 #define OPEN_RBPLUGIN_DAT PLUGIN_DIR "/rb_plugins.dat"
 #define OPEN_PLUGIN_BUFSZ MAX_PATH
 #define OPEN_PLUGIN_NAMESZ 32
+#define OPEN_PLUGIN_CFGNAME "openplugin"
 
 enum {
     OPEN_PLUGIN_LANG_INVALID    = (-1),
@@ -84,7 +85,7 @@ int open_plugin_load_entry(const char *key);
 void open_plugin_browse(const char *key);
 int open_plugin_run(const char *key);
 void open_plugin_cache_flush(void); /* flush to disk */
-void open_plugin_import(char *strdat);
+void open_plugin_import(const char *cfg_file);
 void open_plugin_export(int cfg_fd);
 #endif
 

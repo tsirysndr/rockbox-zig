@@ -107,6 +107,7 @@
 #include "rbunicode.h"
 #include "root_menu.h"
 #include "plugin.h" /* To borrow a temp buffer to rewrite a .m3u8 file */
+#include "iap-usb.h"
 #include "logdiskf.h"
 #ifdef HAVE_DIRCACHE
 #include "dircache.h"
@@ -315,7 +316,7 @@ static void pl_close_control(struct playlist_info *playlist)
 /* Check if the filename suggests M3U or M3U8 format. */
 static bool is_m3u8_name(const char* filename)
 {
-    char *dot = strrchr(filename, '.');
+    const char *dot = strrchr(filename, '.');
 
     /* Default to M3U8 unless explicitly told otherwise. */
     return (!dot || strcasecmp(dot, ".m3u") != 0);
@@ -720,6 +721,7 @@ static void display_playlist_count(int count, const unsigned char *fmt,
 static int add_indices_to_playlist(struct playlist_info* playlist,
                                    char* buffer, size_t buflen)
 {
+    unsigned long loading_tick = current_tick + HZ/6;
     ssize_t nread;
     unsigned int i, count = 0;
     bool store_index;
@@ -742,7 +744,6 @@ static int add_indices_to_playlist(struct playlist_info* playlist,
 
     i = lseek(playlist->fd, 0, SEEK_CUR);
 
-    splash(0, ID2P(LANG_WAIT));
     store_index = true;
 
     while(1)
@@ -777,6 +778,12 @@ static int add_indices_to_playlist(struct playlist_info* playlist,
                     playlist->indices[ playlist->amount ] = i+count;
                     dc_init_filerefs(playlist, playlist->amount, 1);
                     playlist->amount++;
+
+                    if (TIME_AFTER(current_tick, loading_tick))
+                    {
+                        loading_tick += HZ*10;
+                        splash(0, ID2P(LANG_WAIT));
+                    }
                 }
             }
         }
@@ -1233,6 +1240,8 @@ static int remove_all_tracks_unlocked(struct playlist_info *playlist)
     playlist->amount = 1;
     playlist->indices[0] |= PLAYLIST_QUEUED;
     playlist->flags = 0; /* Reset dirplay and modified flags */
+    if (playlist == &current_playlist)
+        iap_on_tracks_count(playlist->amount);
 
     if (playlist->last_insert_pos == 0)
         playlist->last_insert_pos = -1;
@@ -1440,6 +1449,8 @@ static int add_track_to_playlist_unlocked(struct playlist_info* playlist,
     dc_init_filerefs(playlist, insert_position, 1);
 
     playlist->amount++;
+    if (playlist == &current_playlist)
+        iap_on_tracks_count(playlist->amount);
 
     return insert_position;
 }
@@ -1521,6 +1532,9 @@ static void find_and_set_playlist_index_unlocked(struct playlist_info* playlist,
         if (playlist->indices[i] == seek)
         {
             playlist->index = playlist->first_index = i;
+
+            if (playlist == &current_playlist)
+                iap_on_track_playback_index(rotate_index(playlist, playlist->index), true);
 
             break;
         }
@@ -2965,6 +2979,7 @@ int playlist_next(int steps)
             sort_playlist_unlocked(playlist, false, false);
             randomise_playlist_unlocked(playlist, current_tick, false, true);
             global_settings.playlist_shuffle = true;
+            iap_on_shuffle_state(global_settings.playlist_shuffle);
 
             playlist->started = true;
             playlist->index = 0;
@@ -3570,8 +3585,9 @@ int playlist_resume(void)
         }
     }
 
-    if (global_status.resume_index != -1)
+    if (global_status.resume_index != -1) {
         playlist->index = global_status.resume_index;
+    }
 
 out:
     playlist_write_unlock(playlist);
@@ -4085,8 +4101,10 @@ static int pl_save_update_control(struct playlist_info* playlist,
 
     /* Reset shuffle seed */
     playlist->seed = 0;
-    if (playlist == &current_playlist)
+    if (playlist == &current_playlist) {
         global_settings.playlist_shuffle = false;
+        iap_on_shuffle_state(global_settings.playlist_shuffle);
+    }
 
     pl_close_control(playlist);
     close(old_fd);

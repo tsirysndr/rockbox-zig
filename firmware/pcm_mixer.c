@@ -163,7 +163,7 @@ fill_frame:
 
         if (chan->size == 0)
         {
-            if (chan->play_cbs->get_more)
+            if (chan->play_cbs && chan->play_cbs->get_more)
             {
                 chan->play_cbs->get_more(&chan->start, &chan->size);
                 ALIGN_AUDIOBUF(chan->start, chan->size);

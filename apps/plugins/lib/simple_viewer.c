@@ -29,13 +29,16 @@
 struct view_info {
     struct font* pf;
     struct viewport scrollbar_vp; /* viewport for scrollbar */
+    struct viewport title_vp;
     struct viewport vp;
+    bool sbs_has_title; /* SBS comes with custom title area */
     const char *title;
     const char *text;   /* displayed text */
     int display_lines;  /* number of lines can be displayed */
     int line_count;     /* number of lines */
     int line;           /* current first line */
     int start;          /* possition of first line in text  */
+    bool ui_update_cb;
 };
 
 static bool isbrchr(const unsigned char *str, int len)
@@ -93,17 +96,19 @@ static void calc_line_count(struct view_info *info)
     {
         ptr = get_next_line(ptr, info);
         i++;
-        if (!scrollbar && i > info->display_lines)
+        if (!scrollbar && i > info->display_lines &&
+            rb->global_settings->scrollbar != SCROLLBAR_OFF)
         {
             ptr = info->text;
             i = 0;
             info->scrollbar_vp = info->vp;
-            info->scrollbar_vp.width = rb->global_settings->scrollbar_width;
+            info->scrollbar_vp.width = rb->global_settings->scrollbar_width + 1;
+            info->scrollbar_vp.height = info->display_lines * info->pf->height;
             info->vp.width -= info->scrollbar_vp.width;
-            if (rb->global_settings->scrollbar != SCROLLBAR_RIGHT)
-                info->vp.x = info->scrollbar_vp.width;
+            if (rb->global_settings->scrollbar == SCROLLBAR_RIGHT)
+                info->scrollbar_vp.x = info->vp.x + info->vp.width;
             else
-                info->scrollbar_vp.x = info->vp.width;
+                info->vp.x += info->scrollbar_vp.width;
             scrollbar = true;
         }
     }
@@ -137,8 +142,14 @@ static void calc_first_line(struct view_info *info, int line)
 static int init_view(struct view_info *info,
                      const char *title, const char *text)
 {
-    rb->viewport_set_defaults(&info->vp, SCREEN_MAIN);
-    info->pf = rb->font_get(rb->screens[SCREEN_MAIN]->getuifont());
+    struct screen* display = rb->screens[SCREEN_MAIN];
+    int ui_font = display->getuifont();
+
+    display->set_viewport(&info->vp);
+    display->clear_viewport();
+
+    info->pf = rb->font_get(ui_font);
+    info->vp.font = ui_font;
     info->display_lines = info->vp.height / info->pf->height;
 
     info->title = title;
@@ -146,17 +157,23 @@ static int init_view(struct view_info *info,
     info->line_count = 0;
     info->line = 0;
     info->start = 0;
+    info->ui_update_cb = false;
 
-    /* no title for small screens. */
-    if (info->display_lines < 4)
+    if (!info->sbs_has_title)
     {
-        info->title = NULL;
-    }
-    else
-    {
-        info->display_lines--;
-        info->vp.y += info->pf->height;
-        info->vp.height -= info->pf->height;
+        /* no title for small screens. */
+        if (info->display_lines < 4)
+            info->title = NULL;
+        else
+        {
+            info->display_lines--;
+
+            info->title_vp = info->vp;
+            info->title_vp.height = info->pf->height;
+
+            info->vp.height -= info->title_vp.height;
+            info->vp.y += info->title_vp.height;
+        }
     }
 
     calc_line_count(info);
@@ -171,20 +188,19 @@ static void draw_text(struct view_info *info)
     int max_show, line;
     struct screen* display = rb->screens[SCREEN_MAIN];
 
-    /* clear screen */
-    display->clear_display();
 
-    /* display title. */
-    if(info->title)
+    if (info->title && !info->sbs_has_title)
     {
-        display->set_viewport(NULL);
+        display->set_viewport(&info->title_vp);
         display->puts(0, 0, info->title);
     }
+
+    display->set_viewport(&info->vp);
+    display->clear_viewport();
 
     max_show = MIN(info->line_count - info->line, info->display_lines);
     text = info->text + info->start;
 
-    display->set_viewport(&info->vp);
     for (line = 0; line < max_show; line++)
     {
         int len;
@@ -197,17 +213,21 @@ static void draw_text(struct view_info *info)
         display->puts(0, line, output);
         text = ptr;
     }
-    if (info->line_count > info->display_lines)
+    if (info->line_count > info->display_lines &&
+        rb->global_settings->scrollbar != SCROLLBAR_OFF)
     {
         display->set_viewport(&info->scrollbar_vp);
-        rb->gui_scrollbar_draw(display, (info->scrollbar_vp.width? 0: 1), 0,
-                info->scrollbar_vp.width - 1, info->scrollbar_vp.height,
-                info->line_count, info->line, info->line + max_show,
-                VERTICAL);
-    }
+        int margin = info->scrollbar_vp.width > 2 ? 2 : 0;
+        int x = rb->global_settings->scrollbar == SCROLLBAR_RIGHT ? margin : 0;
 
+        rb->gui_scrollbar_draw(display, x, 0,
+                info->scrollbar_vp.width - margin, info->scrollbar_vp.height,
+                info->line_count, info->line, info->line + max_show, VERTICAL);
+    }
     display->set_viewport(NULL);
-    display->update();
+    if (!info->ui_update_cb)
+        display->update();
+    info->ui_update_cb = false;
 }
 
 static void scroll_up(struct view_info *info, int n)
@@ -248,6 +268,22 @@ static void scroll_to_bottom(struct view_info *info)
     draw_text(info);
 }
 
+static void ui_update_cb(unsigned short id, void* param, void* user_data)
+{
+    (void)id;
+    (void)param;
+    struct view_info *info = (struct view_info *) user_data;
+    info->ui_update_cb = true;
+    draw_text(info);
+}
+
+static void cleanup(void *parameter)
+{
+    struct view_info *info = (struct view_info *) parameter;
+    rb->remove_event_ex(GUI_EVENT_NEED_UI_UPDATE, ui_update_cb, info);
+    rb->viewportmanager_theme_undo(SCREEN_MAIN, false);
+}
+
 int view_text(const char *title, const char *text)
 {
     struct view_info info;
@@ -256,13 +292,24 @@ int view_text(const char *title, const char *text)
     };
     int button;
 
+    info.sbs_has_title = rb->sb_set_persistent_title(title, Icon_NOICON, SCREEN_MAIN);
+    rb->viewportmanager_theme_enable(SCREEN_MAIN, true, &info.vp);
     init_view(&info, title, text);
-    draw_text(&info);
+
+    /* handle themes that draw over the UI viewport */
+    rb->add_event_ex(GUI_EVENT_NEED_UI_UPDATE, false, ui_update_cb, &info);
+
+    /* skin engine needs to draw title */
+    if (info.sbs_has_title)
+        rb->send_event(GUI_EVENT_ACTIONREDRAW, (void*)1);
+    else
+        draw_text(&info);
 
     /* wait for keypress */
     while(1)
     {
-        button = pluginlib_getaction(TIMEOUT_BLOCK, view_contexts,
+        /* don't block, so the skin engine can redraw */
+        button = pluginlib_getaction(HZ/4, view_contexts,
                                      ARRAYLEN(view_contexts));
         switch (button)
         {
@@ -270,7 +317,7 @@ int view_text(const char *title, const char *text)
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
     || (CONFIG_KEYPAD == IPOD_4G_PAD)
-            return PLUGIN_OK;
+            goto out;
 #endif
         case PLA_UP_REPEAT:
 #ifdef HAVE_SCROLLWHEEL
@@ -291,7 +338,7 @@ int view_text(const char *title, const char *text)
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
     || (CONFIG_KEYPAD == IPOD_4G_PAD)
-            return PLUGIN_OK;
+            goto out;
 #endif
             scroll_up(&info, info.display_lines);
             break;
@@ -307,13 +354,14 @@ int view_text(const char *title, const char *text)
         case PLA_SELECT:
         case PLA_EXIT:
         case PLA_CANCEL:
-            return PLUGIN_OK;
+            goto out;
         default:
-            if (rb->default_event_handler(button) == SYS_USB_CONNECTED)
+            if ((rb->default_event_handler_ex(button, cleanup,
+                                              &info) == SYS_USB_CONNECTED))
                 return PLUGIN_USB_CONNECTED;
-            break;
         }
    }
-
+out:
+    cleanup(&info);
     return PLUGIN_OK;
 }

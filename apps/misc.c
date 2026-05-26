@@ -29,6 +29,7 @@
 #include "system.h"
 #include "lcd.h"
 #include "language.h" /* is_lang_rtl() */
+#include "iap-usb.h"
 
 #ifdef HAVE_DIRCACHE
 #include "dircache.h"
@@ -64,6 +65,7 @@
 #include "list.h"
 #include "fixedpoint.h"
 #include "open_plugin.h"
+#include "statusbar-skinned.h"
 
 #include "debug.h"
 
@@ -870,6 +872,7 @@ void check_bootfile(bool do_rolo)
 void setvol(void)
 {
     sound_set_volume(global_status.volume);
+    iap_on_volume(global_status.volume);
     global_status.last_volume_change = current_tick;
     status_save(false);
 }
@@ -1351,7 +1354,10 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
     const char * const sign        = &"-"[value < 0 ? 0 : 1];
     bool               is_rtl      = lang_is_rtl();
     char               timebuf[25]; /* -2147483648:00:00.00\0 */
-    int                len, left_offset;
+    int                len;
+#if 0 /* unused */
+    int left_offset;
+#endif
     unsigned char      base_idx, max_idx;
 
     unsigned long  units_in[UNIT_IDX_TIME_COUNT];
@@ -1424,8 +1430,11 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
 
         timebuf[offsets[base_idx] + fwidth[base_idx]] = '\0';
 
+#if 0 /* unused */
         left_offset  = -(offsets[max_idx]);
-        left_offset += strlcpy(buffer, sign, buf_len);
+        left_offset +=
+#endif
+        strlcpy(buffer, sign, buf_len);
 
         /* trim leading zero on the max_idx */
         if ((unit_idx & UNIT_TRIM_ZERO) == UNIT_TRIM_ZERO &&
@@ -1453,7 +1462,9 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
 
         fwidth[UNIT_IDX_HR] = len - offsets[UNIT_IDX_HR];
 
+#if 0 /* unused */
         left_offset = -(offsets[base_idx]);
+#endif
 
         /* trim leading zero on the max_idx */
         if ((unit_idx & UNIT_TRIM_ZERO) == UNIT_TRIM_ZERO &&
@@ -1468,7 +1479,10 @@ const char *format_time_auto(char *buffer, int buf_len, long value,
         if (!supress_unit)
         {
             strmemccpy(buffer, unit_strings_core[units[max_idx]], buf_len);
-            left_offset += strlcat(buffer, " ", buf_len);
+#if 0 /* unused */
+            left_offset +=
+#endif
+            strlcat(buffer, " ", buf_len);
             strlcat(buffer, &timebuf[offsets[base_idx]], buf_len);
         }
         else
@@ -1795,6 +1809,8 @@ static void push_current_activity_refresh(enum current_activity screen, bool ref
         if (refresh)
             skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
     }
+    if (refresh)
+        sb_skin_force_next_update();
 }
 
 static void pop_current_activity_refresh(bool refresh)
@@ -1806,6 +1822,8 @@ static void pop_current_activity_refresh(bool refresh)
         if (refresh)
             skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
     }
+    if (refresh)
+        sb_skin_force_next_update();
 }
 
 void push_current_activity(enum current_activity screen)

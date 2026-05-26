@@ -112,12 +112,14 @@ static void open_snd(void)
     rb->audio_set_output_source(AUDIO_SRC_PLAYBACK);
 #endif
     rb->mixer_set_frequency(SAMPR_44);
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 }
 
 static void close_snd(int normal)
 {
     (void)normal;
     sound_avail = 0;
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 }
 

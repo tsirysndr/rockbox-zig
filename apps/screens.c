@@ -827,6 +827,7 @@ refresh_info:
         {
             if (key == ACTION_STD_OK)
             {
+                gui_synclist_scroll_stop(&id3_lists);
                 int header_id = id3_headers[info.info_id[id3_lists.selected_item/2]];
                 char* title_and_text[2];
                 title_and_text[0] = str(header_id);
@@ -835,13 +836,7 @@ refresh_info:
                 title_and_text[1] = (char*)id3_get_or_speak_info(id3_lists.selected_item+1,&info, buffer, sizeof(buffer), false);
 
                 if (view_text)
-                {
-                    FOR_NB_SCREENS(i)
-                        viewportmanager_theme_enable(i, false, NULL);
                     view_text(title_and_text[0], title_and_text[1]);
-                    FOR_NB_SCREENS(i)
-                        viewportmanager_theme_undo(i, false);
-                }
                 else
                     plugin_load(VIEWERS_DIR"/view_text.rock", title_and_text);
                 gui_synclist_set_title(&id3_lists, str(LANG_TRACK_INFO), NOICON);

@@ -65,3 +65,7 @@ lcd-as-memframe.c
 #endif /* CPU_ARM */
 #endif /* LCD_DEPTH */
 #endif
+
+#if defined(USE_STACK_PROTECTOR)
+stack-protector.c
+#endif

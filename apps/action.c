@@ -28,6 +28,7 @@
 
 #if !defined(BOOTLOADER)
 #include "language.h"
+#include "skin_engine/skin_engine.h"
 #endif
 
 #include "appevents.h"
@@ -937,19 +938,20 @@ static inline void do_softlock(action_last_t *last, action_cur_t *cur)
 
     if (notify_user)
     {
+#ifndef BOOTLOADER
+        skin_request_update_locked(last->keys_locked);
+#endif
         action_handle_backlight(true, false);
 
-#ifdef HAVE_BACKLIGHT
-       /* If we don't wait for a moment for the backlight queue to process,
-        * the user will never see the message
-        */
-        if (!is_backlight_on(false))
-        {
-            sleep(HZ/2);
-        }
-#endif
         if (!has_flag(last->softlock_mask, SEL_ACTION_ALLNONOTIFY))
         {
+#ifdef HAVE_BACKLIGHT
+           /* If we don't wait for a moment for the backlight queue to process,
+            * the user will never see the message
+            */
+            if (!is_backlight_on(false))
+                sleep(HZ/2);
+#endif
             if (last->keys_locked)
             {
                 splash(HZ/2, ID2P(LANG_KEYLOCK_ON));
@@ -1440,6 +1442,9 @@ bool is_keys_locked(void)
 void set_selective_softlock_actions(bool selective, unsigned int mask)
 {
     action_last.keys_locked = false;
+#if defined(HAVE_TOUCHPAD) || defined(HAVE_TOUCHSCREEN)
+    button_enable_touch(true);
+#endif
     if (selective)
     {
         action_last.softlock_mask = mask | SEL_ACTION_ENABLED;

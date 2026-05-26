@@ -61,12 +61,13 @@
 #include "touchscreen.h"
 #include "ctype.h" /* For isspace() */
 #endif
-#ifdef HAVE_HOTKEY
+
 #include "onplay.h"
 #include "misc.h" /* current activity */
-#endif
+
 #include "playlist.h"
 #include "tree.h"
+#include "iap-usb.h"
 
 #include "voice_thread.h"
 
@@ -689,6 +690,21 @@ struct eq_band_setting eq_defaults[EQ_NUM_BANDS] = {
     { 16000, 7, 0 },
 };
 
+static const int wps_context_menu_default =
+    HK_CTX_SET(0, HOTKEY_VIEW_PLAYLIST) /* hotkey*/
+  | HK_CTX_SET(1, HOTKEY_SHOW_TRACK_INFO)
+  | HK_CTX_SET(2, HOTKEY_SHOW_IN_FILES)
+#ifdef HAVE_PITCHCONTROL
+  | HK_CTX_SET(3, HOTKEY_PITCHSCREEN)
+#else
+  | HK_CTX_SET(3, HOTKEY_DELETE)
+#endif
+  | HK_CTX_SET(4, HOTKEY_ALBUMART);
+
+#ifdef HAVE_HOTKEY
+static const int tree_hotkey_default = HOTKEY_OFF;
+#endif
+
 #ifndef __PCTOOL__
 static void eq_load_from_cfg(void *setting, char *value)
 {
@@ -790,15 +806,17 @@ static void shuffle_playlist_callback(bool shuffle)
             }
         }
     }
+    iap_on_shuffle_state(shuffle);
 }
 
 static void repeat_mode_callback(int repeat)
 {
+    (void)repeat;
     if ((audio_status() & AUDIO_STATUS_PLAY) == AUDIO_STATUS_PLAY)
     {
         audio_flush_and_reload_tracks();
     }
-    (void)repeat;
+    iap_on_repeat_state(repeat);
 }
 
 static void treesort_callback(int value)
@@ -881,29 +899,6 @@ static void tsc_set_default(void* setting, void* defaultval)
     memcpy(setting, defaultval, sizeof(struct touchscreen_parameter));
 }
 #endif
-#ifdef HAVE_HOTKEY
-static void hotkey_callback(int var)
-{
-    if (get_current_activity() != ACTIVITY_QUICKSCREEN)
-    {
-        if (get_hotkey(var)->action == HOTKEY_PLUGIN)
-            open_plugin_browse(ID2P(LANG_HOTKEY_WPS));
-    }
-}
-static const char* hotkey_formatter(char* buffer, size_t buffer_size, int value,
-                              const char* unit)
-{
-    (void)buffer;
-    (void)buffer_size;
-    (void)unit;
-    return str(get_hotkey(value)->lang_id);
-}
-static int32_t hotkey_getlang(int value, int unit)
-{
-    (void)unit;
-    return get_hotkey(value)->lang_id;
-}
-#endif /* HAVE_HOTKEY */
 
 static void start_in_callback(int var)
 {
@@ -2335,32 +2330,19 @@ const struct settings_list settings[] = {
 #ifdef HAVE_MORSE_INPUT
     OFFON_SETTING(0, morse_input, LANG_MORSE_INPUT, false, "morse input", NULL),
 #endif
+   CUSTOM_SETTING(0, context_wps,
+                  LANG_ONPLAY_MENU_TITLE, /* lang string here is never actually used */
+                  &wps_context_menu_default, "context_wps",
+                  wps_context_menu_load_from_cfg, wps_context_menu_write_to_cfg,
+                  wps_context_menu_is_changed, wps_context_menu_set_default),
 
 #ifdef HAVE_HOTKEY
-    TABLE_SETTING(F_CB_ON_SELECT_ONLY, hotkey_wps,
-        LANG_HOTKEY_WPS, HOTKEY_VIEW_PLAYLIST, "hotkey wps",
-        "off,view playlist,show track info,pitchscreen,open with,delete,bookmark,plugin,bookmark list"
-        ,UNIT_INT, hotkey_formatter, hotkey_getlang, hotkey_callback,9, HOTKEY_OFF,
-        HOTKEY_VIEW_PLAYLIST, HOTKEY_SHOW_TRACK_INFO, HOTKEY_PITCHSCREEN,
-        HOTKEY_OPEN_WITH, HOTKEY_DELETE, HOTKEY_BOOKMARK, HOTKEY_PLUGIN, HOTKEY_BOOKMARK_LIST),
-    TABLE_SETTING(0, hotkey_tree,
-        LANG_HOTKEY_FILE_BROWSER, HOTKEY_OFF, "hotkey tree",
-#ifdef HAVE_TAGCACHE
-        "off,properties,pictureflow,open with,delete,insert,insert shuffled",
-#else
-        "off,properties,open with,delete,insert,insert shuffled",
-#endif
-        UNIT_INT, hotkey_formatter, hotkey_getlang, NULL,
-#ifdef HAVE_TAGCACHE
-        7,
-#else
-        6,
-#endif
-        HOTKEY_OFF,HOTKEY_PROPERTIES,
-#ifdef HAVE_TAGCACHE
-        HOTKEY_PICTUREFLOW,
-#endif
-        HOTKEY_OPEN_WITH, HOTKEY_DELETE, HOTKEY_INSERT, HOTKEY_INSERT_SHUFFLED),
+   CUSTOM_SETTING(0, hotkey_tree,
+                  LANG_HOTKEY_FILE_BROWSER, /* lang string here is never actually used */
+                  &tree_hotkey_default, "hotkey tree",
+                  wps_context_menu_load_from_cfg, wps_context_menu_write_to_cfg,
+                  wps_context_menu_is_changed, wps_context_menu_set_default),
+
 #endif /* HAVE_HOTKEY */
 
     INT_SETTING(F_TIME_SETTING, resume_rewind, LANG_RESUME_REWIND, 0,

@@ -349,7 +349,7 @@ static struct rocklua_image* rli_checktype(lua_State *L, int arg)
 } /* rli_checktype */
 
 static struct rocklua_image * alloc_rlimage(lua_State *L, bool alloc_data,
-                                            int width, int height)
+                                            int width, int height, size_t *allocd)
 {
     /* rliimage is pushed on the stack it is up to you to pop it */
     struct rocklua_image *img;
@@ -365,10 +365,24 @@ static struct rocklua_image * alloc_rlimage(lua_State *L, bool alloc_data,
 
     n_elems = (size_t)(w_native * h_native);
 
-    if(alloc_data) /* if this a new image we need space for image data */
-        sz_data = n_elems * sizeof(fb_data);
+    if(alloc_data)
+    {/* if this a new image we need space for image data */
+    /* need even rows (see lcd-16bit-common.c for details) */
+        sz_data = BM_SIZE(width,height,FORMAT_NATIVE,false);
+#if LCD_DEPTH > 24 /* account for possible 4bit alpha per pixel */
+        sz_data += ALIGN_UP(width, 2) * height / 2;
+#endif
 
+#if (LCD_DEPTH > 1) && defined(HAVE_BMP_SCALING)
+        if (width > BM_MAX_WIDTH)
+            sz_data += width*4;
+#endif
+        sz_data = MAX(n_elems * sizeof(fb_data), sz_data);
+    }
+    if (allocd)
+        *allocd = sz_data;
     /* newuserdata pushes the userdata onto the stack */
+    /*DEBUGF("rli alloc %d\n", sz_header + sz_data);*/
     img = (struct rocklua_image *) lua_newuserdata(L, sz_header + sz_data);
 
     luaL_getmetatable(L, ROCKLUA_IMAGE);
@@ -386,15 +400,15 @@ static struct rocklua_image * alloc_rlimage(lua_State *L, bool alloc_data,
 static inline void rli_wrap(lua_State *L, fb_data *src, int width, int height)
 {
     /* rliimage is pushed on the stack it is up to you to pop it */
-    struct rocklua_image *a = alloc_rlimage(L, false, width, height);
+    struct rocklua_image *a = alloc_rlimage(L, false, width, height, NULL);
 
     a->data = src;
 } /* rli_wrap */
 
-static inline fb_data* rli_alloc(lua_State *L, int width, int height)
+static inline fb_data* rli_alloc(lua_State *L, int width, int height, size_t *allocd)
 {
     /* rliimage is pushed on the stack it is up to you to pop it */
-    struct rocklua_image *a = alloc_rlimage(L, true, width, height);
+    struct rocklua_image *a = alloc_rlimage(L, true, width, height, allocd);
 
     a->data = &a->dummy[0][0]; /* ref to beginning of alloc'd img data */
 
@@ -995,7 +1009,7 @@ RLI_LUA rli_new(lua_State *L)
 
     luaL_argcheck(L, width > 0 && height > 0, (width <= 0) ? 1 : 2, ERR_IDX_RANGE);
 
-    rli_alloc(L, width, height);
+    rli_alloc(L, width, height, NULL);
 
     return 1;
 }
@@ -1904,10 +1918,13 @@ RB_WRAP(read_bmp_file)
 
     int result = rb->read_bmp_file(filename, &bm, 0, format | FORMAT_RETURN_SIZE, NULL);
 
+    /*DEBUGF("read_bmp wants %d %d\n", result, BM_SIZE(bm.width, bm.height, format, false));*/
+
     if(result > 0)
     {
-        bm.data = (unsigned char*) rli_alloc(L, bm.width, bm.height);
-        if(rb->read_bmp_file(filename, &bm, result, format, NULL) < 0)
+        size_t sz_data;
+        bm.data = (unsigned char*) rli_alloc(L, bm.width, bm.height, &sz_data);
+        if(rb->read_bmp_file(filename, &bm, sz_data, format, NULL) < 0)
         {
             /* Error occured, drop newly allocated image from stack */
             lua_pop(L, 1);

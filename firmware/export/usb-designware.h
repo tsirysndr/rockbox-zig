@@ -24,7 +24,9 @@
 #define __USB_DESIGNWARE_H__
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include "config.h"
+#include "cpu.h"
 
 #ifndef REG32_PTR_T
 #define REG32_PTR_T volatile uint32_t *
@@ -287,5 +289,16 @@ extern void usb_dw_target_disable_clocks(void);
 extern void usb_dw_target_enable_irq(void);
 extern void usb_dw_target_disable_irq(void);
 extern void usb_dw_target_clear_irq(void);
+
+/* endpoint allocation */
+struct usb_drv_ep_alloc_ctx_dw
+{
+    int8_t type[USB_NUM_ENDPOINTS][2];
+    int max_packet_size[USB_NUM_ENDPOINTS][2];
+
+    uint16_t txfifo_usage;
+    uint8_t assigned_txfifos[USB_NUM_ENDPOINTS];
+};
+#define usb_drv_ep_alloc_ctx usb_drv_ep_alloc_ctx_dw
 
 #endif /* __USB_DESIGNWARE_H__ */

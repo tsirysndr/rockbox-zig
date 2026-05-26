@@ -77,5 +77,19 @@
 #define UNUSED_ATTR
 #endif
 
+/*
+ * Tell the compiler to assume 'x' is true. With a new enough GCC
+ * there's an attribute for this based on C++23's assume attribute.
+ * On older GCC we need to play tricks with __builtin_unreachable().
+ * As a result 'x' may or may not be evaluated at runtime and should
+ * be side-effect free to ensure it doesn't have any runtime impact.
+ */
+#if defined(__GNUC__) && (__GNUC__ >= 13)
+# define ASSUME(x) __attribute__((assume((x))))
+#elif defined(__GNUC__)
+# define ASSUME(x) do { if(!(x)) __builtin_unreachable(); } while (0)
+#else
+# define ASSUME(x)
+#endif
 
 #endif /* _GCC_EXTENSIONS_H_ */

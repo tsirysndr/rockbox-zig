@@ -1182,7 +1182,7 @@ void VLYNQ(void)
             }
 
             /* Process control packet */
-            usb_core_legacy_control_request(&setup);
+            usb_core_setup_received(&setup);
         }
 
         if (sysIntrStatus.f.ep0_in_ack)
@@ -1489,17 +1489,21 @@ void usb_drv_set_test_mode(int mode)
     tnetv_usb_reg_write(TNETV_USB_CTRL, usbCtrl.val);
 }
 
-int usb_drv_init_endpoint(int endpoint, int type, int max_packet_size) {
-    (void)max_packet_size; /* FIXME: support max packet size override */
-    (void)type;
+void usb_drv_ep_init(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
+{
+    /* FIXME: support max packet size override */
+    (void)ctx;
 
-    int num = EP_NUM(endpoint);
-    int dir = EP_DIR(endpoint);
-    return tnetv_gadget_ep_enable(num, dir == DIR_IN);
+    int num = EP_NUM(ep);
+    int dir = EP_DIR(ep);
+    tnetv_gadget_ep_enable(num, dir == DIR_IN);
 }
 
-int usb_drv_deinit_endpoint(int endpoint) {
-    int num = EP_NUM(endpoint);
-    int dir = EP_DIR(endpoint);
-    return tnetv_gadget_ep_disable(num, dir == DIR_IN);
+void usb_drv_ep_deinit(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
+{
+    (void)ctx;
+
+    int num = EP_NUM(ep);
+    int dir = EP_DIR(ep);
+    tnetv_gadget_ep_disable(num, dir == DIR_IN);
 }

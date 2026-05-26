@@ -548,7 +548,7 @@ void Draw_ConsoleBackground (int lines)
 	conback = Draw_CachePic ("gfx/conback.lmp");
 
 	dest = conback->data + 320 - 43 + 320*186;
-	sprintf (ver, "%.2f", (float)VERSION);
+	snprintf (ver, sizeof(ver), "%.2f", (float)VERSION);
 
 	for (x=0 ; x<strlen(ver) ; x++)
 		Draw_CharToConback (ver[x], dest+(x<<3));

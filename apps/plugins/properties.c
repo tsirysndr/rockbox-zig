@@ -187,7 +187,8 @@ static int browse_file_or_dir(struct dir_stats *stats)
             continue;
         switch(button)
         {
-            case ACTION_STD_OK:;
+            case ACTION_STD_OK:
+                rb->gui_synclist_scroll_stop(&properties_lists);
                 int sel_pos = rb->gui_synclist_get_sel_pos(&properties_lists);
 
                 /* "Show Track Info..." selected? */
@@ -197,17 +198,10 @@ static int browse_file_or_dir(struct dir_stats *stats)
                     return -1;
                 else
                 {
+                    const unsigned char* const *props = (props_type == PROPS_DIR) ?
+                                                        props_dir : props_file;
                     /* Display field in fullscreen */
-                    FOR_NB_SCREENS(i)
-                        rb->viewportmanager_theme_enable(i, false, NULL);
-                    if (props_type == PROPS_DIR)
-                        view_text((char *) p2str(props_dir[sel_pos]),
-                                  (char *)       props_dir[sel_pos + 1]);
-                    else
-                        view_text((char *) p2str(props_file[sel_pos]),
-                                  (char *)       props_file[sel_pos + 1]);
-                    FOR_NB_SCREENS(i)
-                        rb->viewportmanager_theme_undo(i, false);
+                    view_text((char *) p2str(props[sel_pos]), props[sel_pos + 1]);
 
                     rb->gui_synclist_set_title(&properties_lists,
                                rb->str(props_type == PROPS_DIR ?
@@ -335,6 +329,8 @@ enum plugin_status plugin_start(const void* parameter)
 {
     static struct dir_stats stats;
     const char *file = parameter;
+    static struct viewport ui_vp;
+
 #ifdef HAVE_TOUCHSCREEN
     rb->touchscreen_set_mode(rb->global_settings->touch_mode);
 #endif
@@ -344,6 +340,17 @@ enum plugin_status plugin_start(const void* parameter)
         rb->splashf(0, "Could not find: %s", file ?: "(NULL)");
         rb->action_userabort(TIMEOUT_BLOCK);
         return PLUGIN_OK;
+    }
+
+    /* erase background behind progress bar to prevent glitches
+       for themes adjusting viewport for context menu activity */
+    if (props_type != PROPS_DIR)
+    {
+        struct screen* display = rb->screens[SCREEN_MAIN];
+        rb->viewport_set_defaults(&ui_vp, SCREEN_MAIN);
+        struct viewport *last_vp = display->set_viewport(&ui_vp);
+        display->clear_viewport();
+        display->set_viewport(last_vp);
     }
 
     if (props_type == PROPS_MUL_ID3)

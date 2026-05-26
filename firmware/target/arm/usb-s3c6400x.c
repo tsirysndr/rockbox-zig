@@ -530,7 +530,7 @@ static void handle_ep_int(int ep, bool out)
                ep0_setup_pkt->bRequest     == USB_REQ_SET_ADDRESS)
                 DCFG = (DCFG & ~bitm(DCFG, devadr)) | (ep0_setup_pkt->wValue << DCFG_devadr_bitp);
 
-            usb_core_legacy_control_request(ep0_setup_pkt);
+            usb_core_setup_received(ep0_setup_pkt);
         }
     }
 
@@ -588,19 +588,23 @@ void INT_USB_FUNC(void)
     GINTSTS = sts;
 }
 
-int usb_drv_init_endpoint(int endpoint, int type, int max_packet_size) {
-    (void)max_packet_size; /* FIXME: support max packet size override */
+void usb_drv_ep_init(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
+{
+    /* FIXME: support max packet size override */
+    (void)ctx;
 
-    int num = EP_NUM(endpoint);
-    int dir = EP_DIR(endpoint);
-    bool out = dir == DIR_OUT;
-    DEPCTL(num, out) = (DEPCTL(num, out) & ~(DEPCTL_eptype_bits << DEPCTL_eptype_bitp))
+    const int epnum = EP_NUM(ep);
+    const int epdir = EP_DIR(ep);
+    const int type = ctx->type[epnum][epdir];
+
+    bool out = epdir == DIR_OUT;
+    DEPCTL(epnum, out) = (DEPCTL(epnum, out) & ~(DEPCTL_eptype_bits << DEPCTL_eptype_bitp))
             | DEPCTL_setd0pid | (type << DEPCTL_eptype_bitp) | DEPCTL_usbactep;
-    return 0;
 }
 
-int usb_drv_deinit_endpoint(int endpoint) {
-    return 0;
+void usb_drv_ep_deinit(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
+{
+    (void)ctx;
 }
 
 void usb_drv_cancel_all_transfers()

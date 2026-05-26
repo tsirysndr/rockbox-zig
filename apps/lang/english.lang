@@ -78,7 +78,7 @@
 # tools/voice-corrections.txt for further details.
 #
 # To validate the contents of a translation, you can use the Rockbox
-# translation site at https://translate.rockbox.org.  Alternatively, you
+# translation site at https://www.rockbox.org/translate/ Alternatively, you
 # can use the command-line 'updatelang' tool as follows:
 #
 #  tools/updatelang apps/lang/english.lang path/to/translation.lang path/to/updated.lang
@@ -15205,17 +15205,17 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_OPEN_PLUGIN_SET_WPS_CONTEXT_PLUGIN
-  desc: open plugin module
+  id: LANG_SET_CONTEXT_ITEM
+  desc: WPS context item
   user: core
   <source>
-    *: "Set WPS Context Plugin"
+    *: "Set Context Item"
   </source>
   <dest>
-    *: "Set WPS Context Plugin"
+    *: "Set Context Item"
   </dest>
   <voice>
-    *: "Set WPS Context Plugin"
+    *: "Set Context Item"
   </voice>
 </phrase>
 <phrase>

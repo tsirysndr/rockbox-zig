@@ -82,3 +82,12 @@ void __attribute__((naked)) __div0(void)
     asm volatile("bx %0" : : "r"(ci->__div0));
 }
 #endif
+
+#if defined(USE_STACK_PROTECTOR)
+const uint32_t __stack_chk_guard = 0x2BADC0DE;
+
+void __stack_chk_fail(void)
+{
+    ci->panicf("codec smashed stack");
+}
+#endif

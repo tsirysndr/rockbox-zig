@@ -49,6 +49,8 @@
 void list_draw(struct screen *display, struct gui_synclist *list);
 
 static long last_dirty_tick;
+static bool sb_title_is_dirty;
+static bool theme_enabled;
 static struct viewport parent[NB_SCREENS];
 static struct gui_synclist *current_lists;
 
@@ -57,17 +59,17 @@ static bool list_is_dirty(struct gui_synclist *list)
     return TIME_BEFORE(list->dirty_tick, last_dirty_tick);
 }
 
-static void list_force_reinit(unsigned short id, void *param, void *last_dirty_tick)
+static void list_force_reinit(unsigned short id, void *param)
 {
     (void)id;
     (void)param;
-    *(int *)last_dirty_tick = current_tick;
+    last_dirty_tick = current_tick;
 }
 
 void list_init(void)
 {
     last_dirty_tick = current_tick;
-    add_event_ex(GUI_EVENT_THEME_CHANGED, false, list_force_reinit, &last_dirty_tick);
+    add_event(GUI_EVENT_THEME_CHANGED, list_force_reinit);
 }
 
 static void list_init_viewports(struct gui_synclist *list)
@@ -81,7 +83,7 @@ static void list_init_viewports(struct gui_synclist *list)
             gui_synclist_set_viewport_defaults(list->parent[i], i);
         }
     }
-    list->dirty_tick = current_tick;
+    list->dirty_tick = last_dirty_tick;
 }
 
 static int list_nb_lines(struct gui_synclist *list, enum screen_type screen)
@@ -185,7 +187,6 @@ void gui_synclist_init(struct gui_synclist * gui_list,
     gui_list->title_icon = Icon_NOICON;
 
     gui_list->scheduled_talk_tick = gui_list->last_talked_tick = 0;
-    gui_list->dirty_tick = current_tick;
 
 #ifdef HAVE_LCD_COLOR
     gui_list->title_color = -1;
@@ -220,11 +221,32 @@ int gui_list_get_item_offset(struct gui_synclist * gui_list,
     return item_offset;
 }
 
+static void sb_title_cb(unsigned short id, void *data, void *userdata)
+{
+    (void)id;
+    (void)data;
+    theme_enabled = true;
+    gui_synclist_draw((struct gui_synclist *) userdata);
+}
+
 /*
  * Force a full screen update.
  */
 void gui_synclist_draw(struct gui_synclist *gui_list)
 {
+    if (sb_title_is_dirty)
+    {
+        sb_title_is_dirty = theme_enabled = false;
+
+        /* Redraw skin, and make skin engine call us back */
+        add_event_ex(GUI_EVENT_NEED_UI_UPDATE, true, sb_title_cb, gui_list);
+        send_event(GUI_EVENT_ACTIONREDRAW, (void*)1);
+        remove_event_ex(GUI_EVENT_NEED_UI_UPDATE, sb_title_cb, gui_list);
+
+        /* sb_title_cb was only called if theme is enabled */
+        if (theme_enabled)
+            return;
+    }
     if (list_is_dirty(gui_list))
     {
         list_init_viewports(gui_list);
@@ -236,6 +258,7 @@ void gui_synclist_draw(struct gui_synclist *gui_list)
     {
         if (!skinlist_draw(&screens[i], gui_list))
             list_draw(&screens[i], gui_list);
+        skin_mark_dirty(i);
     }
 }
 
@@ -439,7 +462,7 @@ void gui_synclist_set_title(struct gui_synclist * gui_list,
     gui_list->title_icon = icon;
     FOR_NB_SCREENS(i)
         sb_set_title_text(title, icon, i);
-    send_event(GUI_EVENT_ACTIONUPDATE, (void*)1);
+    sb_title_is_dirty = true;
 }
 
 void gui_synclist_set_nb_items(struct gui_synclist * lists, int nb_items)

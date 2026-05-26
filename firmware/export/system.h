@@ -266,8 +266,10 @@ static inline void cpu_boost_unlock(void)
 #endif
 #endif
 
-/* ARM ABIs generally require 8-byte stack alignment */
-#ifdef CPU_ARM
+/*
+ * ARM and MIPS ABIs generally require 8-byte stack alignment.
+ */
+#if defined(CPU_ARM) || defined(CPU_MIPS)
     #define MIN_STACK_ALIGN 8
 #endif
 

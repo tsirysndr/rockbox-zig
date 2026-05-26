@@ -474,6 +474,7 @@ void I_SubmitSound(void)
 
 void I_ShutdownSound(void)
 {
+   rb->pcmbuf_fade(false, false); /* Mute channel */
    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
    rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 }
@@ -508,6 +509,7 @@ void I_InitSound()
    rb->audio_set_output_source(AUDIO_SRC_PLAYBACK);
 #endif
    rb->mixer_set_frequency(samplerate);
+   rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 
    vol_lookup=malloc(128*256*sizeof(int));
 

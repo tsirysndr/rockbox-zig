@@ -65,6 +65,9 @@ void rockbox_open_audio(int rate)
     /* Set sample rate of the audio buffer. */
     rb->mixer_set_frequency(rate);
 
+    /* Be sure channel is audible */
+    rb->pcmbuf_fade(false, true);
+
     /* Initialize output buffer. */
     for(i = 0; i < OUTBUFSIZE; i++)
         outbuf[i].fill = 0;
@@ -77,6 +80,9 @@ void rockbox_open_audio(int rate)
 /* Close audio. */
 void rockbox_close_audio(void)
 {
+    /* Mute channel */
+    rb->pcmbuf_fade(false, false);
+
     /* Stop playback. */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 

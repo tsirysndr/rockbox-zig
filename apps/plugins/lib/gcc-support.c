@@ -34,6 +34,15 @@ void __aeabi_ldiv0(void) __attribute__((alias("__div0")));
 #endif
 #endif
 
+#if defined(USE_STACK_PROTECTOR)
+const uint32_t __stack_chk_guard = 0x3BADC0DE;
+
+void __stack_chk_fail(void)
+{
+    rb->panicf("plugin smashed stack");
+}
+#endif
+
 void *memcpy(void *dest, const void *src, size_t n)
 {
     return rb->memcpy(dest, src, n);

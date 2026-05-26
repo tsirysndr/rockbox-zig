@@ -45,6 +45,8 @@
 #undef strcmp
 #undef strncmp
 #undef strchr
+#undef strstr
+#undef strrchr
 #undef strtok_r
 #ifdef __APPLE__
 #undef strncpy
@@ -60,7 +62,6 @@
 
 #define splash(__ticks, __str) splashf(__ticks, __str)
 
-char* strncpy(char *, const char *, size_t);
 void* plugin_get_buffer(size_t *buffer_size);
 size_t plugin_reserve_buffer(size_t buffer_size);
 int plugin_open(const char *plugin, const char *parameter);
@@ -1024,6 +1025,19 @@ struct plugin_api {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
+    void (*panicf)(const char *msg, ...);
+    void (*gui_synclist_scroll_stop)(struct gui_synclist *lists);
+    bool (*add_event_ex)(unsigned short id, bool oneshot,
+                         void (*handler)(unsigned short id,
+                                         void *event_data,
+                                         void *user_data),
+                         void *user_data);
+    void (*remove_event_ex)(unsigned short id,
+                            void (*handler)(unsigned short id,
+                                            void *event_data,
+                                            void *user_data),
+                            void *user_data);
+    char* (*strncpy)(char * dst, const char * src, size_t count);
 };
 
 /* plugin header */

@@ -214,6 +214,7 @@ static void play_tone(bool volume_set)
 #if INPUT_SRC_CAPS != 0
     /* Select playback */
     rb->audio_set_input_source(AUDIO_SRC_PLAYBACK, SRCF_PLAYBACK);
+    rb->audio_set_output_source(AUDIO_SRC_PLAYBACK);
 #endif
 
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ
@@ -221,11 +222,7 @@ static void play_tone(bool volume_set)
 #endif
 
     rb->mixer_set_frequency(hw_sampr);
-
-#if INPUT_SRC_CAPS != 0
-    /* Recordable targets can play back from other sources */
-    rb->audio_set_output_source(AUDIO_SRC_PLAYBACK);
-#endif
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 
     gen_quit = false;
     output_clear();
@@ -263,6 +260,7 @@ static void play_tone(bool volume_set)
 
     rb->thread_wait(gen_thread_id);
 
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ

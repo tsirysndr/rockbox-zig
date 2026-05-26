@@ -274,11 +274,11 @@ function bounce_image(img)
 
         if IS_COLOR_TARGET then
             if bit.band(loops, 128) == 128 then
-                _lcd:copy(imgn, x, y, 1, 1, fx, fy, false, _blit.BOR)
+                _lcd:copy(imgn, x, y, 1, 1, -fx, -fy, false, _blit.BOR)
                 _lcd:copy(screen_img, x, y, x, y, imgn:width(), imgn:height(),
                                          false, _blit.BDEQC, imgn:get(1,1))
             else
-                _lcd:copy(imgn, x, y, 1, 1, fx, fy, false, _blit.BSNEC, imgn:get(1,1))
+                _lcd:copy(imgn, x, y, 1, 1, -fx, -fy, false, _blit.BSNEC, imgn:get(1,1))
             end
         else
             local blitop
@@ -289,7 +289,7 @@ function bounce_image(img)
                 blitop = _blit.BXOR
             end
 
-            _lcd:copy(imgn, x, y, 1, 1, fx, fy, false, blitop, WHITE)
+            _lcd:copy(imgn, x, y, 1, 1, -fx, -fy, false, blitop, WHITE)
         end
 
         if hold < 1 then
@@ -674,6 +674,7 @@ end -- rotate_image
 
 function flip_image(img)
     local blitop = _blit.BOR
+    local i = 1
     local d = 0
     local x, y, w, h
 
@@ -689,7 +690,7 @@ function flip_image(img)
     --[[--Profiling code
     local timer = _timer.start()]]
 
-    while d >= 0 do
+    while d >= 0 and img do
         -- copy our flipped image onto the background
         if d == 0 then
             _lcd:copy(img, x, y, 1, 1, w, h, false, blitop)
@@ -757,7 +758,7 @@ end -- draw_x
 function random_img(img)
     local min = _clr.set(0, 0, 0, 0)
     local max = _clr.set(-1, 255, 255, 255)
-    math.randomseed(rb.current_tick())
+    --math.randomseed(rb.current_tick())
     for x = 1, img:width() do
         for y = 1, img:height() do
             img:set(x, y, math.random(min, max))
@@ -896,9 +897,13 @@ function main_menu()
                 [10]  = long_text,
                 [11] = function(RAINB)
                          rainbow_img(_lcd()); _lcd:update(); rb.sleep(rb.HZ)
+                         if rb.file_exists == nil or not rb.file_exists("/rainbow.bmp") then
+                            _img_save(_LCD, "/rainbow.bmp")
+                         end
                        end,
                 [12] = function(RANDM)
                          random_img(_lcd()); _lcd:update(); rb.sleep(rb.HZ)
+                         _img_save(_LCD, "/random.bmp")
                        end,
                 [13] = function(CLEAR) _lcd:clear(BLACK); rock_lua() end,
                 [14] = function(SAVEI) _LCD:invert(); _img_save(_LCD, "/rocklua.bmp") end,
@@ -926,6 +931,8 @@ _timer("main") -- keep track of how long the program ran
 
 -- Clear the screen
 _lcd:clear(BLACK)
+
+math.randomseed(rb.current_tick())
 
 if LCD_DEPTH > 1 then
 --draw a gradient using available colors

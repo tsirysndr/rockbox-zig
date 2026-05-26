@@ -50,7 +50,8 @@ void skin_disarm_touchregions(struct gui_wps *gwps);
 /* Do a update_type update of the skinned screen */
 void skin_update(enum skinnable_screens skin, enum screen_type screen,
                  unsigned int update_type);
-
+void skin_mark_dirty(enum screen_type screen);
+bool skin_is_dirty(enum screen_type screen);
 bool skin_has_sbs(struct gui_wps *gwps);
 
 
@@ -82,6 +83,7 @@ void skin_unload_all(void);
 
 bool skin_do_full_update(enum skinnable_screens skin, enum screen_type screen);
 void skin_request_full_update(enum skinnable_screens skin);
+void skin_request_update_locked(bool locked);
 
 bool dbg_skin_engine(void);
 

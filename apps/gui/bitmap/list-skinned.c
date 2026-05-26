@@ -163,7 +163,7 @@ void skinlist_get_scrollbar(int* nb_item, int* first_shown, int* last_shown)
     {
         *nb_item = current_item;
         *first_shown = 0;
-        *last_shown = current_nbitems;
+        *last_shown = current_nbitems - 1;
     }
 }
 
@@ -281,8 +281,7 @@ bool skinlist_draw(struct screen *display, struct gui_synclist *list)
     }
     current_column = -1;
     current_row = -1;
-    display->set_viewport(parent);
-    display->update_viewport();
     current_drawing_line = list->selected_item;
+    sb_skin_force_next_update(); /* update scroll bar */
     return true;
 }

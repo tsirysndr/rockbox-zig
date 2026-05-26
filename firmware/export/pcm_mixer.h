@@ -23,6 +23,7 @@
 #define PCM_MIXER_H
 
 #include <sys/types.h>
+#include "pcm.h"
 #include "pcm_sink.h"
 
 /** Simple config **/

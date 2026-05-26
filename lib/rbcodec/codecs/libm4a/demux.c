@@ -162,20 +162,21 @@ static bool read_chunk_stsd(qtmovie_t *qtmovie, size_t chunk_len)
     unsigned int i;
     int j;
     uint32_t numentries;
-    size_t size_remaining = chunk_len - 8;
+//    size_t size_remaining = chunk_len - 8;
     bool got_codec_data = false;
+    (void)chunk_len;
 
     /* version */
     stream_read_uint8(qtmovie->stream);
-    size_remaining -= 1;
+//    size_remaining -= 1;
     /* flags */
     stream_read_uint8(qtmovie->stream);
     stream_read_uint8(qtmovie->stream);
     stream_read_uint8(qtmovie->stream);
-    size_remaining -= 3;
+//    size_remaining -= 3;
 
     numentries = stream_read_uint32(qtmovie->stream);
-    size_remaining -= 4;
+//    size_remaining -= 4;
 
     /* if (numentries != 1)
     {
@@ -320,13 +321,29 @@ static bool read_chunk_stts(qtmovie_t *qtmovie, size_t chunk_len)
 
     qtmovie->res->num_time_to_samples = numentries;
     qtmovie->res->time_to_sample = malloc(numentries * sizeof(*qtmovie->res->time_to_sample));
-
+    if (qtmovie->res->time_to_sample && numentries > 1)
+    {
+        //Make sure we leave space for at least 100 records in lookup table
+        void* enough_mem = malloc(sizeof(*qtmovie->res->lookup_table)*100);
+        if (!enough_mem)
+        {
+            free(qtmovie->res->time_to_sample);
+            qtmovie->res->time_to_sample = NULL;
+        }
+        else
+        {
+            free(enough_mem);
+        }
+    }
     if (!qtmovie->res->time_to_sample)
     {
-        DEBUGF("stts too large\n");
-        return false;
+        qtmovie->res->time_to_sample_offset = stream_tell(qtmovie->stream);
+        stream_skip(qtmovie->stream, size_remaining);
+        DEBUGF("stts too large %ld, save time_to_sample_offset\n", size_remaining);
+        return true;
     }
 
+    DEBUGF("stts numentires %d, size: %ld\n", numentries, numentries * sizeof(*qtmovie->res->time_to_sample));
     for (i = 0; i < numentries; i++)
     {
         qtmovie->res->time_to_sample[i].sample_count = stream_read_uint32(qtmovie->stream);
@@ -468,7 +485,7 @@ static bool read_chunk_stco(qtmovie_t *qtmovie, size_t chunk_len)
             fit_numentries = numentries / accuracy_divider;
         }
     }
-    DEBUGF("lookup_table numentries %d, fit_numentries %d\n", numentries, fit_numentries);
+    DEBUGF("lookup_table numentries %d, fit_numentries %ld\n", numentries, fit_numentries);
     qtmovie->res->num_lookup_table = fit_numentries;
 
     if (!qtmovie->res->lookup_table)

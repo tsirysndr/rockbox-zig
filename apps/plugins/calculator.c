@@ -519,6 +519,7 @@ F3: equal to "="
 #define CALCULATOR_DOWN     BUTTON_DOWN
 #define CALCULATOR_QUIT     BUTTON_POWER
 #define CALCULATOR_INPUT    BUTTON_PLAY
+#define CALCULATOR_INPUT2  (BUTTON_SELECT|BUTTON_REL)
 #define CALCULATOR_CALC     BUTTON_MENU
 #define CALCULATOR_CLEAR    BUTTON_BACK
 
@@ -1120,7 +1121,7 @@ static void transcendFunc(char* func, double* tt, int* ttPower)
             
             /* Save current function context */
             char original_func[3];
-            strncpy(original_func, func, 3);
+            rb->strncpy(original_func, func, 3);
             
             transcendFunc("asin", &arcsin_input, &arcsin_power);
             
@@ -1940,6 +1941,9 @@ Handle buttons on basic screen
 ----------------------------------------------------------------------- */
 static void basicButtonsProcess(void){
     switch (btn) {
+#ifdef CALCULATOR_INPUT2
+        case CALCULATOR_INPUT2: /*fallthrough*/
+#endif
         case CALCULATOR_INPUT:
             if (calStatus == cal_error && (CAL_BUTTON != btn_C) ) break;
             flashButton();
@@ -2043,6 +2047,9 @@ Handle buttons on scientific screen
 ----------------------------------------------------------------------- */
 static void sciButtonsProcess(void){
     switch (btn) {
+#ifdef CALCULATOR_INPUT2
+        case CALCULATOR_INPUT2: /*fallthrough*/
+#endif
         case CALCULATOR_INPUT:
             if (calStatus == cal_error && (CAL_BUTTON != sci_sci) ) break;
             flashButton();
@@ -2134,6 +2141,9 @@ static int handleButton(int button){
             if (lastbtn != CALCULATOR_INPUT_CALC_PRE)
                 break;
             /* no unconditional break; here! */
+#endif
+#ifdef CALCULATOR_INPUT2 /* bypass pre button */
+        case CALCULATOR_INPUT2: /*fallthrough*/
 #endif
 #ifdef CALCULATOR_OPERATORS
         case CALCULATOR_OPERATORS:

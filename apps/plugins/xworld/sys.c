@@ -1032,12 +1032,14 @@ void sys_startAudio(struct System* sys, AudioCallback callback, void *param)
     static const struct mixer_play_cbs cbs = {
         .get_more = get_more,
     };
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
     rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 }
 
 void sys_stopAudio(struct System* sys)
 {
     (void) sys;
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 }
 

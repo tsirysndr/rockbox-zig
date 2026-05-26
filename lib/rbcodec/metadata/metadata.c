@@ -27,6 +27,10 @@
 #include "logf.h"
 #include "metadata.h"
 
+#ifdef UTF8PROC_EXPORTS
+#include "rbunicode.h"
+#endif
+
 #include "metadata_parsers.h"
 
 /* For trailing tag stripping and base audio data types */
@@ -387,7 +391,7 @@ bool format_buffers_with_offset(int afmt)
 /* Simple file type probing by looking at the filename extension. */
 unsigned int probe_file_format(const char *filename)
 {
-    char *suffix;
+    const char *suffix;
     unsigned int i;
 
     suffix = strrchr(filename, '.');
@@ -471,7 +475,7 @@ static unsigned int probe_content_type_format(int fd)
  * file that would prevent playback. supply a filedescriptor <0 and the file will be opened
  * and closed automatically within the get_metadata call
  * get_metadata_ex allows flags to change the way get_metadata behaves
- * METADATA_EXCLUDE_ID3_PATH  won't copy filename path to the id3 path buffer 
+ * METADATA_EXCLUDE_ID3_PATH  won't copy filename path to the id3 path buffer
  * METADATA_CLOSE_FD_ON_EXIT closes the open filedescriptor on exit
  */
 bool get_metadata_ex(struct mp3entry* id3, int fd, const char* trackname, int flags)
@@ -556,6 +560,22 @@ bool get_metadata_ex(struct mp3entry* id3, int fd, const char* trackname, int fl
                 trackname, id3->length, id3->elapsed, id3->frequency,
                 id3->FS_PREFIX(filesize), id3->codectype, id3->first_frame_offset);
     }
+
+#ifdef UTF8PROC_EXPORTS
+    if (success) {
+        utf8_normalize(id3->title);
+        utf8_normalize(id3->artist);
+        utf8_normalize(id3->album);
+        utf8_normalize(id3->genre_string);
+        utf8_normalize(id3->disc_string);
+        utf8_normalize(id3->track_string);
+        utf8_normalize(id3->year_string);
+        utf8_normalize(id3->composer);
+        utf8_normalize(id3->comment);
+        utf8_normalize(id3->albumartist);
+        utf8_normalize(id3->grouping);
+    }
+#endif
 
 #if defined(SIMULATOR) || defined(APPLICATION)
     if ((flags & METADATA_CLOSE_FD_ON_EXIT))
@@ -647,8 +667,8 @@ void fill_metadata_from_path(struct mp3entry *id3, const char *trackname)
     wipe_mp3entry(id3);
 
     /* Find the filename portion of the path */
-    p = strrchr(trackname, '/');
-    strlcpy(id3->id3v2buf, p ? ++p : id3->path, ID3V2_BUF_SIZE);
+    const char *pt = strrchr(trackname, '/');
+    strlcpy(id3->id3v2buf, pt ? ++pt : id3->path, ID3V2_BUF_SIZE);
 
     /* Get the format from the extension and trim it off */
     p = strrchr(id3->id3v2buf, '.');

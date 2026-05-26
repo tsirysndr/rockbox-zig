@@ -405,7 +405,7 @@ bool settings_load_config(const char* file, bool apply)
     int fd;
     char line[128];
     bool theme_changed = false;
-
+    bool import_open_plugins = false;
     fd = open_utf8(file, O_RDONLY);
     if (fd < 0)
         return false;
@@ -418,17 +418,25 @@ bool settings_load_config(const char* file, bool apply)
 
         if (!string_to_cfg(name, value, &theme_changed))
         {
-#ifndef __PCTOOL__
             /* if we are here then name was not a valid setting */
-            if (!strcmp(name, "openplugin"))
+            if (strcmp(name, OPEN_PLUGIN_CFGNAME) == 0)
             {
-                open_plugin_import(value);
+                import_open_plugins = true;
+                char ch;
+                while (read(fd, &ch, 1) == 1 && ch != '\n'){};
             }
-#endif
         }
     } /* while(...) */
 
     close(fd);
+
+#ifndef __PCTOOL__
+    if (import_open_plugins)
+        open_plugin_import(file);
+#else
+        (void) import_open_plugins;
+#endif
+
     if (apply)
     {
         settings_save();

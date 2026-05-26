@@ -8,7 +8,7 @@
 #
 
 # global CC options for all platforms
-CCOPTS="-W -Wall -Wextra -Wundef -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu99 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow -fno-common"
+CCOPTS="-W -Wall -Wextra -Wundef -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu11 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow -fno-common"
 
 # LD options for the core
 LDOPTS=""
@@ -1791,6 +1791,9 @@ help() {
     --with-address-sanitizer
                       Enables the AddressSanitizer feature. Forces SDL threads.
     --with-ubsan      Enables the UB Sanitizer feature.  Forces SDL threads.
+    --with-stack-protector[=MODE]
+                      Enable -fstack-protector-MODE option. With no MODE,
+                      enables the normal -fstack-protector option.
     --32-bit          Force a 32-bit simulator (use with --sdl-threads for duke3d)
     --prefix          Target installation directory
     --compiler-prefix Override compiler prefix (inherently dangerous)
@@ -1817,6 +1820,7 @@ ARG_THREAD_SUPPORT=
 ARG_32BIT=
 ARG_ADDR_SAN=
 ARG_UBSAN=
+ARG_STACK_PROTECTOR=
 ARG_PLUGINS=
 err=
 for arg in "$@"; do
@@ -1843,6 +1847,8 @@ for arg in "$@"; do
                       ARG_THREAD_SUPPORT=0;;
         --with-address-sanitizer) ARG_ADDR_SAN=1;;
         --with-ubsan) ARG_UBSAN=1;;
+        --with-stack-protector=*) ARG_STACK_PROTECTOR=`echo "$arg" | cut -d = -f 2`;;
+        --with-stack-protector) ARG_STACK_PROTECTOR=default;;
         --prefix=*)   ARG_PREFIX=`echo "$arg" | cut -d = -f 2`;;
         --compiler-prefix=*)   ARG_COMPILER_PREFIX=`echo "$arg" | cut -d = -f 2`;;
 		--help)       help;;
@@ -4340,6 +4346,7 @@ fi
     # player version, for bootloader usage
     # version 3
     extradefines="$extradefines -DEROSQN_VER=3"
+    bootloader_only=1
     ;;
 
     249|erosqnative_v4)
@@ -4368,6 +4375,7 @@ fi
     # player version, for bootloader usage
     # version 4
     extradefines="$extradefines -DEROSQN_VER=4"
+    bootloader_only=1
     ;;
 
    232|ihifi770c)
@@ -4776,6 +4784,11 @@ if [ -z "$debug" ]; then
   GCCOPTS="$GCCOPTS $GCCOPTIMIZE"
 fi
 
+if [ "$bootloader_only" = "1" -a "$bootloader" != "1" ]; then
+    echo "Target can only be used for bootloader builds."
+    exit 9
+fi
+
 # if building a simulator for an hosted port, APPLICATION
 # define clashes with SIMULATOR define
 
@@ -5064,6 +5077,17 @@ if [ "$ARG_RBDIR" != "" ]; then
         rbdir=$ARG_RBDIR
     fi
   echo "Using alternate rockbox dir: ${rbdir}"
+fi
+
+if [ "$ARG_STACK_PROTECTOR" != "" ]; then
+    echo "Stack protector mode: $ARG_STACK_PROTECTOR"
+    extradefines="$extradefines -DUSE_STACK_PROTECTOR"
+
+    if [ "$ARG_STACK_PROTECTOR" = "default" ]; then
+        GCCOPTS="$GCCOPTS -fstack-protector"
+    else
+        GCCOPTS="$GCCOPTS -fstack-protector-${ARG_STACK_PROTECTOR}"
+    fi
 fi
 
 cat > autoconf.h.new <<EOF

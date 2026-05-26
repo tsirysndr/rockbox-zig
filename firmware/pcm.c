@@ -78,6 +78,10 @@
  *
  */
 
+#ifdef USB_ENABLE_IAP
+extern struct pcm_sink iap_pcm_sink;
+#endif
+
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if defined(__ANDROID__) && defined(CODECS_STATIC)
     [PCM_SINK_BUILTIN]      = &aaudio_pcm_sink,    /* AAudio = default on Android cdylib */
@@ -104,6 +108,9 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #endif
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_WEBAPI]       = &webapi_pcm_sink,    /* also addressable by name */
+#endif
+#ifdef USB_ENABLE_IAP
+    [PCM_SINK_IAP] = &iap_pcm_sink,
 #endif
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;
@@ -334,20 +341,23 @@ bool pcm_switch_sink(enum pcm_sink_ids sink)
         return true;
     }
 
-    /* This should not be possible but it silences
-       a false warning that only occurs with with GCC9.5 on bare metal ARM.
-    */
-#if __GNUC__ == 9 && defined(CPU_ARM)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
+    /*
+     * If PCM_SINK_NUM == 1, GCC 9.5 can infer that cur_sink
+     * must be nonzero here (because of the above checks) and
+     * issue a -Warray-bounds warning. This only happens on
+     * some architectures (ARM), and oddly enough, only when
+     * cur_sink is an enum type.
+     *
+     * Since this situation isn't possible outside of memory
+     * corruption we can just tell the compiler to assume it
+     * can't happen. This avoids the warning, and saves a bit
+     * of code size since none of the code below is reachable
+     * when there's only one PCM sink.
+     */
+    ASSUME(cur_sink < PCM_SINK_NUM);
 
     /* save current sink before switching */
     struct pcm_sink* old_sink = sinks[cur_sink];
-
-#if __GNUC__ == 9
-#pragma GCC diagnostic pop
-#endif
 
     /* update sink index */
     cur_sink = sink;

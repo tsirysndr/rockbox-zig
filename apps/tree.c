@@ -413,6 +413,9 @@ static int update_dir(void)
     const bool id3db = false;
 #endif
 
+    /* Ensure that list is initialized before update_dir returns */
+    gui_synclist_init(list, &tree_get_filename, &tc, false, 1, NULL);
+
 #ifdef HAVE_TAGCACHE
     /* Checks for changes */
     if (id3db) {
@@ -460,8 +463,6 @@ static int update_dir(void)
             splash(HZ, ID2P(LANG_SHOWDIR_BUFFER_FULL));
         }
     }
-
-    gui_synclist_init(list, &tree_get_filename, &tc, false, 1, NULL);
 
 #ifdef HAVE_TAGCACHE
     if (id3db)

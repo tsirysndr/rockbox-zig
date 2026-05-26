@@ -343,7 +343,7 @@ static void usb_handle_setup_rx(void)
     if (len == 8)
     {
         ISP1583_DFLOW_CTRLFUN |= DFLOW_CTRLFUN_STATUS; /* Acknowledge packet */
-        usb_core_legacy_control_request((struct usb_ctrlrequest*)setup_pkt_buf);
+        usb_core_setup_received((struct usb_ctrlrequest*)setup_pkt_buf);
     }
     else
     {
@@ -626,18 +626,17 @@ void usb_drv_cancel_all_transfers(void)
         endpoints[i].halt[0] = endpoints[i].halt[1] = 1;
 }
 
-int usb_drv_init_endpoint(int endpoint, int type, int max_packet_size)
+void usb_drv_ep_init(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
 {
-    (void)max_packet_size; /* FIXME: support max packet size override */
-    (void)type;
-    (void)endpoint;
-    return 0;
+    /* FIXME: support max packet size override */
+    (void)ctx;
+    (void)ep;
 }
 
-int usb_drv_deinit_endpoint(int endpoint)
+void usb_drv_ep_deinit(const struct usb_drv_ep_alloc_ctx* ctx, int ep)
 {
-    (void)endpoint;
-    return 0;
+    (void)ctx;
+    (void)ep;
 }
 
 static void bus_reset(void)

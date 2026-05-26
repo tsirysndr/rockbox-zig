@@ -257,6 +257,9 @@ bool syssnd_init(void)
 
     rb->mixer_set_frequency(HW_FREQ_44);
 
+    /* Be sure channel is audible */
+    rb->pcmbuf_fade(false, true);
+
     rb->memset(channels, 0, sizeof(channels));
     rb->memset(mixBuffers, 0, sizeof(mixBuffers));
 
@@ -279,6 +282,9 @@ void syssnd_shutdown(void)
     {
         return;
     }
+
+    /* Mute channel */
+    rb->pcmbuf_fade(false, false);
 
     /* Stop playback. */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);

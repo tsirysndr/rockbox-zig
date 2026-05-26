@@ -295,7 +295,7 @@ static bool do_non_text_tags(struct gui_wps *gwps, struct skin_draw_info *info,
             {
                 struct skin_albumart *aa = SKINOFFSETTOPTR(skin_buffer, data->albumart);
                 if (aa)
-                {    
+                {
                     int handle = playback_current_aa_hid(data->playback_aa_slot);
 #if CONFIG_TUNER
                     if (in_radio_screen() || (get_radio_status() != FMRADIO_OFF))
@@ -940,7 +940,6 @@ void skin_render(struct gui_wps *gwps, unsigned refresh_mode)
     }
     /* Restore the default viewport */
     display->set_viewport_ex(NULL, VP_FLAG_VP_SET_CLEAN);
-    display->update();
 }
 
 static __attribute__((noinline))

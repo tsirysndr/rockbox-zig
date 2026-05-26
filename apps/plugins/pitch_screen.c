@@ -1106,9 +1106,9 @@ int gui_syncpitchscreen_run(void)
             /* when needed                                         */
             new_speed = 0;
         }
+        rb->yield();
     }
 
-    //rb->pcmbuf_set_low_latency(false);
     //pop_current_activity();
 
     /* Clean up */
@@ -1215,6 +1215,7 @@ enum plugin_status plugin_start(const void* parameter)
  * -s=90 sets speed to 90% if timestrech is enabled
  * -k=true -k1 enables time stretch -k0 -kf-kn disables
 */
+    enum plugin_status ret = PLUGIN_OK;
     bool gui = false;
     rb->pcmbuf_set_low_latency(true);
 
@@ -1274,7 +1275,7 @@ enum plugin_status plugin_start(const void* parameter)
     }
 
     if (gui && gui_syncpitchscreen_run() == 1)
-            return PLUGIN_USB_CONNECTED;
+        ret = PLUGIN_USB_CONNECTED;
     rb->pcmbuf_set_low_latency(false);
-    return PLUGIN_OK;
+    return ret;
 }

@@ -56,12 +56,14 @@ void rockboy_pcm_init(void)
 #endif
 
     rb->mixer_set_frequency(pcm.hz); /* 44100 22050 11025 */
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 }
 
 void rockboy_pcm_close(void)
 {
     memset(&pcm, 0, sizeof pcm);
     newly_started = true;
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
     rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 }
