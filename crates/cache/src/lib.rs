@@ -35,9 +35,13 @@ impl CacheConfig {
             let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
             format!("{}/.config/rockbox.org", home)
         });
+        let dir = PathBuf::from(format!("{}/cache", config_base));
+        if let Err(e) = fs::create_dir_all(&dir) {
+            eprintln!("rockbox-cache: could not create default cache dir {:?}: {}", dir, e);
+        }
         Self {
             enabled: true,
-            dir: PathBuf::from(format!("{}/cache", config_base)),
+            dir,
             max_size_bytes: 512 * 1024 * 1024,
             min_free_space_bytes: 100 * 1024 * 1024,
             parallel_parts: 4,
@@ -75,7 +79,7 @@ pub fn configure(config: CacheConfig) {
     if let Err(e) = fs::create_dir_all(&config.dir) {
         warn!("http cache: could not create cache dir {:?}: {}", config.dir, e);
     } else {
-        debug!("http cache: dir {:?} ready", config.dir);
+        info!("http cache: dir {:?} ready", config.dir);
     }
     let mut mgr = CACHE.lock().unwrap();
     mgr.config = config;
@@ -113,9 +117,11 @@ pub fn lookup(url: &str) -> Option<PathBuf> {
 ///
 /// Returns immediately; the caller's live HTTP stream continues uninterrupted.
 pub fn start_background_fetch(url: &str) {
+    info!("cache: start_background_fetch called for {}", url);
     {
         let mut mgr = CACHE.lock().unwrap();
         if !mgr.config.enabled {
+            info!("cache: caching disabled — skipping {}", url);
             return;
         }
         // Skip URLs that match a no-cache pattern (e.g. live streams, HLS).
@@ -125,27 +131,30 @@ pub fn start_background_fetch(url: &str) {
             .iter()
             .any(|p| url.contains(p.as_str()))
         {
-            debug!("cache: no-cache pattern match, skipping: {}", url);
+            info!("cache: no-cache pattern match, skipping: {}", url);
             return;
         }
         if mgr.in_progress.contains(url) {
+            info!("cache: already in-flight, skipping: {}", url);
             return;
         }
         let key = url_to_key(url);
         if mgr.config.dir.join(format!("{key}.cache")).exists() {
+            info!("cache: already cached, skipping: {}", url);
             return;
         }
-        let avail = available_disk_space(&mgr.config.dir).unwrap_or(0);
+        let avail = available_disk_space(&mgr.config.dir).unwrap_or(u64::MAX);
         if avail < mgr.config.min_free_space_bytes {
-            debug!(
-                "cache: low disk space — skipping background fetch for {}",
-                url
+            info!(
+                "cache: low disk space ({} bytes free) — skipping background fetch for {}",
+                avail, url
             );
             return;
         }
         mgr.in_progress.insert(url.to_string());
     }
 
+    info!("cache: spawning download thread for {}", url);
     let url_owned = url.to_string();
     std::thread::Builder::new()
         .name("cache-fetch".into())
@@ -171,7 +180,20 @@ pub fn url_to_key(url: &str) -> String {
 #[cfg(unix)]
 fn available_disk_space(path: &Path) -> Option<u64> {
     use std::ffi::CString;
-    let p = CString::new(path.to_string_lossy().as_bytes()).ok()?;
+    // Walk up to the nearest existing ancestor so this works even when the
+    // cache directory hasn't been created yet.
+    let mut candidate = path.to_path_buf();
+    loop {
+        if candidate.exists() {
+            break;
+        }
+        match candidate.parent().map(|p| p.to_path_buf()) {
+            Some(p) => candidate = p,
+            None => return None,
+        }
+    }
+    let candidate = candidate.as_path();
+    let p = CString::new(candidate.to_string_lossy().as_bytes()).ok()?;
     let mut stat: libc::statvfs = unsafe { std::mem::zeroed() };
     if unsafe { libc::statvfs(p.as_ptr(), &mut stat) } != 0 {
         return None;
@@ -452,8 +474,8 @@ fn perform_download(url: &str, config: &CacheConfig) {
         Some(cl) => cl,
         None => {
             // No Content-Length → infinite/chunked stream; never cache.
-            debug!(
-                "cache: no Content-Length for {} — skipping (live stream?)",
+            info!(
+                "cache: no Content-Length for {} — skipping (live stream or transcoded?)",
                 url
             );
             return;
