@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ActionSheet, type ActionItem } from "@/components/action-sheet";
 import { EqualizerBars } from "@/components/equalizer-bars";
 import { heroGradientColors, gradientIconColor } from "@/components/playlist-cover";
 import { TrackMenuButton } from "@/components/track-menu-button";
@@ -26,6 +27,7 @@ import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 
 const { width } = Dimensions.get("window");
 const ART_SIZE = Math.min(width * 0.62, 280);
+const HEADER_HEIGHT = 56;
 
 function ndSongToTrack(song: import("@/lib/navidrome-client").NdSong, baseUrl: string, user: string, password: string): Track {
   return {
@@ -49,7 +51,8 @@ export default function NdAlbumScreen() {
   const starredIds = useNdStarredIds();
   const starMut = useNdStar();
   const unstarMut = useNdUnstar();
-  const { playQueue, currentTrack, isPlaying } = usePlayer();
+  const { playQueue, playLast, currentTrack, isPlaying } = usePlayer();
+  const [menuOpen, setMenuOpen] = useState(false);
   const bottomPad = useBottomSpacing(24);
 
   const scrollY = useMemo(() => new Animated.Value(0), []);
@@ -65,6 +68,11 @@ export default function NdAlbumScreen() {
   });
   const headerBgOpacity = scrollY.interpolate({
     inputRange: [0, 200, 280],
+    outputRange: [0, 0, 1],
+    extrapolate: "clamp",
+  });
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [0, 240, 320],
     outputRange: [0, 0, 1],
     extrapolate: "clamp",
   });
@@ -100,32 +108,6 @@ export default function NdAlbumScreen() {
 
   return (
     <View className="flex-1 bg-bg">
-      {/* Sticky header */}
-      <Animated.View
-        style={{ opacity: headerBgOpacity }}
-        className="absolute top-0 left-0 right-0 z-10 bg-bg"
-      >
-        <SafeAreaView edges={["top"]}>
-          <View className="h-14 flex-row items-center px-4 gap-3">
-            <Pressable hitSlop={10} onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={26} color={Colors.textPrimary} />
-            </Pressable>
-            <Text numberOfLines={1} className="flex-1 text-text-primary text-[16px] font-display">
-              {album?.name}
-            </Text>
-          </View>
-        </SafeAreaView>
-      </Animated.View>
-
-      {/* Back button (always visible) */}
-      <SafeAreaView edges={["top"]} className="absolute top-0 left-0 z-20">
-        <Pressable hitSlop={10} onPress={() => router.back()} className="m-4">
-          <View className="w-8 h-8 rounded-full bg-black/40 items-center justify-center">
-            <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
-          </View>
-        </Pressable>
-      </SafeAreaView>
-
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
@@ -133,80 +115,121 @@ export default function NdAlbumScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
+        contentContainerStyle={{ paddingBottom: bottomPad }}
       >
-        {/* Hero */}
-        <Animated.View
-          style={{ transform: [{ scale: artScale }], opacity: artOpacity }}
-          className="items-center pt-16 pb-6"
+        {/* Hero band: blurred album art behind, sharp art front-and-center */}
+        <View
+          className="items-center overflow-hidden pb-4"
+          style={{ paddingTop: HEADER_HEIGHT + 16 }}
         >
           {artSrc ? (
-            <View style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: 12, overflow: "hidden" }}>
+            <Image
+              source={{ uri: artSrc }}
+              className="absolute inset-0"
+              contentFit="cover"
+              blurRadius={40}
+            />
+          ) : (
+            <LinearGradient
+              colors={gradients}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+          )}
+          <LinearGradient
+            colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0.6)", "rgba(0,0,0,1)"]}
+            locations={[0, 0.55, 1]}
+            className="absolute inset-0"
+          />
+          <Animated.View
+            style={{
+              transform: [{ scale: artScale }],
+              opacity: artOpacity,
+              shadowColor: "#000",
+              shadowOpacity: 0.6,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 12 },
+            }}
+          >
+            {artSrc ? (
               <Image
                 source={{ uri: artSrc }}
-                className="w-full h-full"
+                className="rounded-lg"
+                style={{ width: ART_SIZE, height: ART_SIZE }}
                 contentFit="cover"
               />
-            </View>
-          ) : (
-            <View
-              style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: 12, overflow: "hidden" }}
-            >
-              <LinearGradient
-                colors={gradients}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+            ) : (
+              <View
+                className="rounded-lg overflow-hidden"
+                style={{ width: Math.round(ART_SIZE * 0.82), height: Math.round(ART_SIZE * 0.82) }}
               >
-                <View style={{ opacity: 0.4 }}>
-                  <Ionicons name="disc" size={88} color={gradientIconColor(gradients)} />
-                </View>
-              </LinearGradient>
-            </View>
-          )}
-        </Animated.View>
+                <LinearGradient
+                  colors={gradients}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+                >
+                  <View style={{ opacity: 0.4 }}>
+                    <Ionicons name="disc" size={Math.round(ART_SIZE * 0.82 * 0.55)} color={gradientIconColor(gradients)} />
+                  </View>
+                </LinearGradient>
+              </View>
+            )}
+          </Animated.View>
+        </View>
 
-        {/* Metadata */}
-        <View className="px-5 pb-4">
-          <Text className="text-text-primary text-[22px] font-display-extra" numberOfLines={2}>
+        {/* Title block */}
+        <View className="px-5 mt-3.5">
+          <Text className="text-text-primary text-[26px] font-display-extra" numberOfLines={2}>
             {album?.name ?? "Loading…"}
           </Text>
-          <Pressable onPress={() => album && router.push(`/nd-artist/${album.artistId}` as any)}>
-            <Text className="text-text-secondary text-[15px] mt-1 font-sans">
-              {album?.artist}{album?.year ? ` · ${album.year}` : ""}
+          <Pressable
+            hitSlop={6}
+            onPress={() => album && router.push(`/nd-artist/${album.artistId}` as any)}
+            className="mt-1.5"
+          >
+            <Text className="text-text-primary text-sm font-semibold font-sans">
+              {album?.artist}
             </Text>
           </Pressable>
-          <Text className="text-text-muted text-[13px] mt-0.5 font-sans">
-            {songs.length} {songs.length === 1 ? "song" : "songs"}
+          <Text className="text-text-secondary text-xs mt-1 font-sans">
+            Album{album?.year ? ` • ${album.year}` : ""} • {songs.length}{" "}
+            {songs.length === 1 ? "track" : "tracks"}
           </Text>
+        </View>
 
-          {/* Actions */}
-          <View className="flex-row items-center gap-4 mt-5">
-            <Pressable
-              hitSlop={6}
-              onPress={() => playQueue(tracks, { shuffle: true })}
-              disabled={tracks.length === 0}
-            >
-              <Ionicons name="shuffle" size={26} color={Colors.textPrimary} />
-            </Pressable>
-            <View className="flex-1" />
-            <Pressable
-              onPress={() => playQueue(tracks)}
-              disabled={tracks.length === 0}
-              className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 disabled:opacity-40"
-              style={{
-                shadowColor: Colors.accent,
-                shadowOpacity: 0.5,
-                shadowRadius: 14,
-                shadowOffset: { width: 0, height: 6 },
-              }}
-            >
-              <Ionicons name="play" size={26} color="#FFFFFF" style={{ marginLeft: 3 }} />
-            </Pressable>
-          </View>
+        {/* Action row */}
+        <View className="flex-row items-center px-5 mt-5 gap-4">
+          <Pressable
+            hitSlop={6}
+            onPress={() => playQueue(tracks, { shuffle: true })}
+            disabled={tracks.length === 0}
+            className="w-11 h-11 rounded-full items-center justify-center"
+          >
+            <Ionicons name="shuffle" size={26} color={Colors.textPrimary} />
+          </Pressable>
+          <Pressable hitSlop={6} onPress={() => setMenuOpen(true)}>
+            <Ionicons name="ellipsis-horizontal" size={26} color={Colors.textPrimary} />
+          </Pressable>
+          <View className="flex-1" />
+          <Pressable
+            onPress={() => playQueue(tracks)}
+            disabled={tracks.length === 0}
+            className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 disabled:opacity-40"
+            style={{
+              shadowColor: Colors.accent,
+              shadowOpacity: 0.5,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 6 },
+            }}
+          >
+            <Ionicons name="play" size={26} color="#FFFFFF" style={{ marginLeft: 3 }} />
+          </Pressable>
         </View>
 
         {/* Track list */}
-        <View style={{ paddingBottom: bottomPad }}>
+        <View className="mt-5">
           {isLoading
             ? Array.from({ length: 8 }, (_, i) => (
                 <View key={i} className="flex-row items-center px-5 py-3 gap-4">
@@ -227,9 +250,9 @@ export default function NdAlbumScreen() {
                   <Pressable
                     key={song.id}
                     onPress={() => track && playQueue(tracks, { startIdx: idx })}
-                    className="flex-row items-center px-5 py-3 gap-4 active:bg-bg-hover"
+                    className="flex-row items-center px-5 py-2.5 gap-3.5 active:bg-bg-hover"
                   >
-                    <View className="w-6 items-end">
+                    <View className="w-[22px] items-center">
                       {isCurrent ? (
                         <EqualizerBars size={14} playing={isPlaying} />
                       ) : (
@@ -241,20 +264,18 @@ export default function NdAlbumScreen() {
                     <View className="flex-1">
                       <Text
                         numberOfLines={1}
-                        className={`text-[15px] font-semibold font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
+                        className={`text-[15px] font-medium font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
                       >
                         {song.title}
                       </Text>
-                      <Text numberOfLines={1} className="text-text-secondary text-[13px] font-sans">
+                      <Text numberOfLines={1} className="text-text-secondary text-xs mt-0.5 font-sans">
                         {song.artist}
                       </Text>
                     </View>
                     <Pressable
                       hitSlop={8}
                       onPress={() =>
-                        isStarred
-                          ? unstarMut.mutate(song.id)
-                          : starMut.mutate(song.id)
+                        isStarred ? unstarMut.mutate(song.id) : starMut.mutate(song.id)
                       }
                     >
                       <Ionicons
@@ -263,7 +284,7 @@ export default function NdAlbumScreen() {
                         color={isStarred ? "#FFFFFF" : Colors.textMuted}
                       />
                     </Pressable>
-                    <Text className="text-text-muted text-[13px] font-mono">
+                    <Text className="text-text-muted text-xs font-mono">
                       {formatDuration(song.duration)}
                     </Text>
                     {track && <TrackMenuButton track={track} />}
@@ -272,6 +293,68 @@ export default function NdAlbumScreen() {
               })}
         </View>
       </Animated.ScrollView>
+
+      <ActionSheet
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        header={{
+          title: album?.name ?? "",
+          subtitle: album?.artist,
+          image: artSrc ?? undefined,
+        }}
+        actions={
+          [
+            {
+              icon: "play-outline",
+              label: "Play",
+              onPress: () => { setMenuOpen(false); playQueue(tracks); },
+            },
+            {
+              icon: "shuffle",
+              label: "Shuffle Play",
+              onPress: () => { setMenuOpen(false); playQueue(tracks, { shuffle: true }); },
+            },
+            {
+              icon: "list-outline",
+              label: "Add to Queue",
+              onPress: () => { setMenuOpen(false); tracks.forEach((t) => playLast(t)); },
+            },
+          ] as ActionItem[]
+        }
+      />
+
+      {/* Sticky header */}
+      <SafeAreaView
+        edges={["top"]}
+        className="absolute top-0 left-0 right-0"
+        pointerEvents="box-none"
+      >
+        <Animated.View
+          pointerEvents="none"
+          className="absolute top-0 left-0 right-0 bg-bg"
+          style={{ height: HEADER_HEIGHT + 64, opacity: headerBgOpacity }}
+        />
+        <View
+          className="flex-row items-center px-3"
+          style={{ height: HEADER_HEIGHT }}
+        >
+          <Pressable
+            hitSlop={10}
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full items-center justify-center bg-black/35"
+          >
+            <Ionicons name="chevron-back" size={22} color={Colors.textPrimary} />
+          </Pressable>
+          <Animated.Text
+            numberOfLines={1}
+            className="flex-1 text-center text-text-primary text-[15px] font-bold px-3 font-sans"
+            style={{ opacity: titleOpacity }}
+          >
+            {album?.name}
+          </Animated.Text>
+          <View className="w-10" />
+        </View>
+      </SafeAreaView>
     </View>
   );
 }

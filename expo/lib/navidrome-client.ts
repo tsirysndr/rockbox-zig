@@ -24,6 +24,12 @@ export function authParams(user: string, password: string): string {
   return `u=${encodeURIComponent(user)}&t=${token}&s=${salt}&v=1.16.1&c=rockbox&f=json`;
 }
 
+// Stable salt derived from credentials so cover-art URLs are deterministic
+// across renders — required for expo-image disk cache to get hits.
+function stableSalt(user: string, password: string): string {
+  return md5(user + password).slice(0, 10);
+}
+
 export function coverArtUrl(
   baseUrl: string,
   user: string,
@@ -32,7 +38,10 @@ export function coverArtUrl(
   size = 300,
 ): string {
   const base = baseUrl.replace(/\/$/, "");
-  return `${base}/rest/getCoverArt.view?id=${encodeURIComponent(coverId)}&size=${size}&${authParams(user, password)}`;
+  const salt = stableSalt(user, password);
+  const token = md5(password + salt);
+  const auth = `u=${encodeURIComponent(user)}&t=${token}&s=${salt}&v=1.16.1&c=rockbox&f=json`;
+  return `${base}/rest/getCoverArt.view?id=${encodeURIComponent(coverId)}&size=${size}&${auth}`;
 }
 
 export function streamUrl(
