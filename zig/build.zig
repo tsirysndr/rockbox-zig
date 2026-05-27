@@ -163,6 +163,7 @@ pub fn build(b: *std.Build) void {
     const librbcodec = b.path(b.pathJoin(&.{ fw_dir, "lib/librbcodec.a" }));
     const libskin_parser = b.path(b.pathJoin(&.{ fw_dir, "lib/libskin_parser.a" }));
     const libtlsf = b.path(b.pathJoin(&.{ fw_dir, "lib/libtlsf.a" }));
+    const libutf8proc = b.path(b.pathJoin(&.{ fw_dir, "lib/libutf8proc.a" }));
     const librockbox_cli = b.path("../target/release/librockbox_cli.a");
     const librockbox_server = b.path("../target/release/librockbox_server.a");
 
@@ -172,6 +173,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addObjectFile(libskin_parser);
     exe.root_module.addObjectFile(librbcodec);
     exe.root_module.addObjectFile(libtlsf);
+    exe.root_module.addObjectFile(libutf8proc);
     // libspeex-voice is only needed for SDL (voice/TTS UI); the headless build
     // uses libspeex.a via lib_names instead — linking both causes duplicate symbols.
     if (!headless) {
@@ -353,6 +355,7 @@ pub fn build(b: *std.Build) void {
         embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libskin_parser.a" })));
         embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/librbcodec.a" })));
         embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libtlsf.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libutf8proc.a" })));
 
         // Rust libraries
         embed_lib.root_module.addObjectFile(b.path("../target/release/librockbox_embed.a"));

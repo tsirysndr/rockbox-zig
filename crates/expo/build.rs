@@ -101,6 +101,7 @@ fn link_firmware() -> Result<(), Box<dyn std::error::Error>> {
         "skin_parser",
         "fixedpoint",
         "tlsf",
+        "utf8proc",
     ] {
         println!("cargo:rustc-link-lib=static={lib}");
     }
