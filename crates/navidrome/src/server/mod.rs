@@ -7,10 +7,7 @@ use rockbox_library::create_connection_pool;
 use rockbox_playlists::PlaylistStore;
 use rockbox_settings::read_settings;
 use sqlx::{Pool, Sqlite};
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, Mutex, OnceLock,
-};
+use std::sync::{atomic::AtomicBool, Arc, Mutex, OnceLock};
 
 // ── Now-playing shared state ──────────────────────────────────────────────────
 
