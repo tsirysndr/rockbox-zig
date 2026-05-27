@@ -161,7 +161,9 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
 
     // ── HTTP file cache ────────────────────────────────────────────────────
     {
-        let default_dir = format!("{}/.config/rockbox.org/cache", home);
+        let config_base = std::env::var("ROCKBOX_CONFIG_DIR")
+            .unwrap_or_else(|_| format!("{}/.config/rockbox.org", home));
+        let default_dir = format!("{}/cache", config_base);
         let cache_enabled = settings.cache_enabled.unwrap_or(true);
         let cache_dir = settings
             .cache_dir

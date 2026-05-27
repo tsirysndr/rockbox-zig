@@ -31,10 +31,13 @@ pub struct CacheConfig {
 
 impl CacheConfig {
     pub fn with_defaults() -> Self {
-        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        let config_base = std::env::var("ROCKBOX_CONFIG_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            format!("{}/.config/rockbox.org", home)
+        });
         Self {
             enabled: true,
-            dir: PathBuf::from(format!("{}/.config/rockbox.org/cache", home)),
+            dir: PathBuf::from(format!("{}/cache", config_base)),
             max_size_bytes: 512 * 1024 * 1024,
             min_free_space_bytes: 100 * 1024 * 1024,
             parallel_parts: 4,
