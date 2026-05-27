@@ -36,6 +36,7 @@
     "expo-system-ui": "~6.0.9",
     "expo-web-browser": "~15.0.10",
     "jotai": "^2.19.1",
+    "md5": "^2.3.0",
     "nativewind": "^4.2.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -51,6 +52,7 @@
     "rockbox-rpc": "file:./modules/rockbox-rpc"
   },
   "devDependencies": {
+    "@types/md5": "^2.3.6",
     "@types/react": "~19.1.0",
     "babel-preset-expo": "~54.0.10",
     "eslint": "^9.25.0",

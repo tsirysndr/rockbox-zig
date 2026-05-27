@@ -490,7 +490,10 @@ class PlayerState: ObservableObject {
     )
 
     // Then update full metadata + artwork asynchronously.
-    loadArtwork(from: currentTrack.albumArt) { [weak self] artwork in
+    // For ND tracks albumArt is nil; derive the cover art URL from the stream URL instead.
+    let artworkUrl = currentTrack.albumArt
+      ?? NavidromeManager.shared.coverArtUrl(forStreamUrl: currentTrack.path, size: 300)
+    loadArtwork(from: artworkUrl) { [weak self] artwork in
       guard let self = self else { return }
       MediaControlsManager.shared.updateNowPlaying(
         title: self.currentTrack.title,
