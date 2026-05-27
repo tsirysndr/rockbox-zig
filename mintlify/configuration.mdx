@@ -118,6 +118,59 @@ release_time = 300
 attack_time  = 5
 ```
 
+## HTTP file cache
+
+Rockbox caches remote audio files on disk so repeat plays are instant and
+require zero network traffic.  Files are downloaded in the background in
+**parallel range-request parts** so the cache is populated without any
+interruption to the live stream.
+
+```toml
+# All fields are optional — shown with their defaults.
+cache_enabled           = true
+cache_dir               = "~/.config/rockbox.org/cache"
+cache_max_size_mb       = 512    # total disk budget in MB
+cache_min_free_space_mb = 100    # headroom to always preserve on disk
+cache_parallel_parts    = 4      # concurrent HTTP Range requests per file
+
+# Substrings that opt a URL out of caching entirely.
+# Useful for live radio streams, HLS manifests, etc.
+cache_no_cache_patterns = ["icecast", ".m3u8", "live", "stream"]
+```
+
+### How it works
+
+| Step | What happens |
+| ---- | ------------ |
+| 1    | `stream_open` checks the on-disk cache (SHA-256 of URL → `.cache` file). |
+| 2    | **Cache hit**: the local file is opened instantly; seeks are O(1) file seeks — no network at all. |
+| 3    | **Cache miss**: the live HTTP stream is opened normally (zero latency), AND a background thread downloads the full file in `cache_parallel_parts` simultaneous range requests. |
+| 4    | Once the background download is complete (and verified), the file is atomically renamed to its final cache path. The next open is a hit. |
+| 5    | When the cache exceeds `cache_max_size_mb`, the least-recently-used files are evicted to make room. |
+
+### Stream / radio protection
+
+The cache automatically skips URLs that have no `Content-Length` — infinite
+streams (ICY radio, HLS) never produce one, so they are never queued for
+caching.  For URLs that *do* return a `Content-Length` but should still be
+skipped (e.g. a CDN-delivered live stream), add a matching substring to
+`cache_no_cache_patterns`.
+
+### Key derivation
+
+Each cached URL is stored as `SHA-256(url).cache` in `cache_dir`.  The hash
+is deterministic and URL-specific, so query-string variations produce distinct
+cache entries.
+
+### Parallel download
+
+Files ≥ 2 MB are split into `cache_parallel_parts` equal byte ranges and
+fetched concurrently.  Each thread writes directly to its allocated region of a
+pre-allocated file via `pwrite` (Unix) / `seek_write` (Windows), so threads
+never contend.  Set `cache_parallel_parts = 1` to fall back to single-connection
+downloads.  If any range request fails (e.g. the server returns 200 instead of
+206), the whole file is re-fetched sequentially as a fallback.
+
 ## Where settings come from
 
 There are three layers, in order of precedence:

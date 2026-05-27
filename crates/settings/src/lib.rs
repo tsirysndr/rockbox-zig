@@ -1,4 +1,5 @@
 use anyhow::Error;
+use rockbox_cache::CacheConfig;
 use rockbox_sys::{self as rb, sound::pcm, types::user_settings::NewGlobalSettings};
 
 pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Error> {
@@ -157,6 +158,41 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
     rb::sound::pcmbuf_set_low_latency(true);
     rb::sound::dsp::eq_enable(enabled);
     rb::sound::pcmbuf_set_low_latency(false);
+
+    // ── HTTP file cache ────────────────────────────────────────────────────
+    {
+        let default_dir = format!("{}/.config/rockbox.org/cache", home);
+        let cache_enabled = settings.cache_enabled.unwrap_or(true);
+        let cache_dir = settings
+            .cache_dir
+            .as_deref()
+            .unwrap_or(&default_dir)
+            .replace("$HOME", &home);
+        let max_size_bytes = settings.cache_max_size_mb.unwrap_or(512) * 1024 * 1024;
+        let min_free_space_bytes = settings.cache_min_free_space_mb.unwrap_or(100) * 1024 * 1024;
+        let parallel_parts = settings.cache_parallel_parts.unwrap_or(4) as usize;
+        let no_cache_patterns = settings.cache_no_cache_patterns.clone().unwrap_or_default();
+
+        rockbox_cache::configure(CacheConfig {
+            enabled: cache_enabled,
+            dir: std::path::PathBuf::from(&cache_dir),
+            max_size_bytes,
+            min_free_space_bytes,
+            parallel_parts,
+            no_cache_patterns,
+        });
+        tracing::info!(
+            "http cache: enabled={} dir={} max={}MB parts={} skip_patterns={}",
+            cache_enabled,
+            cache_dir,
+            settings.cache_max_size_mb.unwrap_or(512),
+            parallel_parts,
+            settings
+                .cache_no_cache_patterns
+                .as_ref()
+                .map_or(0, |v| v.len()),
+        );
+    }
 
     Ok(())
 }

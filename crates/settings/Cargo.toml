@@ -7,5 +7,6 @@ version = "0.1.0"
 anyhow = "1.0.91"
 rockbox-sys = {path = "../sys"}
 rockbox-upnp = {path = "../upnp"}
+rockbox-cache = {path = "../cache"}
 toml = "0.8.19"
 tracing = { workspace = true }

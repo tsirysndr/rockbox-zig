@@ -21,6 +21,8 @@ rockbox-typesense = {path = "../typesense"}
 rockbox-fts5 = {path = "../fts5", optional = true}
 rockbox-cpal-sink = {path = "../cpal-sink", optional = true}
 rockbox-settings = {path = "../settings"}
+rockbox-cache = {path = "../cache"}
+rockbox-sys = {path = "../sys"}
 rockbox-rocksky = {path = "../rocksky"}
 tokio = {version = "1.36.0", features = ["full"]}
 dirs = "6.0.0"

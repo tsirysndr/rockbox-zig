@@ -743,6 +743,20 @@ pub struct NewGlobalSettings {
     pub subsonic_password: Option<String>,
     /// Port for the Subsonic-compatible API server (default: 4533).
     pub subsonic_port: Option<u16>,
+    /// Enable HTTP file caching (default: true).
+    pub cache_enabled: Option<bool>,
+    /// Cache directory path (default: ~/.config/rockbox.org/cache).
+    pub cache_dir: Option<String>,
+    /// Maximum total cache size in megabytes (default: 512).
+    pub cache_max_size_mb: Option<u64>,
+    /// Minimum free disk space in MB that must remain before caching (default: 100).
+    pub cache_min_free_space_mb: Option<u64>,
+    /// Number of parallel HTTP range-request parts for large file caching (default: 4).
+    /// Set to 1 to disable parallel downloading.
+    pub cache_parallel_parts: Option<u8>,
+    /// URL substrings that bypass the cache entirely (e.g. "icecast", ".m3u8").
+    /// Useful to prevent live radio streams from being cached.
+    pub cache_no_cache_patterns: Option<Vec<String>>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -810,6 +824,12 @@ impl From<UserSettings> for NewGlobalSettings {
             subsonic_username: None,
             subsonic_password: None,
             subsonic_port: None,
+            cache_enabled: None,
+            cache_dir: None,
+            cache_max_size_mb: None,
+            cache_min_free_space_mb: None,
+            cache_parallel_parts: None,
+            cache_no_cache_patterns: None,
         }
     }
 }
