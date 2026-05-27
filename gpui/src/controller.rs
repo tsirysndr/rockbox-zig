@@ -12,10 +12,6 @@ use std::sync::{
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-/// Staging slot: background tokio tasks post a resolved cover art URL here;
-/// the GPUI foreground poll drains it on the next tick.
-static PENDING_COVER_ART: std::sync::LazyLock<Mutex<Option<String>>> =
-    std::sync::LazyLock::new(|| Mutex::new(None));
 
 pub struct Controller {
     pub state: Entity<AppState>,
@@ -111,9 +107,11 @@ impl Controller {
                     });
                 }
 
-                // Navidrome cover art: if NdCurrentCoverArt is None for the playing track,
-                // fetch it once via getSong so the player/miniplayer shows the right art.
-                let cover_fetch_task = cx.update(|app| {
+                // Navidrome cover art: derive the getCoverArt URL directly from the
+                // stream URL's embedded credentials (u=, t=, s=, id=).  This works
+                // even when the user is not actively connected to a Navidrome server —
+                // the stream URL is self-contained.  No getSong round-trip needed.
+                let cover_url = cx.update(|app| {
                     let s = state_for_poll.read(app);
                     let track = s.current_track()?;
                     let path = &track.path;
@@ -122,38 +120,34 @@ impl Controller {
                     // Already have cover art for this track.
                     if app.global::<NdCurrentCoverArt>().0.is_some() { return None; }
 
-                    let song_id = path.split('?').nth(1)?
-                        .split('&')
-                        .find(|p| p.starts_with("id="))
-                        .map(|p| p[3..].to_string())?;
+                    let query = path.split('?').nth(1)?;
+                    let param = |name: &str| -> Option<String> {
+                        let prefix = format!("{name}=");
+                        query.split('&')
+                            .find(|p| p.starts_with(prefix.as_str()))
+                            .map(|p| p[prefix.len()..].to_string())
+                    };
 
-                    // Already fetched for this song.
+                    let song_id = param("id")?;
+
+                    // Already derived for this song.
                     if app.global::<NdCoverFetchState>().fetched_id.as_deref() == Some(&song_id) {
                         return None;
                     }
 
-                    let nd = app.global::<NavidromeServerState>();
-                    let creds = nd.active_server()?.clone();
-                    Some((song_id, creds.base_url, creds.user, creds.token, creds.salt))
+                    // Extract base_url as everything before /rest/.
+                    let base_url = path.find("/rest/").map(|i| path[..i].to_string())?;
+                    let user  = param("u")?;
+                    let token = param("t")?;
+                    let salt  = param("s")?;
+
+                    let url = crate::navidrome::cover_art_url(&base_url, &user, &token, &salt, &song_id, Some(300));
+                    Some((song_id, url))
                 }).ok().flatten();
 
-                if let Some((song_id, base_url, user, token, salt)) = cover_fetch_task {
+                if let Some((song_id, url)) = cover_url {
                     let _ = cx.update(|app| {
-                        app.global_mut::<NdCoverFetchState>().fetched_id = Some(song_id.clone());
-                    });
-                    rt_handle.spawn(async move {
-                        if let Some(song) = crate::navidrome::get_song(&base_url, &user, &token, &salt, &song_id).await {
-                            if let Some(cid) = song.cover_art {
-                                let url = crate::navidrome::cover_art_url(&base_url, &user, &token, &salt, &cid, Some(300));
-                                PENDING_COVER_ART.lock().unwrap().replace(url);
-                            }
-                        }
-                    });
-                }
-
-                // Drain pending cover art set from the async fetch above.
-                if let Some(url) = PENDING_COVER_ART.lock().unwrap().take() {
-                    let _ = cx.update(|app| {
+                        app.global_mut::<NdCoverFetchState>().fetched_id = Some(song_id);
                         app.global_mut::<NdCurrentCoverArt>().0 = Some(url);
                     });
                 }
