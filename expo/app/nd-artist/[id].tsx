@@ -81,11 +81,13 @@ export default function NdArtistScreen() {
           className="items-center pt-16 pb-6"
         >
           {artSrc ? (
-            <Image
-              source={artSrc}
-              style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: ART_SIZE / 2 }}
-              contentFit="cover"
-            />
+            <View style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: ART_SIZE / 2, overflow: "hidden" }}>
+              <Image
+                source={{ uri: artSrc }}
+                className="w-full h-full"
+                contentFit="cover"
+              />
+            </View>
           ) : (
             <View
               style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: ART_SIZE / 2 }}
@@ -150,11 +152,13 @@ export default function NdArtistScreen() {
                     className="active:opacity-80"
                   >
                     {artSrcAlbum ? (
-                      <Image
-                        source={artSrcAlbum}
-                        style={{ width: itemWidth, height: itemWidth, borderRadius: 8 }}
-                        contentFit="cover"
-                      />
+                      <View style={{ width: itemWidth, height: itemWidth, borderRadius: 8, overflow: "hidden" }}>
+                        <Image
+                          source={{ uri: artSrcAlbum }}
+                          className="w-full h-full"
+                          contentFit="cover"
+                        />
+                      </View>
                     ) : (
                       <View
                         style={{ width: itemWidth, height: itemWidth, borderRadius: 8, overflow: "hidden" }}

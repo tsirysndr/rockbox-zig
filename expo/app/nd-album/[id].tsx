@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EqualizerBars } from "@/components/equalizer-bars";
 import { heroGradientColors, gradientIconColor } from "@/components/playlist-cover";
+import { TrackMenuButton } from "@/components/track-menu-button";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
 import { coverArtUrl } from "@/lib/navidrome-client";
@@ -139,11 +140,13 @@ export default function NdAlbumScreen() {
           className="items-center pt-16 pb-6"
         >
           {artSrc ? (
-            <Image
-              source={artSrc}
-              style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: 12 }}
-              contentFit="cover"
-            />
+            <View style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: 12, overflow: "hidden" }}>
+              <Image
+                source={{ uri: artSrc }}
+                className="w-full h-full"
+                contentFit="cover"
+              />
+            </View>
           ) : (
             <View
               style={{ width: ART_SIZE, height: ART_SIZE, borderRadius: 12, overflow: "hidden" }}
@@ -263,6 +266,7 @@ export default function NdAlbumScreen() {
                     <Text className="text-text-muted text-[13px] font-mono">
                       {formatDuration(song.duration)}
                     </Text>
+                    {track && <TrackMenuButton track={track} />}
                   </Pressable>
                 );
               })}

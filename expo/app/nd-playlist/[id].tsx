@@ -6,6 +6,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EqualizerBars } from "@/components/equalizer-bars";
+import { TrackMenuButton } from "@/components/track-menu-button";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
 import { coverArtUrl } from "@/lib/navidrome-client";
@@ -165,6 +166,7 @@ export default function NdPlaylistScreen() {
                   <Text className="text-text-muted text-xs font-mono">
                     {formatDuration(song.duration)}
                   </Text>
+                  {track && <TrackMenuButton track={track} />}
                 </Pressable>
               );
             })}
