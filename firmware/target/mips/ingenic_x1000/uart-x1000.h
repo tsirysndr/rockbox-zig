@@ -7,7 +7,7 @@
  *                     \/            \/     \/    \/            \/
  * $Id$
  *
- * Copyright © 2009 Rafaël Carré
+ * Copyright (C) 2026 Skye Green
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,34 +19,25 @@
  *
  ****************************************************************************/
 
-#ifndef __AS3525V2_H__
-#define __AS3525V2_H__
+#ifndef __UART_X1000_H__
+#define __UART_X1000_H__
 
-#include "as3525.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
-/* insert differences here */
+typedef enum {
+    PORT_UART0 = 0,
+    PORT_UART1 = 1,
+    PORT_UART2 = 2,
+    PORT_MAX = 3,
+} uart_port_t;
 
-#define CACHEALIGN_BITS (5)
+extern void uart_init(uart_port_t port, int baud);
+extern void uart_tx(uart_port_t port, const uint8_t *buf, size_t len);
+extern size_t uart_rx(uart_port_t port, uint8_t *buf, size_t len);
+extern bool uart_pending_rx(uart_port_t port);
+extern void uart_set_baud(uart_port_t port, int baud);
+extern void uart_deinit(uart_port_t port);
 
-#ifndef IRAM_SIZE   /* protect in case the define name changes */
-#   error IRAM_SIZE not defined !
-#endif
-#undef IRAM_SIZE
-#define IRAM_SIZE 0x100000
-
-#define CGU_SDSLOT         (*(volatile uint32_t*)(CGU_BASE + 0x3C))
-
-#undef USB_NUM_ENDPOINTS
-/* 7 available EPs (0b00000000010101010000000000101011), 6 used */
-#define USB_NUM_ENDPOINTS   6
-
-#define CCU_USB         (*(volatile uint32_t*)(CCU_BASE + 0x20))
-
-#undef USB_DEVBSS_ATTR
-#define USB_DEVBSS_ATTR __attribute__((aligned(32)))
-
-/* Define this if the DWC implemented on this SoC does not support
-   DMA or you want to disable it. */
-// #define USB_DW_ARCH_SLAVE
-
-#endif /* __AS3525V2_H__ */
+#endif /* __UART_X1000_H__ */
