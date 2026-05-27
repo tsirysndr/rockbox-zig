@@ -490,9 +490,12 @@ class PlayerState: ObservableObject {
     )
 
     // Then update full metadata + artwork asynchronously.
-    // For ND tracks albumArt is nil; derive the cover art URL from the stream URL instead.
-    let artworkUrl = currentTrack.albumArt
-      ?? NavidromeManager.shared.coverArtUrl(forStreamUrl: currentTrack.path, size: 300)
+    // Prefer ND cover art URL (derived from stream URL) when available; fall back to
+    // the local artwork URL. albumArt is almost always non-nil for gRPC-sourced tracks
+    // (it's built from coversBaseURL + tag, even when the tag is empty), so we must
+    // check ND first — not as a fallback — otherwise the ?? never fires.
+    let artworkUrl = NavidromeManager.shared.coverArtUrl(forStreamUrl: currentTrack.path, size: 300)
+      ?? currentTrack.albumArt
     loadArtwork(from: artworkUrl) { [weak self] artwork in
       guard let self = self else { return }
       MediaControlsManager.shared.updateNowPlaying(
