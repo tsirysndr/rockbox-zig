@@ -121,6 +121,16 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         .finish();
     let _ = tracing::subscriber::set_global_default(subscriber);
 
+    // Create the cache dir eagerly — before settings are loaded — so it always
+    // exists regardless of whether load_settings succeeds.
+    if let Ok(home) = env::var("HOME") {
+        let cache_dir = format!("{}/.config/rockbox.org/cache", home);
+        match fs::create_dir_all(&cache_dir) {
+            Ok(_) => info!("cache dir ready: {}", cache_dir),
+            Err(e) => warn!("could not create cache dir {}: {}", cache_dir, e),
+        }
+    }
+
     let string_array = unsafe { std::slice::from_raw_parts(argv, argc) };
     let args: Vec<&str> = string_array
         .iter()
