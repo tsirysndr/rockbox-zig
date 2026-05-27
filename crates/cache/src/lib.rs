@@ -561,8 +561,10 @@ fn perform_download(url: &str, config: &CacheConfig) {
         }
     };
 
-    // Verify the download is complete before promoting to the final path.
-    if downloaded != content_length {
+    // Verify the download is not short. Servers (especially transcoding ones like
+    // Navidrome) sometimes deliver more bytes than Content-Length advertised, so
+    // only discard if we received strictly fewer bytes than promised.
+    if downloaded < content_length {
         debug!(
             "cache: incomplete download for {} ({}/{} bytes) — discarding",
             url, downloaded, content_length
