@@ -37,7 +37,10 @@ impl CacheConfig {
         });
         let dir = PathBuf::from(format!("{}/cache", config_base));
         if let Err(e) = fs::create_dir_all(&dir) {
-            eprintln!("rockbox-cache: could not create default cache dir {:?}: {}", dir, e);
+            eprintln!(
+                "rockbox-cache: could not create default cache dir {:?}: {}",
+                dir, e
+            );
         }
         Self {
             enabled: true,
@@ -77,7 +80,10 @@ static CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
 /// Replace the active cache configuration.  Called once from `load_settings`.
 pub fn configure(config: CacheConfig) {
     if let Err(e) = fs::create_dir_all(&config.dir) {
-        warn!("http cache: could not create cache dir {:?}: {}", config.dir, e);
+        warn!(
+            "http cache: could not create cache dir {:?}: {}",
+            config.dir, e
+        );
     } else {
         info!("http cache: dir {:?} ready", config.dir);
     }

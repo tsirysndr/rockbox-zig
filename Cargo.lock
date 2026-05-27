@@ -9792,6 +9792,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+ "tracing-subscriber",
  "url",
  "urlencoding",
 ]
