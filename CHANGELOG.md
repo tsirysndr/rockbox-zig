@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.27]
+
+### Added
+- Navidrome / Subsonic support in the macOS Swift app — `NavidromeService` (Subsonic API client with MD5 token auth), `NavidromeManager` (multi-server persistence, active server switching, optimistic star toggling, cover art derivation from stream URLs), `NdResponseCache` (stale-while-revalidate actor cache, 30 min fresh TTL, 24 h eviction), `NdLibraryView` (Albums / Artists / Songs / Liked / Playlists sections with infinite-scroll pagination), `NdSongRowView` (track art toggle, hover play, star button, Play Next/Last + Go to Album/Artist context menu), `NdAlbumDetailView`, `NdArtistDetailView`, `NdPlaylistDetailView` (Play / Shuffle), and search integration (when a Navidrome server is active, `search3` replaces local gRPC search with ND artist circles, album cards, and song rows)
+
+### Removed
+- PCM volume normalizer (`pcm_normalizer.c`, `pcm_normalizer.h`, Rust bindings, settings field, docs) — superseded by ReplayGain perceived-loudness normalisation
+
+### Fixed
+- Expo: `AbortSignal.timeout()` replaced with `AbortController` + `setTimeout` in `navidrome-client.ts` — `AbortSignal.timeout` is absent in some Hermes / React Native versions and was silently swallowing timeouts, making every fetch return `null`; switched to `md5` npm package (removed inline implementation); set `NSAllowsArbitraryLoads=true` in iOS `infoPlist` to unblock HTTPS servers that do not meet strict ATS TLS requirements
+- Expo ND album detail: mirror local `album/[id].tsx` hero layout — blurred background image (`blurRadius=40`) + dark gradient overlay + art shadow + scale/fade scroll animation + sticky header title fade-in; cover art URL now uses a stable salt derived from credentials so `expo-image`'s disk cache is not busted on every render
+- Expo ND detail screens: cover art now renders correctly by placing computed dimensions on a parent `View` and giving `Image` `className="w-full h-full"` so NativeWind owns the style; track rows in album and playlist detail screens now include a `TrackMenuButton` "…" context menu
+- GPUI: Navidrome cover art is now derived directly from the stream URL parameters (`id`, `u`, `t`, `s`) instead of requiring an active server connection, eliminating blank album art when playback starts before the ND panel is connected; removes the `PENDING_COVER_ART` staging mutex and the async `getSong` round-trip
+- macOS Now Playing / `MPNowPlayingInfoCenter`: cover art priority corrected — `coverArtUrl(forStreamUrl:)` is now tried first (returns `nil` for local tracks), then falls back to `albumArt`; the previous order always hit the `albumArt` branch even when it pointed at an empty path, so Navidrome tracks showed no artwork in the system Now Playing widget
+- CI: Android firmware build workflows now delete `make.dep` before `make lib` to force a fresh dependency scan after prefix-restore cache hits that carry stale header dependencies (e.g. the `pcm_normalizer.h` removal)
+
 ## [2026.05.25]
 
 ### Added

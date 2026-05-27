@@ -1,5 +1,5 @@
 Name:           rockbox
-Version:        2026.05.25
+Version:        2026.05.27
 Release:        1%{?dist}
 Summary:        High quality audio player
 
