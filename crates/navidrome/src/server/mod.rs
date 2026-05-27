@@ -263,11 +263,19 @@ pub async fn start() -> anyhow::Result<()> {
             // Playback
             .route(
                 "/rest/stream{_:(\\.view)?}",
+                web::head().to(handlers::head_stream),
+            )
+            .route(
+                "/rest/stream{_:(\\.view)?}",
                 web::get().to(handlers::stream),
             )
             .route(
                 "/rest/stream{_:(\\.view)?}",
                 web::post().to(handlers::stream),
+            )
+            .route(
+                "/rest/download{_:(\\.view)?}",
+                web::head().to(handlers::head_stream),
             )
             .route(
                 "/rest/download{_:(\\.view)?}",

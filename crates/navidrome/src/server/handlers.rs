@@ -533,6 +533,53 @@ pub async fn get_song(state: web::Data<SubsonicState>, query: web::Query<IdParam
     response::respond(f, json!({"song": song}), &xml)
 }
 
+pub async fn head_stream(
+    state: web::Data<SubsonicState>,
+    query: web::Query<IdParam>,
+) -> HttpResponse {
+    let q = query.into_inner();
+    let f = q.f.as_deref();
+    if let Some(r) = auth_check(
+        &state,
+        q.u.as_deref(),
+        q.p.as_deref(),
+        q.t.as_deref(),
+        q.s.as_deref(),
+        f,
+    ) {
+        return r;
+    }
+    let id = match q.id.as_deref() {
+        Some(id) => id,
+        None => return response::respond_error(f, 10, "Required parameter is missing: id"),
+    };
+    let track = match repo::track::find(state.pool.clone(), id).await {
+        Ok(Some(t)) => t,
+        Ok(None) => return response::respond_error(f, 70, "Song not found"),
+        Err(e) => {
+            tracing::error!("head_stream: {e}");
+            return response::respond_error(f, 0, "database error");
+        }
+    };
+    let content_type = mime_for_path(&track.path);
+    let file_size = match std::fs::metadata(&track.path) {
+        Ok(m) => m.len(),
+        Err(e) => {
+            tracing::error!("head_stream stat {}: {e}", track.path);
+            return response::respond_error(f, 0, "could not read file");
+        }
+    };
+    HttpResponse::Ok()
+        .content_type(content_type)
+        .insert_header(("Accept-Ranges", "bytes"))
+        .insert_header(("Content-Length", file_size.to_string()))
+        .insert_header((
+            "Content-Disposition",
+            format!("attachment; filename=\"{}\"", safe_filename(&track.path)),
+        ))
+        .finish()
+}
+
 pub async fn stream(
     state: web::Data<SubsonicState>,
     query: web::Query<IdParam>,
