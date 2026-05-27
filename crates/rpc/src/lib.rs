@@ -983,6 +983,12 @@ pub mod api {
                     subsonic_username: None,
                     subsonic_password: None,
                     subsonic_port: None,
+                    cache_enabled: None,
+                    cache_dir: None,
+                    cache_max_size_mb: None,
+                    cache_min_free_space_mb: None,
+                    cache_parallel_parts: None,
+                    cache_no_cache_patterns: None,
                 }
             }
         }

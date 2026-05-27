@@ -154,6 +154,13 @@ fn configure_environment(config_dir: &str, music_dir: &str, device_name: &str) {
     // Safety: env::set_var is only safe before any other thread that reads
     // env exists. We're called from JNI before the engine pthread spawns.
     std::env::set_var("HOME", config_dir);
+    // Explicit config base so crates that construct paths like
+    // "$HOME/.config/rockbox.org/..." don't need to know that on Android
+    // HOME already IS the app sandbox root (not a Unix home dir).
+    std::env::set_var(
+        "ROCKBOX_CONFIG_DIR",
+        format!("{}/.config/rockbox.org", config_dir),
+    );
     std::env::set_var("ROCKBOX_DEVICE_NAME", device_name);
     // Canonical music-dir env var read by crates/{settings,server,graphql,sys}.
     // ROCKBOX_MUSIC_DIR was a misnomer — nothing reads it. The browse

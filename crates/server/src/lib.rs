@@ -1,5 +1,6 @@
 use anyhow::Error;
 use tracing::{error, warn};
+use tracing_subscriber::EnvFilter;
 
 use lazy_static::lazy_static;
 use rockbox_graphql::{
@@ -68,6 +69,17 @@ pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
+    // librockbox_server.a has its own copy of tracing_core (separate GLOBAL_INIT
+    // from librockbox_cli.a). Initialize this copy's subscriber so that logs
+    // from server-compiled code (rockbox_cache, netstream, etc.) are visible.
+    let subscriber = tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
+        )
+        .finish();
+    let _ = tracing::subscriber::set_global_default(subscriber);
+
     match rockbox_settings::load_settings(None) {
         Ok(_) => {}
         Err(e) => {

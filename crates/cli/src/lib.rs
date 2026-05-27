@@ -121,6 +121,16 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         .finish();
     let _ = tracing::subscriber::set_global_default(subscriber);
 
+    // Create the cache dir eagerly — before settings are loaded — so it always
+    // exists regardless of whether load_settings succeeds.
+    if let Ok(home) = env::var("HOME") {
+        let cache_dir = format!("{}/.config/rockbox.org/cache", home);
+        match fs::create_dir_all(&cache_dir) {
+            Ok(_) => info!("cache dir ready: {}", cache_dir),
+            Err(e) => warn!("could not create cache dir {}: {}", cache_dir, e),
+        }
+    }
+
     let string_array = unsafe { std::slice::from_raw_parts(argv, argc) };
     let args: Vec<&str> = string_array
         .iter()
@@ -239,7 +249,63 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
     });
 
     spawn_typesense_subprocess();
+    spawn_precache_monitor();
     return 0;
+}
+
+fn spawn_precache_monitor() {
+    thread::Builder::new()
+        .name("precache-monitor".into())
+        .spawn(|| {
+            // Give the firmware time to initialise before we start polling.
+            sleep(Duration::from_secs(10));
+            let mut last_current_path: Option<String> = None;
+            let mut last_precached: Option<String> = None;
+            loop {
+                sleep(Duration::from_secs(3));
+                let current = match rockbox_sys::playback::current_track() {
+                    Some(t) => t,
+                    None => {
+                        last_current_path = None;
+                        last_precached = None;
+                        continue;
+                    }
+                };
+                // Reset per-track state whenever the track changes.
+                if last_current_path.as_deref() != Some(&current.path) {
+                    last_current_path = Some(current.path.clone());
+                    last_precached = None;
+                }
+                if current.length == 0 {
+                    continue;
+                }
+                let progress = current.elapsed as f64 / current.length as f64;
+                if progress < 0.20 {
+                    continue;
+                }
+                let next = match rockbox_sys::playback::next_track() {
+                    Some(t) => t,
+                    None => continue,
+                };
+                if next.path.is_empty() {
+                    continue;
+                }
+                if !next.path.starts_with("http://") && !next.path.starts_with("https://") {
+                    continue;
+                }
+                if last_precached.as_deref() == Some(&next.path) {
+                    continue;
+                }
+                tracing::info!(
+                    "precache: {}% through current track — pre-caching next: {}",
+                    (progress * 100.0) as u32,
+                    next.path
+                );
+                rockbox_cache::start_background_fetch(&next.path);
+                last_precached = Some(next.path);
+            }
+        })
+        .ok();
 }
 
 #[cfg(not(feature = "fts5"))]

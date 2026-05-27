@@ -36,6 +36,7 @@ and Squeezelite.
 - [x] [Chromecast](https://developers.google.com/cast)
 - [x] Gapless playback and crossfading
 - [x] Supports 20+ codecs: MP3, OGG, FLAC, WAV, AAC, Opus, and more
+- [x] Smart HTTP file cache — parallel multi-part downloads, LRU eviction, auto-skips live streams
 
 ### APIs & integrations
 - [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
@@ -451,6 +452,38 @@ parsed and displayed.
 | `upnp_renderer_enabled` | `false`     | Start the MediaRenderer endpoint              |
 | `upnp_renderer_port`    | `7880`      | MediaRenderer HTTP port                       |
 | `upnp_friendly_name`    | `"Rockbox"` | Display name shown to control points          |
+
+### HTTP file cache
+
+Remote audio files are cached on disk automatically. Repeat plays are instant
+with no network traffic. Files are downloaded in the background using parallel
+range-request parts so playback is never delayed.
+
+```toml
+# All fields are optional — defaults shown.
+cache_enabled           = true
+cache_dir               = "~/.config/rockbox.org/cache"
+cache_max_size_mb       = 512    # total cache budget in MB
+cache_min_free_space_mb = 100    # always keep this much free on disk
+cache_parallel_parts    = 4      # concurrent HTTP Range parts per file
+
+# URLs containing any of these substrings bypass the cache.
+# Prevents live radio / HLS streams from filling the cache.
+cache_no_cache_patterns = ["icecast", ".m3u8", "live"]
+```
+
+**How it works:**
+
+| Step | What happens |
+| ---- | ------------ |
+| 1    | On open, the SHA-256 of the URL is checked against `cache_dir`. |
+| 2    | **Hit**: the local file is opened instantly; all seeks are O(1) — no network. |
+| 3    | **Miss**: the live HTTP stream opens normally (zero latency) AND a background thread splits the file into `cache_parallel_parts` ranges and fetches them concurrently via `pwrite` into a pre-allocated file. |
+| 4    | When the download completes and is verified, the file is atomically renamed. The next open is a cache hit. |
+| 5    | When the cache exceeds `cache_max_size_mb`, the least-recently-used files are evicted to make room. |
+
+URLs with no `Content-Length` (infinite/live streams) are **never** cached —
+caching is skipped automatically before a download is even started.
 
 ---
 

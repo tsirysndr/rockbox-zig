@@ -7375,6 +7375,7 @@ dependencies = [
  "mockito",
  "once_cell",
  "reqwest",
+ "rockbox-cache",
  "tracing",
 ]
 
@@ -9325,6 +9326,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-cache"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "once_cell",
+ "reqwest",
+ "sha2",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-chromecast"
 version = "0.1.0"
 dependencies = [
@@ -9355,6 +9367,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-airplay",
+ "rockbox-cache",
  "rockbox-chromecast",
  "rockbox-cpal-sink",
  "rockbox-fts5",
@@ -9363,6 +9376,7 @@ dependencies = [
  "rockbox-rocksky",
  "rockbox-settings",
  "rockbox-slim",
+ "rockbox-sys",
  "rockbox-typesense",
  "rockbox-upnp",
  "tokio",
@@ -9778,6 +9792,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+ "tracing-subscriber",
  "url",
  "urlencoding",
 ]
@@ -9787,6 +9802,7 @@ name = "rockbox-settings"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "rockbox-cache",
  "rockbox-sys",
  "rockbox-upnp",
  "toml 0.8.19",

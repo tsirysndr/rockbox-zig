@@ -7,10 +7,7 @@ use rockbox_library::create_connection_pool;
 use rockbox_playlists::PlaylistStore;
 use rockbox_settings::read_settings;
 use sqlx::{Pool, Sqlite};
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, Mutex, OnceLock,
-};
+use std::sync::{atomic::AtomicBool, Arc, Mutex, OnceLock};
 
 // ── Now-playing shared state ──────────────────────────────────────────────────
 
@@ -266,11 +263,19 @@ pub async fn start() -> anyhow::Result<()> {
             // Playback
             .route(
                 "/rest/stream{_:(\\.view)?}",
+                web::head().to(handlers::head_stream),
+            )
+            .route(
+                "/rest/stream{_:(\\.view)?}",
                 web::get().to(handlers::stream),
             )
             .route(
                 "/rest/stream{_:(\\.view)?}",
                 web::post().to(handlers::stream),
+            )
+            .route(
+                "/rest/download{_:(\\.view)?}",
+                web::head().to(handlers::head_stream),
             )
             .route(
                 "/rest/download{_:(\\.view)?}",
