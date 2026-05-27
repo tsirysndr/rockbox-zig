@@ -460,9 +460,7 @@ fn perform_download(url: &str, config: &CacheConfig) {
     }
 
     // HEAD request: get content-length and check range support.
-    // If the server returns no Content-Length the resource is likely a live /
-    // infinite stream — never attempt to cache it.
-    let (content_length, server_accepts_ranges) = match CLIENT.head(url).send() {
+    let (head_cl, head_accepts_ranges) = match CLIENT.head(url).send() {
         Ok(r) if r.status().is_success() => {
             let cl = r.content_length();
             let ok = r
@@ -476,10 +474,31 @@ fn perform_download(url: &str, config: &CacheConfig) {
         _ => (None, false),
     };
 
+    // If HEAD gave no Content-Length, probe with GET Range: bytes=0-0.
+    // Servers that support ranges but omit Content-Length on HEAD will
+    // respond 206 with Content-Range: bytes 0-0/<total>, giving us the size.
+    let (content_length, server_accepts_ranges) = if let Some(cl) = head_cl {
+        (Some(cl), head_accepts_ranges)
+    } else {
+        match CLIENT.get(url).header("Range", "bytes=0-0").send() {
+            Ok(r) if r.status().as_u16() == 206 => {
+                let total = r
+                    .headers()
+                    .get("content-range")
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|v| v.rsplit('/').next())
+                    .and_then(|s| s.trim().parse::<u64>().ok());
+                debug!("cache: range probe for {} → total {:?}", url, total);
+                (total, true)
+            }
+            _ => (None, false),
+        }
+    };
+
     let content_length = match content_length {
         Some(cl) => cl,
         None => {
-            // No Content-Length → infinite/chunked stream; never cache.
+            // No Content-Length from HEAD or range probe → live/infinite stream.
             info!(
                 "cache: no Content-Length for {} — skipping (live stream or transcoded?)",
                 url
