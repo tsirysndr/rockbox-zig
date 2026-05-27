@@ -12,11 +12,14 @@ class SearchManager: ObservableObject {
     @Published var searchText: String = ""
     @Published var isSearching: Bool = false
     @Published var searchResults: SearchResults = SearchResults()
+    @Published var ndSearchResults: NdSearchResults = NdSearchResults()
     @Published var allSavedPlaylists: [SavedPlaylist] = []
     @Published var allSmartPlaylists: [SmartPlaylist] = []
 
     private var searchTask: Task<Void, Never>?
     private var playlistsLoaded = false
+
+    var isNdMode: Bool { NavidromeManager.shared.activeServer != nil }
 
     struct SearchResults {
         var songs: [Song] = []
@@ -75,8 +78,10 @@ class SearchManager: ObservableObject {
     func search() {
         searchTask?.cancel()
 
-        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else {
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else {
             searchResults = SearchResults()
+            ndSearchResults = NdSearchResults()
             isSearching = false
             return
         }
@@ -84,13 +89,22 @@ class SearchManager: ObservableObject {
         isSearching = true
 
         searchTask = Task {
-            // Load playlists once in the background (non-blocking for search results)
-            if !playlistsLoaded {
-                await loadPlaylists()
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+
+            if let server = NavidromeManager.shared.activeServer {
+                do {
+                    let results = try await ndSearch(server: server, query: query)
+                    guard !Task.isCancelled else { return }
+                    ndSearchResults = results
+                } catch {
+                    if !Task.isCancelled { ndSearchResults = NdSearchResults() }
+                }
+                return
             }
 
-            // Debounce gRPC search
-            try? await Task.sleep(for: .milliseconds(300))
+            // Local gRPC search
+            if !playlistsLoaded { await loadPlaylists() }
             guard !Task.isCancelled else { return }
 
             do {
@@ -140,7 +154,7 @@ class SearchManager: ObservableObject {
                 )
             } catch {
                 if !Task.isCancelled {
-                    print("Search error: \(error)")
+                    searchResults = SearchResults()
                 }
             }
         }
@@ -149,6 +163,7 @@ class SearchManager: ObservableObject {
     func clear() {
         searchText = ""
         searchResults = SearchResults()
+        ndSearchResults = NdSearchResults()
         isSearching = false
         searchTask?.cancel()
     }

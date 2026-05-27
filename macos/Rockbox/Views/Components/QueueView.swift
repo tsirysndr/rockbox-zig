@@ -99,6 +99,7 @@ struct QueueRowView: View {
     @State private var isHoveringMenu: Bool = false
     @State private var isHoveringRemove: Bool = false
     @ObservedObject var library: MusicLibrary
+    @ObservedObject private var ndManager = NavidromeManager.shared
     @EnvironmentObject var player: PlayerState
     @EnvironmentObject var navigation: NavigationManager
     
@@ -109,7 +110,8 @@ struct QueueRowView: View {
                 .fill(song.color.gradient)
                 .frame(width: 40, height: 40)
                 .overlay {
-                    CachedAsyncImage(url: song.albumArt) { phase in
+                    let artUrl = ndManager.coverArtUrl(forStreamUrl: song.path, size: 80) ?? song.albumArt
+                    CachedAsyncImage(url: artUrl) { phase in
                         switch phase {
                         case .success(let image):
                             image

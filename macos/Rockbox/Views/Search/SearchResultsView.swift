@@ -12,8 +12,81 @@ struct SearchResultsView: View {
     @EnvironmentObject var navigation: NavigationManager
     @EnvironmentObject var player: PlayerState
     @ObservedObject var library: MusicLibrary
+    @ObservedObject private var ndManager = NavidromeManager.shared
 
     var body: some View {
+        if searchManager.isNdMode {
+            ndResultsView
+        } else {
+            localResultsView
+        }
+    }
+
+    // MARK: - Navidrome results
+
+    private var ndResultsView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                let r = searchManager.ndSearchResults
+                if r.isEmpty {
+                    emptyResultsView
+                }
+
+                if !r.artists.isEmpty, let server = ndManager.activeServer {
+                    searchSection(title: "Artists") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(r.artists) { artist in
+                                    NdSearchArtistCard(artist: artist, server: server) {
+                                        navigation.goToNdArtist(artist)
+                                        searchManager.clear()
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                }
+
+                if !r.albums.isEmpty, let server = ndManager.activeServer {
+                    searchSection(title: "Albums") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(r.albums) { album in
+                                    NdSearchAlbumCard(album: album, server: server) {
+                                        navigation.goToNdAlbum(album)
+                                        searchManager.clear()
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                }
+
+                if !r.songs.isEmpty, let server = ndManager.activeServer {
+                    searchSection(title: "Songs") {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(r.songs.enumerated()), id: \.element.id) { idx, song in
+                                NdSongRowView(
+                                    song: song,
+                                    index: idx + 1,
+                                    isEven: idx % 2 == 0,
+                                    server: server,
+                                    allSongs: r.songs
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 20)
+        }
+    }
+
+    // MARK: - Local results
+
+    private var localResultsView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
 
@@ -151,6 +224,80 @@ struct SearchResultsView: View {
             
             content()
         }
+    }
+}
+
+// MARK: - Navidrome search cards
+
+private struct NdSearchArtistCard: View {
+    let artist: NdArtist
+    let server: NdServer
+    let onSelect: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Circle()
+                .fill(Color.gray.opacity(0.2).gradient)
+                .frame(width: 120, height: 120)
+                .overlay {
+                    if let coverId = artist.coverArt, let url = server.coverArtUrl(coverId: coverId, size: 240) {
+                        CachedAsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().aspectRatio(contentMode: .fill)
+                            default: Image(systemName: "music.mic").font(.system(size: 32)).foregroundStyle(.white.opacity(0.6))
+                            }
+                        }
+                    } else {
+                        Image(systemName: "music.mic").font(.system(size: 32)).foregroundStyle(.white.opacity(0.6))
+                    }
+                }
+                .clipShape(Circle())
+                .scaleEffect(isHovering ? 1.05 : 1)
+                .animation(.easeInOut(duration: 0.15), value: isHovering)
+
+            Text(artist.name).font(.system(size: 12, weight: .medium)).lineLimit(1)
+            Text("Artist").font(.system(size: 11)).foregroundStyle(.secondary)
+        }
+        .frame(width: 120)
+        .onTapGesture { onSelect() }
+        .onHover { isHovering = $0 }
+    }
+}
+
+private struct NdSearchAlbumCard: View {
+    let album: NdAlbum
+    let server: NdServer
+    let onSelect: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.2).gradient)
+                .frame(width: 140, height: 140)
+                .overlay {
+                    if let coverId = album.coverArt, let url = server.coverArtUrl(coverId: coverId, size: 280) {
+                        CachedAsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().aspectRatio(contentMode: .fill)
+                            default: Image(systemName: "music.note").font(.system(size: 32)).foregroundStyle(.white.opacity(0.6))
+                            }
+                        }
+                    } else {
+                        Image(systemName: "music.note").font(.system(size: 32)).foregroundStyle(.white.opacity(0.6))
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .scaleEffect(isHovering ? 1.03 : 1)
+                .animation(.easeInOut(duration: 0.15), value: isHovering)
+                .onTapGesture { onSelect() }
+
+            Text(album.name).font(.system(size: 12, weight: .medium)).lineLimit(1)
+            Text(album.artist).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+        }
+        .frame(width: 140)
+        .onHover { isHovering = $0 }
     }
 }
 

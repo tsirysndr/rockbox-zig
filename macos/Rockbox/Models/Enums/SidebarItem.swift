@@ -16,6 +16,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case likes = "Likes"
     case playlists = "Playlists"
     case files = "Files"
+    case navidrome = "Navidrome"
 
     var id: String { rawValue }
 
@@ -29,6 +30,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .likes: return "heart"
         case .playlists: return "music.note.list"
         case .files: return "folder"
+        case .navidrome: return "music.note.house"
         }
     }
 }

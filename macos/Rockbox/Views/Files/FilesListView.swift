@@ -659,6 +659,17 @@ struct FilesListView: View {
             }
             let navPath = "navidrome://\(encoded)"
             showNavidromeEntry = false
+            // Persist server in NavidromeManager for the Navidrome library section
+            let serverLabel = trimmedBase.replacingOccurrences(of: "https?://", with: "", options: .regularExpression)
+                .components(separatedBy: "/").first ?? trimmedBase
+            await MainActor.run {
+                NavidromeManager.shared.addServer(
+                    label: serverLabel,
+                    baseUrl: trimmedBase,
+                    user: username,
+                    password: navidromePassword
+                )
+            }
             navigate(to: .navidromeBrowse, path: navPath)
         } catch {
             navidromeError = "Network error: \(error.localizedDescription)"

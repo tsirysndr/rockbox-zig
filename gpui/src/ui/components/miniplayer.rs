@@ -7,7 +7,10 @@ use crate::ui::components::bluetooth_picker::fetch_and_update_bluetooth_devices;
 use crate::ui::components::device_picker::device_icon;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
-use crate::ui::components::{LikedSongs, Page};
+use crate::ui::components::{
+    LikedSongs, NavidromeServerState, NdCurrentCoverArt, NdLikesState, NdSelectedAlbum,
+    NdSelectedGenre, NdSelectedPlaylist, NdSongsState, NdStarredIds, Page,
+};
 use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -23,6 +26,49 @@ impl Render for MiniPlayer {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = *cx.global::<Theme>();
         let liked_songs = cx.global::<LikedSongs>().0.clone();
+
+        // Pre-fetch Navidrome data before state.read(cx) borrows cx.
+        let nd_current_cover = cx.global::<NdCurrentCoverArt>().0.clone();
+        let nd_creds_cover = cx
+            .global::<NavidromeServerState>()
+            .active_server()
+            .map(|s| (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone()));
+        let nd_song_cover_map: std::collections::HashMap<String, String> = {
+            let mut map = std::collections::HashMap::new();
+            for s in &cx.global::<NdSelectedAlbum>().songs {
+                if let Some(cid) = &s.cover_art { map.insert(s.id.clone(), cid.clone()); }
+            }
+            for s in &cx.global::<NdSongsState>().songs {
+                if let Some(cid) = &s.cover_art { map.insert(s.id.clone(), cid.clone()); }
+            }
+            for s in &cx.global::<NdLikesState>().songs {
+                if let Some(cid) = &s.cover_art { map.insert(s.id.clone(), cid.clone()); }
+            }
+            for s in &cx.global::<NdSelectedPlaylist>().tracks {
+                if let Some(cid) = &s.cover_art { map.insert(s.id.clone(), cid.clone()); }
+            }
+            for s in &cx.global::<NdSelectedGenre>().songs {
+                if let Some(cid) = &s.cover_art { map.insert(s.id.clone(), cid.clone()); }
+            }
+            map
+        };
+        // Note: NdSelectedAlbum.cover_art is intentionally NOT used as fallback here —
+        // it reflects whatever album the user last browsed, not necessarily the playing track's album.
+        let nd_starred_ids = cx.global::<NdStarredIds>().0.clone();
+        let nd_creds_heart = cx
+            .global::<NavidromeServerState>()
+            .active_server()
+            .map(|s| (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone()));
+        let nd_song_item_map: std::collections::HashMap<String, crate::ui::components::NdSongItem> = {
+            let mut map = std::collections::HashMap::new();
+            for s in &cx.global::<NdSelectedAlbum>().songs { map.insert(s.id.clone(), s.clone()); }
+            for s in &cx.global::<NdSongsState>().songs { map.insert(s.id.clone(), s.clone()); }
+            for s in &cx.global::<NdLikesState>().songs { map.insert(s.id.clone(), s.clone()); }
+            for s in &cx.global::<NdSelectedPlaylist>().tracks { map.insert(s.id.clone(), s.clone()); }
+            for s in &cx.global::<NdSelectedGenre>().songs { map.insert(s.id.clone(), s.clone()); }
+            map
+        };
+
         let state = cx.global::<Controller>().state.read(cx);
         let is_playing = state.status == PlaybackStatus::Playing;
         let current_device_icon = cx
@@ -43,11 +89,23 @@ impl Render for MiniPlayer {
             .unwrap_or_default();
 
         let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
-        let album_art_url = state
-            .current_track()
-            .and_then(|t| t.album_art.as_deref())
-            .filter(|s| !s.is_empty())
-            .map(|id| format!("{}{id}", crate::server::get_covers_base()));
+        let album_art_url = {
+            let track = state.current_track();
+            let path = track.map(|t| t.path.as_str()).unwrap_or("");
+            if path.starts_with("http") {
+                nd_current_cover.clone().or_else(|| {
+                    let song_id = nd_song_id_from_path(path)?;
+                    let cover_id = nd_song_cover_map.get(song_id).cloned()?;
+                    let (base, user, token, salt) = nd_creds_cover.as_ref()?;
+                    Some(crate::navidrome::cover_art_url(base, user, token, salt, &cover_id, Some(300)))
+                })
+            } else {
+                track
+                    .and_then(|t| t.album_art.as_deref())
+                    .filter(|s| !s.is_empty())
+                    .map(|id| format!("{}{id}", crate::server::get_covers_base()))
+            }
+        };
         let position = state.position;
         let fill_fraction = if duration > 0 {
             (position as f32 / duration as f32).clamp(0.0, 1.0)
@@ -66,7 +124,19 @@ impl Render for MiniPlayer {
             .find(|t| t.path == current_path)
             .map(|t| t.id.clone())
             .unwrap_or_default();
-        let is_liked = liked_songs.contains(&track_id);
+        let is_nd_track = current_path.starts_with("http");
+        let nd_song_id = if is_nd_track {
+            nd_song_id_from_path(&current_path)
+                .map(|s| s.to_string())
+                .unwrap_or_default()
+        } else {
+            String::new()
+        };
+        let is_liked = if is_nd_track {
+            nd_starred_ids.contains(&nd_song_id)
+        } else {
+            liked_songs.contains(&track_id)
+        };
         let bluetooth_available = cx.global::<BluetoothState>().available;
 
         div()
@@ -162,18 +232,37 @@ impl Render for MiniPlayer {
                                                     .on_click(move |_, _, cx: &mut App| {
                                                         cx.stop_propagation();
                                                         let rt = cx.global::<Controller>().rt();
-                                                        let liked =
-                                                            &mut cx.global_mut::<LikedSongs>().0;
-                                                        if liked.contains(&track_id) {
-                                                            liked.remove(&track_id);
-                                                            rt.spawn(crate::client::unlike_track(
-                                                                track_id.clone(),
-                                                            ));
+                                                        if is_nd_track {
+                                                            let sid = nd_song_id.clone();
+                                                            let starred = &mut cx.global_mut::<NdStarredIds>().0;
+                                                            if starred.contains(&sid) {
+                                                                starred.remove(&sid);
+                                                                cx.global_mut::<NdLikesState>().songs.retain(|s| s.id != sid);
+                                                                if let Some((b, u, t, s)) = nd_creds_heart.clone() {
+                                                                    rt.spawn(async move {
+                                                                        crate::navidrome::unstar_song(&b, &u, &t, &s, &sid).await;
+                                                                    });
+                                                                }
+                                                            } else {
+                                                                starred.insert(sid.clone());
+                                                                if let Some(item) = nd_song_item_map.get(&sid).cloned() {
+                                                                    cx.global_mut::<NdLikesState>().songs.insert(0, item);
+                                                                }
+                                                                if let Some((b, u, t, s)) = nd_creds_heart.clone() {
+                                                                    rt.spawn(async move {
+                                                                        crate::navidrome::star_song(&b, &u, &t, &s, &sid).await;
+                                                                    });
+                                                                }
+                                                            }
                                                         } else {
-                                                            liked.insert(track_id.clone());
-                                                            rt.spawn(crate::client::like_track(
-                                                                track_id.clone(),
-                                                            ));
+                                                            let liked = &mut cx.global_mut::<LikedSongs>().0;
+                                                            if liked.contains(&track_id) {
+                                                                liked.remove(&track_id);
+                                                                rt.spawn(crate::client::unlike_track(track_id.clone()));
+                                                            } else {
+                                                                liked.insert(track_id.clone());
+                                                                rt.spawn(crate::client::like_track(track_id.clone()));
+                                                            }
                                                         }
                                                     })
                                                     .child(
@@ -436,3 +525,13 @@ impl Render for MiniPlayer {
             )
     }
 }
+
+/// Extract the `id=` query parameter from a Navidrome stream URL.
+fn nd_song_id_from_path(path: &str) -> Option<&str> {
+    path.split('?')
+        .nth(1)?
+        .split('&')
+        .find(|p| p.starts_with("id="))
+        .map(|p| &p[3..])
+}
+

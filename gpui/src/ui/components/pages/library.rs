@@ -4,7 +4,9 @@ use crate::client::{
 };
 use crate::controller::Controller;
 use crate::state::{format_duration, DevicesState, PlaybackStatus};
-use crate::ui::animations::equalizer_bars;
+use crate::ui::animations::{
+    equalizer_bars, skeleton_album_grid, skeleton_artist_grid, skeleton_rect, skeleton_track_list,
+};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::components::pages::files::{menu_item, FilesView};
@@ -14,7 +16,11 @@ use crate::ui::components::{
     AddToPlaylistMenuState, AlbumContextMenu, AlbumContextMenuState, BackSection,
     CreatePlaylistModal, DeletePlaylistModal, DiscoveredServers, EditPlaylistModal,
     FileContextMenuState, GenresState, HoveredAlbumIdx, LibraryContextMenu,
-    LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs, PlaylistsSidebarCollapsed,
+    LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs, NavidromeServerState,
+    NdAlbumItem, NdArtistItem, NdContextMenu, NdContextMenuState, NdCurrentCoverArt,
+    NdGenreItem, NdLibraryData, NdLikesState, NdPlaylistItem, NdSelectedAlbum, NdSelectedArtist,
+    NdSelectedGenre, NdSelectedPlaylist, NdSongItem, NdSongsState, NdStarredIds,
+    PlaylistsSidebarCollapsed,
     PlaylistsState, SelectedAlbum, SelectedAlbumMeta, SelectedArtist, SelectedGenre,
     SelectedPlaylist, ServerPickerOpen,
 };
@@ -166,6 +172,161 @@ fn icon_sized(icon: Icons, size: u8) -> Icon {
     }
 }
 
+fn nd_search_sections(
+    albums: &[NdAlbumItem],
+    artists: &[NdArtistItem],
+    playlists: &[NdPlaylistItem],
+    creds: &crate::ui::components::NdSavedServer,
+    search_input: Entity<crate::ui::components::search_input::SearchInput>,
+    theme: crate::ui::theme::Theme,
+) -> gpui::Div {
+    let base_url = creds.base_url.clone();
+    let user = creds.user.clone();
+    let token = creds.token.clone();
+    let salt = creds.salt.clone();
+
+    let albums_section: Option<gpui::AnyElement> = if !albums.is_empty() {
+        let cards: Vec<gpui::AnyElement> = albums.iter().enumerate().map(|(idx, album)| {
+            let aid = album.id.clone();
+            let aname = album.name.clone();
+            let aartist = album.artist.clone();
+            let cover_url = album.cover_art.as_ref().map(|cid| {
+                crate::navidrome::cover_art_url(&base_url, &user, &token, &salt, cid, Some(200))
+            });
+            let si = search_input.clone();
+            let mut art_box = div()
+                .id(("nd_srch_album_art", idx))
+                .w_full()
+                .rounded_lg()
+                .overflow_hidden();
+            art_box.style().aspect_ratio = Some(1.0_f32);
+            let art_inner: gpui::AnyElement = if let Some(url) = cover_url {
+                art_box.child(
+                    img(url).w_full().h_full().object_fit(ObjectFit::Cover),
+                ).into_any_element()
+            } else {
+                art_box.bg(theme.library_art_bg)
+                    .flex().items_center().justify_center()
+                    .text_color(theme.player_icons_text)
+                    .child(Icon::new(Icons::Music).size_8())
+                    .into_any_element()
+            };
+            div()
+                .id(("nd_srch_album", idx))
+                .w(px(130.0))
+                .flex_shrink_0()
+                .flex().flex_col().gap_y_1()
+                .cursor_pointer()
+                .on_click(move |_, _, cx: &mut App| {
+                    let sel = cx.global_mut::<NdSelectedAlbum>();
+                    sel.id = aid.clone();
+                    sel.name = aname.clone();
+                    sel.songs = vec![];
+                    sel.loading = false;
+                    *cx.global_mut::<LibrarySection>() = LibrarySection::NdAlbumDetail;
+                    si.update(cx, |this, cx| { this.query.clear(); cx.notify(); });
+                })
+                .child(art_inner)
+                .child(div().text_xs().font_weight(FontWeight(500.0)).text_color(theme.library_text).truncate().child(album.name.clone()))
+                .child(div().text_xs().text_color(theme.library_header_text).truncate().child(aartist))
+                .into_any_element()
+        }).collect();
+        Some(div()
+            .flex().flex_col().gap_y_4()
+            .child(div().text_base().font_weight(FontWeight(600.0)).text_color(theme.library_text).child("Albums"))
+            .child(div().flex().items_start().gap_x_4().children(cards))
+            .into_any_element())
+    } else { None };
+
+    let artists_section: Option<gpui::AnyElement> = if !artists.is_empty() {
+        let cards: Vec<gpui::AnyElement> = artists.iter().enumerate().map(|(idx, artist)| {
+            let aname = artist.name.clone();
+            let cover_url = artist.cover_art.as_ref().map(|cid| {
+                crate::navidrome::cover_art_url(&base_url, &user, &token, &salt, cid, Some(200))
+            });
+            let si = search_input.clone();
+            let mut c = div()
+                .id(("nd_srch_artist_art", idx))
+                .w(px(88.0)).rounded_full().overflow_hidden().flex_shrink_0();
+            c.style().aspect_ratio = Some(1.0_f32);
+            let avatar: gpui::AnyElement = if let Some(url) = cover_url {
+                c.child(img(url).w_full().h_full().rounded_full().object_fit(ObjectFit::Cover)).into_any_element()
+            } else {
+                c.bg(theme.library_art_bg).flex().items_center().justify_center()
+                    .text_color(theme.player_icons_text)
+                    .child(Icon::new(Icons::Artist).size_8())
+                    .into_any_element()
+            };
+            div()
+                .id(("nd_srch_artist", idx))
+                .w(px(112.0)).flex_shrink_0()
+                .flex().flex_col().items_center().gap_y_2()
+                .cursor_pointer()
+                .on_click(move |_, _, cx: &mut App| {
+                    let sel = cx.global_mut::<NdSelectedArtist>();
+                    sel.id = aname.clone();
+                    sel.name = aname.clone();
+                    sel.albums = vec![];
+                    sel.loading = false;
+                    *cx.global_mut::<LibrarySection>() = LibrarySection::NdArtistDetail;
+                    si.update(cx, |this, cx| { this.query.clear(); cx.notify(); });
+                })
+                .child(avatar)
+                .child(div().w_full().text_xs().font_weight(FontWeight(500.0)).text_color(theme.library_text).text_center().truncate().child(artist.name.clone()))
+                .into_any_element()
+        }).collect();
+        Some(div()
+            .flex().flex_col().gap_y_4()
+            .child(div().text_base().font_weight(FontWeight(600.0)).text_color(theme.library_text).child("Artists"))
+            .child(div().flex().items_start().gap_x_4().children(cards))
+            .into_any_element())
+    } else { None };
+
+    let playlists_section: Option<gpui::AnyElement> = if !playlists.is_empty() {
+        let rows: Vec<gpui::AnyElement> = playlists.iter().enumerate().map(|(idx, pl)| {
+            let pid = pl.id.clone();
+            let pname = pl.name.clone();
+            let si = search_input.clone();
+            div()
+                .id(("nd_srch_pl", idx))
+                .flex().items_center().gap_x_3()
+                .px_2().py_2().rounded_md()
+                .cursor_pointer()
+                .hover(|s| s.bg(theme.library_table_border))
+                .on_click(move |_, _, cx: &mut App| {
+                    let sel = cx.global_mut::<NdSelectedPlaylist>();
+                    sel.id = pid.clone();
+                    sel.name = pname.clone();
+                    sel.tracks = vec![];
+                    sel.loading = false;
+                    *cx.global_mut::<LibrarySection>() = LibrarySection::NdPlaylistDetail;
+                    si.update(cx, |this, cx| { this.query.clear(); cx.notify(); });
+                })
+                .child(
+                    div().flex().items_center().justify_center()
+                        .w_8().h_8().rounded_md().bg(theme.library_art_bg)
+                        .text_color(theme.player_icons_text)
+                        .child(Icon::new(Icons::Playlist).size_4()),
+                )
+                .child(div().text_sm().font_weight(FontWeight(500.0)).text_color(theme.library_text).truncate().child(pl.name.clone()))
+                .into_any_element()
+        }).collect();
+        Some(div()
+            .flex().flex_col().gap_y_4()
+            .child(div().text_base().font_weight(FontWeight(600.0)).text_color(theme.library_text).child("Playlists"))
+            .child(div().flex().flex_col().gap_y_1().children(rows))
+            .into_any_element())
+    } else { None };
+
+    div()
+        .w_full()
+        .p_6()
+        .flex().flex_col().gap_y_8()
+        .when_some(albums_section, |t, s| t.child(s))
+        .when_some(artists_section, |t, s| t.child(s))
+        .when_some(playlists_section, |t, s| t.child(s))
+}
+
 pub struct LibraryPage {
     scroll_handle: UniformListScrollHandle,
     detail_scroll_handle: UniformListScrollHandle,
@@ -188,6 +349,9 @@ pub struct LibraryPage {
     home_saved_scroll: ScrollHandle,
     genre_albums_scroll: ScrollHandle,
     genre_artists_scroll: ScrollHandle,
+    nd_url_input: Entity<TextInput>,
+    nd_user_input: Entity<TextInput>,
+    nd_pass_input: Entity<TextInput>,
     _search_sub: Option<Subscription>,
     _playlists_sub: Subscription,
     _edit_modal_sub: Subscription,
@@ -216,6 +380,24 @@ impl LibraryPage {
         cx.set_global(EditPlaylistModal::default());
         cx.set_global(DeletePlaylistModal::default());
         cx.set_global(SelectedAlbumMeta::default());
+        let (nd_servers, _) = crate::nd_persist::load_servers();
+        cx.set_global(NavidromeServerState {
+            servers: nd_servers,
+            active_id: None, // always start in local library mode; user connects manually
+            ..NavidromeServerState::default()
+        });
+        cx.set_global(NdLibraryData::default());
+        cx.set_global(NdSelectedAlbum::default());
+        cx.set_global(NdSelectedArtist::default());
+        cx.set_global(NdSelectedGenre::default());
+        cx.set_global(NdSelectedPlaylist::default());
+        cx.set_global(NdSongsState::default());
+        cx.set_global(NdLikesState::default());
+        cx.set_global(NdStarredIds::default());
+        cx.set_global(NdContextMenuState::default());
+        cx.set_global(NdCurrentCoverArt::default());
+        cx.set_global(crate::ui::components::NdScrobbleState::default());
+        cx.set_global(crate::ui::components::NdCoverFetchState::default());
 
         // Re-render whenever PlaylistsState changes (initial load, post-create refresh, etc.)
         let _playlists_sub = cx.observe_global::<PlaylistsState>(|_, cx| cx.notify());
@@ -384,12 +566,505 @@ impl LibraryPage {
             modal_desc_input: cx.new(|cx| TextInput::new("Description (optional)", cx)),
             edit_name_input: cx.new(|cx| TextInput::new("Title", cx)),
             edit_desc_input: cx.new(|cx| TextInput::new("Description (optional)", cx)),
+            nd_url_input: cx.new(|cx| TextInput::new("http://192.168.1.x:4533", cx)),
+            nd_user_input: cx.new(|cx| TextInput::new("Username", cx)),
+            nd_pass_input: cx.new(|cx| TextInput::new("Password", cx).masked()),
             _search_sub: None,
             _playlists_sub,
             _edit_modal_sub,
             _delete_modal_sub,
             _album_meta_sub,
         }
+    }
+
+    fn spawn_nd_connect(&self, cx: &mut gpui::Context<Self>) {
+        let raw_url = self.nd_url_input.read(cx).value.clone();
+        let username = self.nd_user_input.read(cx).value.clone();
+        let password = self.nd_pass_input.read(cx).value.clone();
+
+        if raw_url.trim().is_empty() || username.trim().is_empty() {
+            cx.global_mut::<NavidromeServerState>().connect_error =
+                Some("Server URL and username are required.".to_string());
+            return;
+        }
+
+        let base_url = raw_url.trim().to_string();
+        let salt = crate::navidrome::random_salt();
+        let token = crate::navidrome::compute_token(&password, &salt);
+        let base_url2 = base_url.clone();
+        let user2 = username.clone();
+        let token2 = token.clone();
+        let salt2 = salt.clone();
+
+        cx.global_mut::<NavidromeServerState>().connecting = true;
+        cx.global_mut::<NavidromeServerState>().connect_error = None;
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let ok = crate::navidrome::ping(&base_url, &username, &token, &salt).await;
+            let _ = tx.send(ok);
+        });
+        cx.spawn(async move |this: gpui::WeakEntity<LibraryPage>, cx| {
+            if let Ok(ok) = rx.await {
+                if ok {
+                    let _ = this.update(cx, |this, cx| {
+                        let new_id = crate::navidrome::random_salt();
+                        let new_server = crate::ui::components::NdSavedServer {
+                            id: new_id.clone(),
+                            base_url: base_url2.clone(),
+                            user: user2.clone(),
+                            token: token2.clone(),
+                            salt: salt2.clone(),
+                        };
+                        let state = cx.global_mut::<NavidromeServerState>();
+                        state.servers.push(new_server);
+                        state.active_id = Some(new_id);
+                        state.connecting = false;
+                        state.connect_error = None;
+                        state.show_add_form = false;
+                        let servers = state.servers.clone();
+                        let active_id = state.active_id.clone();
+                        crate::nd_persist::save_servers(
+                            &servers,
+                            active_id.as_deref(),
+                        );
+                        // clear inputs
+                        this.nd_url_input.update(cx, |i, cx| {
+                            i.value.clear();
+                            cx.notify();
+                        });
+                        this.nd_user_input.update(cx, |i, cx| {
+                            i.value.clear();
+                            cx.notify();
+                        });
+                        this.nd_pass_input.update(cx, |i, cx| {
+                            i.value.clear();
+                            cx.notify();
+                        });
+                        *cx.global_mut::<NdLibraryData>() = NdLibraryData::default();
+                        *cx.global_mut::<LibrarySection>() = LibrarySection::NdAlbums;
+                        this.load_nd_library(cx);
+                    });
+                } else {
+                    let _ = this.update(cx, |_, cx| {
+                        let state = cx.global_mut::<NavidromeServerState>();
+                        state.connecting = false;
+                        state.connect_error =
+                            Some("Authentication failed. Check URL, username, and password.".to_string());
+                    });
+                }
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_library(&self, cx: &mut gpui::Context<Self>) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let (base_url, user, token, salt) =
+            (srv.base_url.clone(), srv.user.clone(), srv.token.clone(), srv.salt.clone());
+        let b1 = base_url.clone();
+        let u1 = user.clone();
+        let t1 = token.clone();
+        let s1 = salt.clone();
+        let b2 = base_url.clone();
+        let u2 = user.clone();
+        let t2 = token.clone();
+        let s2 = salt.clone();
+        let b3 = base_url.clone();
+        let u3 = user.clone();
+        let t3 = token.clone();
+        let s3 = salt.clone();
+        let b4 = base_url.clone();
+        let u4 = user.clone();
+        let t4 = token.clone();
+        let s4 = salt.clone();
+
+        cx.global_mut::<NdLibraryData>().loading = true;
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<(
+            Vec<NdAlbumItem>,
+            Vec<NdArtistItem>,
+            Vec<NdGenreItem>,
+            Vec<NdPlaylistItem>,
+        )>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let (albums_raw, artists_raw, genres_raw, playlists_raw) = tokio::join!(
+                crate::navidrome::get_albums(&b1, &u1, &t1, &s1, "alphabeticalByName", 500, 0),
+                crate::navidrome::get_artists(&b2, &u2, &t2, &s2),
+                crate::navidrome::get_genres(&b3, &u3, &t3, &s3),
+                crate::navidrome::get_playlists(&b4, &u4, &t4, &s4),
+            );
+            let albums = albums_raw
+                .into_iter()
+                .map(|a| NdAlbumItem {
+                    id: a.id,
+                    name: a.name,
+                    artist: a.artist,
+                    artist_id: a.artist_id,
+                    year: a.year,
+                    cover_art: a.cover_art,
+                    song_count: a.song_count,
+                })
+                .collect();
+            let artists = artists_raw
+                .into_iter()
+                .map(|a| NdArtistItem {
+                    id: a.id,
+                    name: a.name,
+                    cover_art: a.cover_art,
+                    album_count: a.album_count,
+                })
+                .collect();
+            let genres = genres_raw
+                .into_iter()
+                .map(|g| NdGenreItem {
+                    name: g.name,
+                    song_count: g.song_count,
+                    album_count: g.album_count,
+                })
+                .collect();
+            let playlists = playlists_raw
+                .into_iter()
+                .map(|p| NdPlaylistItem {
+                    id: p.id,
+                    name: p.name,
+                    comment: p.comment,
+                    song_count: p.song_count,
+                    cover_art: p.cover_art,
+                })
+                .collect();
+            let _ = tx.send((albums, artists, genres, playlists));
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok((albums, artists, genres, playlists)) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let data = app.global_mut::<NdLibraryData>();
+                    data.albums = albums;
+                    data.artists = artists;
+                    data.genres = genres;
+                    data.playlists = playlists;
+                    data.loading = false;
+                });
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_album(&self, cx: &mut gpui::Context<Self>, album_id: String) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let (base_url, user, token, salt) =
+            (srv.base_url.clone(), srv.user.clone(), srv.token.clone(), srv.salt.clone());
+        let b = base_url.clone();
+        let u = user.clone();
+        let t = token.clone();
+        let s = salt.clone();
+        let aid = album_id.clone();
+
+        cx.global_mut::<NdSelectedAlbum>().loading = true;
+        cx.global_mut::<NdSelectedAlbum>().songs = vec![];
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<(
+            crate::navidrome::NavidromeAlbum,
+            Vec<crate::navidrome::NavidromeSong>,
+        )>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let result = crate::navidrome::get_album_with_songs(&b, &u, &t, &s, &aid).await;
+            let _ = tx.send(result);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(Some((album, songs))) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let (bu, un, tok, sa) = app
+                        .global::<NavidromeServerState>()
+                        .active_server()
+                        .map(|s| {
+                            (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone())
+                        })
+                        .unwrap_or_default();
+                    // Navidrome often omits coverArt from individual songs;
+                    // fall back to the album's cover art ID.
+                    let album_cover = album.cover_art.clone();
+                    let song_items = songs
+                        .into_iter()
+                        .map(|s| {
+                            let surl = crate::navidrome::stream_url(&bu, &un, &tok, &sa, &s.id);
+                            NdSongItem {
+                                id: s.id,
+                                title: s.title,
+                                artist: s.artist,
+                                artist_id: s.artist_id,
+                                album: s.album,
+                                album_id: s.album_id,
+                                cover_art: s.cover_art.or_else(|| album_cover.clone()),
+                                duration: s.duration,
+                                track: s.track,
+                                stream_url: surl,
+                            }
+                        })
+                        .collect();
+                    let sel = app.global_mut::<NdSelectedAlbum>();
+                    sel.id = album.id;
+                    sel.name = album.name;
+                    sel.artist = album.artist;
+                    sel.cover_art = album.cover_art;
+                    sel.songs = song_items;
+                    sel.loading = false;
+                });
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_artist(&self, cx: &mut gpui::Context<Self>, artist_id: String) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let b = srv.base_url.clone();
+        let u = srv.user.clone();
+        let t = srv.token.clone();
+        let s = srv.salt.clone();
+
+        cx.global_mut::<NdSelectedArtist>().loading = true;
+        cx.global_mut::<NdSelectedArtist>().albums = vec![];
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<(
+            crate::navidrome::NavidromeArtist,
+            Vec<crate::navidrome::NavidromeAlbum>,
+        )>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let result = crate::navidrome::get_artist_with_albums(&b, &u, &t, &s, &artist_id).await;
+            let _ = tx.send(result);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(Some((artist, albums))) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let album_items = albums
+                        .into_iter()
+                        .map(|a| NdAlbumItem {
+                            id: a.id,
+                            name: a.name,
+                            artist: a.artist,
+                            artist_id: a.artist_id,
+                            year: a.year,
+                            cover_art: a.cover_art,
+                            song_count: a.song_count,
+                        })
+                        .collect();
+                    let sel = app.global_mut::<NdSelectedArtist>();
+                    sel.id = artist.id;
+                    sel.name = artist.name;
+                    sel.cover_art = artist.cover_art;
+                    sel.albums = album_items;
+                    sel.loading = false;
+                });
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_genre(&self, cx: &mut gpui::Context<Self>, genre_name: String) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let b = srv.base_url.clone();
+        let u = srv.user.clone();
+        let t = srv.token.clone();
+        let s = srv.salt.clone();
+
+        cx.global_mut::<NdSelectedGenre>().loading = true;
+        cx.global_mut::<NdSelectedGenre>().songs = vec![];
+
+        let gname = genre_name.clone();
+        let (tx, rx) =
+            tokio::sync::oneshot::channel::<Vec<crate::navidrome::NavidromeSong>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let songs =
+                crate::navidrome::get_songs_by_genre(&b, &u, &t, &s, &gname, 500, 0).await;
+            let _ = tx.send(songs);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(songs) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let (bu, un, tok, sa) = app
+                        .global::<NavidromeServerState>()
+                        .active_server()
+                        .map(|s| {
+                            (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone())
+                        })
+                        .unwrap_or_default();
+                    let items = songs
+                        .into_iter()
+                        .map(|s| {
+                            let surl = crate::navidrome::stream_url(&bu, &un, &tok, &sa, &s.id);
+                            NdSongItem {
+                                id: s.id,
+                                title: s.title,
+                                artist: s.artist,
+                                artist_id: s.artist_id,
+                                album: s.album,
+                                album_id: s.album_id,
+                                cover_art: s.cover_art,
+                                duration: s.duration,
+                                track: s.track,
+                                stream_url: surl,
+                            }
+                        })
+                        .collect();
+                    let sel = app.global_mut::<NdSelectedGenre>();
+                    sel.name = genre_name.clone();
+                    sel.songs = items;
+                    sel.loading = false;
+                });
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_playlist(&self, cx: &mut gpui::Context<Self>, playlist_id: String) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let b = srv.base_url.clone();
+        let u = srv.user.clone();
+        let t = srv.token.clone();
+        let s = srv.salt.clone();
+
+        cx.global_mut::<NdSelectedPlaylist>().loading = true;
+        cx.global_mut::<NdSelectedPlaylist>().tracks = vec![];
+
+        let pid = playlist_id.clone();
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<(
+            crate::navidrome::NavidromePlaylist,
+            Vec<crate::navidrome::NavidromeSong>,
+        )>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let result = crate::navidrome::get_playlist_with_tracks(&b, &u, &t, &s, &pid).await;
+            let _ = tx.send(result);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(Some((playlist, tracks))) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let (bu, un, tok, sa) = app
+                        .global::<NavidromeServerState>()
+                        .active_server()
+                        .map(|s| {
+                            (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone())
+                        })
+                        .unwrap_or_default();
+                    let items = tracks
+                        .into_iter()
+                        .map(|s| {
+                            let surl = crate::navidrome::stream_url(&bu, &un, &tok, &sa, &s.id);
+                            NdSongItem {
+                                id: s.id,
+                                title: s.title,
+                                artist: s.artist,
+                                artist_id: s.artist_id,
+                                album: s.album,
+                                album_id: s.album_id,
+                                cover_art: s.cover_art,
+                                duration: s.duration,
+                                track: s.track,
+                                stream_url: surl,
+                            }
+                        })
+                        .collect();
+                    let sel = app.global_mut::<NdSelectedPlaylist>();
+                    sel.id = playlist.id;
+                    sel.name = playlist.name;
+                    sel.tracks = items;
+                    sel.loading = false;
+                });
+            }
+        })
+        .detach();
+    }
+
+    fn load_nd_songs(&self, cx: &mut gpui::Context<Self>) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let (b, u, t, s) = (srv.base_url.clone(), srv.user.clone(), srv.token.clone(), srv.salt.clone());
+        cx.global_mut::<NdSongsState>().loading = true;
+        cx.global_mut::<NdSongsState>().songs = vec![];
+        let (tx, rx) = tokio::sync::oneshot::channel::<Vec<crate::navidrome::NavidromeSong>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let songs = crate::navidrome::search_songs(&b, &u, &t, &s, "", 500).await;
+            let _ = tx.send(songs);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(songs) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let (bu, un, tok, sa) = app.global::<NavidromeServerState>()
+                        .active_server()
+                        .map(|s| (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone()))
+                        .unwrap_or_default();
+                    let items = songs.into_iter().map(|s| {
+                        let surl = crate::navidrome::stream_url(&bu, &un, &tok, &sa, &s.id);
+                        NdSongItem { id: s.id, title: s.title, artist: s.artist, artist_id: s.artist_id,
+                            album: s.album, album_id: s.album_id, cover_art: s.cover_art,
+                            duration: s.duration, track: s.track, stream_url: surl }
+                    }).collect();
+                    let state = app.global_mut::<NdSongsState>();
+                    state.songs = items;
+                    state.loading = false;
+                });
+            }
+        }).detach();
+    }
+
+    fn load_nd_likes(&self, cx: &mut gpui::Context<Self>) {
+        let nd = cx.global::<NavidromeServerState>().clone();
+        let srv = match nd.active_server() {
+            Some(s) => s.clone(),
+            None => return,
+        };
+        let (b, u, t, s) = (srv.base_url.clone(), srv.user.clone(), srv.token.clone(), srv.salt.clone());
+        cx.global_mut::<NdLikesState>().loading = true;
+        cx.global_mut::<NdLikesState>().songs = vec![];
+        let (tx, rx) = tokio::sync::oneshot::channel::<Vec<crate::navidrome::NavidromeSong>>();
+        cx.global::<Controller>().rt().spawn(async move {
+            let songs = crate::navidrome::get_starred(&b, &u, &t, &s).await;
+            let _ = tx.send(songs);
+        });
+        cx.spawn(async move |_, cx| {
+            if let Ok(songs) = rx.await {
+                let _ = cx.update(|app: &mut gpui::App| {
+                    let (bu, un, tok, sa) = app.global::<NavidromeServerState>()
+                        .active_server()
+                        .map(|s| (s.base_url.clone(), s.user.clone(), s.token.clone(), s.salt.clone()))
+                        .unwrap_or_default();
+                    let items = songs.into_iter().map(|s| {
+                        let surl = crate::navidrome::stream_url(&bu, &un, &tok, &sa, &s.id);
+                        NdSongItem { id: s.id.clone(), title: s.title, artist: s.artist, artist_id: s.artist_id,
+                            album: s.album, album_id: s.album_id, cover_art: s.cover_art,
+                            duration: s.duration, track: s.track, stream_url: surl }
+                    }).collect::<Vec<_>>();
+                    // Also update the starred ID set so like buttons reflect state
+                    let starred: std::collections::HashSet<String> = items.iter().map(|s| s.id.clone()).collect();
+                    app.global_mut::<NdStarredIds>().0 = starred;
+                    let state = app.global_mut::<NdLikesState>();
+                    state.songs = items;
+                    state.loading = false;
+                });
+            }
+        }).detach();
     }
 }
 
@@ -423,6 +1098,15 @@ impl Render for LibraryPage {
         let picker_open = cx.global::<ServerPickerOpen>().0;
         let server_scanning = cx.global::<DiscoveredServers>().scanning;
         let discovered_servers = cx.global::<DiscoveredServers>().servers.clone();
+        let nd_state = cx.global::<NavidromeServerState>().clone();
+        let nd_data = cx.global::<NdLibraryData>().clone();
+        let nd_sel_album = cx.global::<NdSelectedAlbum>().clone();
+        let nd_sel_artist = cx.global::<NdSelectedArtist>().clone();
+        let nd_sel_genre = cx.global::<NdSelectedGenre>().clone();
+        let nd_sel_playlist = cx.global::<NdSelectedPlaylist>().clone();
+        let nd_songs_state = cx.global::<NdSongsState>().clone();
+        let nd_likes_state = cx.global::<NdLikesState>().clone();
+        let nd_starred_ids = cx.global::<NdStarredIds>().0.clone();
 
         // Trigger playlist tracks load when in detail views
         if (section == LibrarySection::PlaylistDetail
@@ -467,6 +1151,55 @@ impl Render for LibraryPage {
                 });
             })
             .detach();
+        }
+
+        // Trigger Navidrome library load when needed
+        if nd_state.connected() && nd_data.albums.is_empty() && !nd_data.loading {
+            self.load_nd_library(cx);
+        }
+        if section == LibrarySection::NdAlbumDetail
+            && nd_sel_album.songs.is_empty()
+            && !nd_sel_album.loading
+            && !nd_sel_album.id.is_empty()
+        {
+            let aid = nd_sel_album.id.clone();
+            self.load_nd_album(cx, aid);
+        }
+        if section == LibrarySection::NdArtistDetail
+            && nd_sel_artist.albums.is_empty()
+            && !nd_sel_artist.loading
+            && !nd_sel_artist.id.is_empty()
+        {
+            let aid = nd_sel_artist.id.clone();
+            self.load_nd_artist(cx, aid);
+        }
+        if section == LibrarySection::NdGenreDetail
+            && nd_sel_genre.songs.is_empty()
+            && !nd_sel_genre.loading
+            && !nd_sel_genre.name.is_empty()
+        {
+            let gname = nd_sel_genre.name.clone();
+            self.load_nd_genre(cx, gname);
+        }
+        if section == LibrarySection::NdPlaylistDetail
+            && nd_sel_playlist.tracks.is_empty()
+            && !nd_sel_playlist.loading
+            && !nd_sel_playlist.id.is_empty()
+        {
+            let pid = nd_sel_playlist.id.clone();
+            self.load_nd_playlist(cx, pid);
+        }
+        if section == LibrarySection::NdSongs
+            && nd_songs_state.songs.is_empty()
+            && !nd_songs_state.loading
+        {
+            self.load_nd_songs(cx);
+        }
+        if section == LibrarySection::NdLikes
+            && nd_likes_state.songs.is_empty()
+            && !nd_likes_state.loading
+        {
+            self.load_nd_likes(cx);
         }
 
         let viewport = window.viewport_size();
@@ -730,9 +1463,29 @@ impl Render for LibraryPage {
         let query = self.search_input.read(cx).query.trim().to_string();
         let search_input = self.search_input.clone();
 
+        // Active Navidrome credentials (for cover art URL generation in search)
+        let nd_creds_search = nd_state.active_server().cloned().unwrap_or_default();
+        let nd_is_connected = nd_state.connected();
+
+        // Navidrome in-memory search results (filtered from already-loaded library data)
+        let nd_q = query.to_lowercase();
+        let nd_search_albums: Vec<crate::ui::components::NdAlbumItem> = if nd_is_connected && !nd_q.is_empty() {
+            nd_data.albums.iter().filter(|a| {
+                a.name.to_lowercase().contains(&nd_q) || a.artist.to_lowercase().contains(&nd_q)
+            }).take(8).cloned().collect()
+        } else { vec![] };
+        let nd_search_artists: Vec<crate::ui::components::NdArtistItem> = if nd_is_connected && !nd_q.is_empty() {
+            nd_data.artists.iter().filter(|a| a.name.to_lowercase().contains(&nd_q)).take(8).cloned().collect()
+        } else { vec![] };
+        let nd_search_playlists: Vec<crate::ui::components::NdPlaylistItem> = if nd_is_connected && !nd_q.is_empty() {
+            nd_data.playlists.iter().filter(|p| p.name.to_lowercase().contains(&nd_q)).take(10).cloned().collect()
+        } else { vec![] };
+        let nd_search_has_results = !nd_search_albums.is_empty() || !nd_search_artists.is_empty() || !nd_search_playlists.is_empty();
+
         let context_menu = cx.global::<LibraryContextMenuState>().0.clone();
         let album_context_menu = cx.global::<AlbumContextMenuState>().0.clone();
         let file_context_menu = cx.global::<FileContextMenuState>().0.clone();
+        let nd_context_menu = cx.global::<NdContextMenuState>().0.clone();
         let n_album_tracks = album_tracks.len();
         let n_artist_tracks = artist_tracks.len();
         let scroll_handle = self.scroll_handle.clone();
@@ -746,24 +1499,47 @@ impl Render for LibraryPage {
         let edit_desc_value = self.edit_desc_input.read(cx).value.trim().to_string();
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
-        // Sidebar nav item — Albums/Artists stay active while in their detail view
+        // Sidebar nav item — Albums/Artists stay active while in their detail view.
+        // When a Navidrome server is active, Albums/Artists/Genres route to Nd* sections.
+        let nd_connected = nd_state.connected();
         let make_nav_item =
             move |icon: Icons, icon_size: u8, label: &'static str, target: LibrarySection| {
+                let nd_target = if nd_connected {
+                    match target {
+                        LibrarySection::Albums => Some(LibrarySection::NdAlbums),
+                        LibrarySection::Artists => Some(LibrarySection::NdArtists),
+                        LibrarySection::Genres => Some(LibrarySection::NdGenres),
+                        LibrarySection::Songs => Some(LibrarySection::NdSongs),
+                        LibrarySection::Likes => Some(LibrarySection::NdLikes),
+                        _ => None,
+                    }
+                } else {
+                    None
+                };
+                let effective = nd_target.unwrap_or(target);
                 let is_active = section == target
+                    || section == effective
                     || (section == LibrarySection::AlbumDetail && target == LibrarySection::Albums)
+                    || (section == LibrarySection::NdAlbumDetail && target == LibrarySection::Albums)
                     || (section == LibrarySection::ArtistDetail
+                        && target == LibrarySection::Artists)
+                    || (section == LibrarySection::NdArtistDetail
                         && target == LibrarySection::Artists)
                     || (section == LibrarySection::AlbumDetail
                         && back_section == LibrarySection::ArtistDetail
                         && target == LibrarySection::Artists)
                     || (section == LibrarySection::GenreDetail
                         && target == LibrarySection::Genres)
+                    || (section == LibrarySection::NdGenreDetail
+                        && target == LibrarySection::Genres)
                     || (section == LibrarySection::AlbumDetail
                         && back_section == LibrarySection::GenreDetail
                         && target == LibrarySection::Genres)
                     || (section == LibrarySection::ArtistDetail
                         && back_section == LibrarySection::GenreDetail
-                        && target == LibrarySection::Genres);
+                        && target == LibrarySection::Genres)
+                    || (section == LibrarySection::NdSongs && target == LibrarySection::Songs)
+                    || (section == LibrarySection::NdLikes && target == LibrarySection::Likes);
                 div()
                     .id(label)
                     .w_full()
@@ -786,7 +1562,7 @@ impl Render for LibraryPage {
                     })
                     .hover(|this| this.text_color(theme.library_text))
                     .on_click(move |_, _, cx: &mut App| {
-                        *cx.global_mut::<LibrarySection>() = target;
+                        *cx.global_mut::<LibrarySection>() = effective;
                     })
                     .child(
                         div()
@@ -1055,16 +1831,230 @@ impl Render for LibraryPage {
                 })
         };
 
+        // ── nd_song_row helper ─────────────────────────────────────────────────────
+        let nd_song_row = {
+            let starred = nd_starred_ids.clone();
+            let nd_creds_row = nd_state.active_server().cloned().unwrap_or_default();
+            move |row_id: (&'static str, usize),
+                  song_id: String,
+                  title: String,
+                  artist: String,
+                  album: String,
+                  artist_id: String,
+                  album_id: String,
+                  stream_url: String,
+                  duration: u32,
+                  track_num: Option<u32>,
+                  cover_art: Option<String>| {
+                let is_starred = starred.contains(&song_id);
+                let surl_play = stream_url.clone();
+                let surl_ctx = stream_url.clone();
+                let sid_heart = song_id.clone();
+                let sid_ctx = song_id.clone();
+                let title_ctx = title.clone();
+                let artist_ctx = artist.clone();
+                let album_ctx = album.clone();
+                let artist_id_ctx = artist_id.clone();
+                let album_id_ctx = album_id.clone();
+                // Captures for NdLikesState live-update
+                let heart_song_item = NdSongItem {
+                    id: song_id.clone(),
+                    title: title.clone(),
+                    artist: artist.clone(),
+                    artist_id: artist_id.clone(),
+                    album: album.clone(),
+                    album_id: album_id.clone(),
+                    cover_art: cover_art.clone(),
+                    duration,
+                    track: None,
+                    stream_url: stream_url.clone(),
+                };
+                let heart_id: gpui::SharedString =
+                    format!("{}_nd_heart_{}", row_id.0, row_id.1).into();
+                let opts_id: gpui::SharedString =
+                    format!("{}_nd_opts_{}", row_id.0, row_id.1).into();
+                let group: gpui::SharedString =
+                    format!("{}_nd_grp_{}", row_id.0, row_id.1).into();
+                let group2 = group.clone();
+                let cov = cover_art.clone();
+                // Pre-compute cover art URL for the miniplayer/player when this track plays
+                let cover_art_url_for_play = cover_art.as_ref().map(|cid| {
+                    crate::navidrome::cover_art_url(
+                        &nd_creds_row.base_url,
+                        &nd_creds_row.user,
+                        &nd_creds_row.token,
+                        &nd_creds_row.salt,
+                        cid,
+                        Some(300),
+                    )
+                });
+                div()
+                    .id(row_id)
+                    .group(group.clone())
+                    .w_full()
+                    .flex()
+                    .items_center()
+                    .gap_x_4()
+                    .px_6()
+                    .py_3()
+                    .cursor_pointer()
+                    .hover(|t| t.bg(theme.library_track_bg_hover))
+                    .on_click(move |_, _, cx: &mut App| {
+                        cx.global_mut::<NdCurrentCoverArt>().0 = cover_art_url_for_play.clone();
+                        let rt = cx.global::<Controller>().rt();
+                        let url = surl_play.clone();
+                        rt.spawn(async move {
+                            let _ = crate::client::play_track(url).await;
+                        });
+                    })
+                    .child(
+                        div()
+                            .w(px(28.0))
+                            .flex_shrink_0()
+                            .text_sm()
+                            .text_color(theme.library_header_text)
+                            .child(
+                                track_num
+                                    .map(|n| n.to_string())
+                                    .unwrap_or_else(|| (row_id.1 + 1).to_string()),
+                            ),
+                    )
+                    .child(
+                        div()
+                            .flex_1()
+                            .min_w_0()
+                            .flex()
+                            .flex_col()
+                            .child(
+                                div()
+                                    .text_sm()
+                                    .text_color(theme.library_text)
+                                    .truncate()
+                                    .child(title),
+                            )
+                            .child(
+                                div()
+                                    .text_xs()
+                                    .text_color(theme.library_header_text)
+                                    .truncate()
+                                    .child(format!("{} — {}", artist, album)),
+                            ),
+                    )
+                    .child(
+                        div()
+                            .w(px(56.0))
+                            .flex_shrink_0()
+                            .text_sm()
+                            .text_color(theme.library_header_text)
+                            .child(crate::state::format_duration(duration as u64)),
+                    )
+                    .child(
+                        div()
+                            .id(heart_id)
+                            .w(px(28.0))
+                            .flex_shrink_0()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .text_color(if is_starred {
+                                gpui::rgb(0xFFFFFF)
+                            } else {
+                                theme.library_header_text
+                            })
+                            .on_click(move |_, _, cx: &mut App| {
+                                cx.stop_propagation();
+                                let nd = cx.global::<NavidromeServerState>().clone();
+                                if let Some(srv) = nd.active_server() {
+                                    let (b, u, t, s) = (
+                                        srv.base_url.clone(),
+                                        srv.user.clone(),
+                                        srv.token.clone(),
+                                        srv.salt.clone(),
+                                    );
+                                    let id = sid_heart.clone();
+                                    let starred_ids = &mut cx.global_mut::<NdStarredIds>().0;
+                                    if starred_ids.contains(&id) {
+                                        starred_ids.remove(&id);
+                                        cx.global_mut::<NdLikesState>().songs.retain(|s| s.id != id);
+                                        cx.global::<Controller>().rt().spawn(async move {
+                                            crate::navidrome::unstar_song(&b, &u, &t, &s, &id).await;
+                                        });
+                                    } else {
+                                        starred_ids.insert(id.clone());
+                                        let item = heart_song_item.clone();
+                                        cx.global_mut::<NdLikesState>().songs.insert(0, item);
+                                        cx.global::<Controller>().rt().spawn(async move {
+                                            crate::navidrome::star_song(&b, &u, &t, &s, &id).await;
+                                        });
+                                    }
+                                }
+                            })
+                            .child(Icon::new(if is_starred {
+                                Icons::Heart
+                            } else {
+                                Icons::HeartOutline
+                            }).size_5()),
+                    )
+                    .child(
+                        div()
+                            .id(opts_id)
+                            .w(px(28.0))
+                            .flex_shrink_0()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .opacity(0.0)
+                            .group_hover(group2, |s| s.opacity(1.0))
+                            .cursor_pointer()
+                            .text_color(theme.library_header_text)
+                            .on_click(move |event, _, cx: &mut App| {
+                                cx.stop_propagation();
+                                cx.global_mut::<NdContextMenuState>().0 = Some(NdContextMenu {
+                                    pos: event.position(),
+                                    song_id: sid_ctx.clone(),
+                                    title: title_ctx.clone(),
+                                    artist_id: artist_id_ctx.clone(),
+                                    artist: artist_ctx.clone(),
+                                    album_id: album_id_ctx.clone(),
+                                    album: album_ctx.clone(),
+                                    cover_art: cov.clone(),
+                                    stream_url: surl_ctx.clone(),
+                                });
+                            })
+                            .child(Icon::new(Icons::Options).size_4()),
+                    )
+            }
+        };
+
         let show_search = !query.is_empty();
         let content: AnyElement = if show_search {
             // ── Search results ────────────────────────────────────────────────────
             match search_results {
-                None => div().flex_1().into_any_element(),
+                None if !nd_search_has_results => div().flex_1().into_any_element(),
+                None => {
+                    // No local results yet, but Navidrome has matches — fall through to nd-only view
+                    div()
+                        .id("search_results_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(nd_search_sections(
+                            &nd_search_albums,
+                            &nd_search_artists,
+                            &nd_search_playlists,
+                            &nd_creds_search,
+                            search_input.clone(),
+                            theme,
+                        ))
+                        .into_any_element()
+                }
                 Some(ref r)
                     if r.tracks.is_empty()
                         && r.albums.is_empty()
                         && r.artists.is_empty()
-                        && r.playlists.is_empty() =>
+                        && r.playlists.is_empty()
+                        && !nd_search_has_results =>
                 {
                     div()
                         .flex_1()
@@ -1437,6 +2427,16 @@ impl Render for LibraryPage {
                                                 ),
                                             )),
                                     )
+                                })
+                                .when(nd_search_has_results, |this| {
+                                    this.child(nd_search_sections(
+                                        &nd_search_albums,
+                                        &nd_search_artists,
+                                        &nd_search_playlists,
+                                        &nd_creds_search,
+                                        search_input.clone(),
+                                        theme,
+                                    ))
                                 }),
                         )
                         .into_any_element()
@@ -4205,6 +5205,1332 @@ impl Render for LibraryPage {
                         )
                         .into_any_element()
                 }
+
+                // ── Navidrome Albums ───────────────────────────────────────
+                LibrarySection::NdAlbums => {
+                    let nd = nd_state.clone();
+                    let nd_creds = nd.active_server().cloned().unwrap_or_default();
+                    let albums = nd_data.albums.clone();
+                    let loading = nd_data.loading;
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .px_6()
+                                .py_4()
+                                .gap_x_3()
+                                .child(
+                                    Icon::new(Icons::Navidrome)
+                                        .size_5()
+                                        .text_color(theme.library_text),
+                                )
+                                .child(
+                                    div()
+                                        .text_xl()
+                                        .font_weight(FontWeight(700.0))
+                                        .text_color(theme.library_text)
+                                        .child("Albums"),
+                                )
+                        )
+                        .child(
+                            div()
+                                .id("nd_albums_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .px_6()
+                                .pb_6()
+                                .when(loading, |t| {
+                                    t.child(skeleton_album_grid(album_cols as usize, 3, 0x1E2235))
+                                })
+                                .when(!loading, |t| t.child(
+                                    div()
+                                        .w_full()
+                                        .p_6()
+                                        .grid()
+                                        .grid_cols(album_cols)
+                                        .gap_6()
+                                        .children(albums.into_iter().enumerate().map(|(idx, album)| {
+                                            let aid = album.id.clone();
+                                            let aname = album.name.clone();
+                                            let aartist = album.artist.clone();
+                                            let cover_url = album.cover_art.as_ref().map(|cid| {
+                                                crate::navidrome::cover_art_url(
+                                                    &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt,
+                                                    cid, Some(300),
+                                                )
+                                            });
+                                            let mut art_box = div()
+                                                .id(("nd_album_art", idx))
+                                                .w_full()
+                                                .rounded_lg()
+                                                .overflow_hidden();
+                                            art_box.style().aspect_ratio = Some(1.0_f32);
+                                            let art_inner: AnyElement = if let Some(url) = cover_url {
+                                                img(url)
+                                                    .w_full()
+                                                    .h_full()
+                                                    .object_fit(ObjectFit::Cover)
+                                                    .into_any_element()
+                                            } else {
+                                                div()
+                                                    .w_full()
+                                                    .h_full()
+                                                    .bg(theme.library_art_bg)
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .text_color(theme.player_icons_text)
+                                                    .child(Icon::new(Icons::Disc).size_8())
+                                                    .into_any_element()
+                                            };
+                                            div()
+                                                .id(("nd_album_card", idx))
+                                                .flex()
+                                                .flex_col()
+                                                .gap_y_2()
+                                                .cursor_pointer()
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    let sel = cx.global_mut::<NdSelectedAlbum>();
+                                                    sel.id = aid.clone();
+                                                    sel.name = aname.clone();
+                                                    sel.songs = vec![];
+                                                    sel.loading = false;
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::NdAlbumDetail;
+                                                })
+                                                .child(art_box.child(art_inner))
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_0p5()
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .font_weight(FontWeight(500.0))
+                                                                .text_color(theme.library_text)
+                                                                .truncate()
+                                                                .child(album.name.clone()),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .text_xs()
+                                                                .text_color(theme.library_header_text)
+                                                                .truncate()
+                                                                .child(aartist),
+                                                        ),
+                                                )
+                                        })),
+                                ))
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Album Detail ─────────────────────────────────
+                LibrarySection::NdAlbumDetail => {
+                    let nd = nd_state.clone();
+                    let nd_creds = nd.active_server().cloned().unwrap_or_default();
+                    let sel = nd_sel_album.clone();
+                    let cover_url = sel.cover_art.as_ref().map(|cid| {
+                        crate::navidrome::cover_art_url(
+                            &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt, cid, Some(300),
+                        )
+                    });
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            // Back header
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px_6()
+                                .py_3()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(
+                                    div()
+                                        .id("nd_album_back")
+                                        .p_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_color(theme.library_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::NdAlbums;
+                                        })
+                                        .child(Icon::new(Icons::ChevronLeft).size_4()),
+                                )
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .text_color(theme.library_text)
+                                        .child(sel.name.clone()),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("nd_album_detail_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .child(
+                                    div()
+                                        .flex()
+                                        .gap_x_6()
+                                        .p_6()
+                                        .child(if sel.loading {
+                                            div()
+                                                .flex_shrink_0()
+                                                .child(skeleton_rect(
+                                                    "nd_album_detail_cover_sk",
+                                                    160.0,
+                                                    160.0,
+                                                    8.0,
+                                                    0x1E2235,
+                                                ))
+                                                .into_any_element()
+                                        } else {
+                                            div()
+                                                .w(px(160.0))
+                                                .h(px(160.0))
+                                                .flex_shrink_0()
+                                                .rounded_lg()
+                                                .overflow_hidden()
+                                                .bg(theme.library_art_bg)
+                                                .flex()
+                                                .items_center()
+                                                .justify_center()
+                                                .when_some(cover_url.clone(), |t, url| {
+                                                    t.child(
+                                                        img(url)
+                                                            .w_full()
+                                                            .h_full()
+                                                            .object_fit(ObjectFit::Cover),
+                                                    )
+                                                })
+                                                .when(sel.cover_art.is_none(), |t| {
+                                                    t.child(
+                                                        Icon::new(Icons::Disc)
+                                                            .size_10()
+                                                            .text_color(theme.player_icons_text),
+                                                    )
+                                                })
+                                                .into_any_element()
+                                        })
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .flex_col()
+                                                .justify_end()
+                                                .gap_y_1()
+                                                .child(
+                                                    div()
+                                                        .text_2xl()
+                                                        .font_weight(FontWeight(700.0))
+                                                        .text_color(theme.library_text)
+                                                        .child(sel.name.clone()),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(sel.artist.clone()),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_3()
+                                                        .mt_2()
+                                                        .child({
+                                                            let songs = sel.songs.clone();
+                                                            let rt = cx.global::<Controller>().rt();
+                                                            let album_art = cover_url.clone();
+                                                            div()
+                                                                .id("nd_album_play_btn")
+                                                                .flex()
+                                                                .items_center()
+                                                                .gap_x_2()
+                                                                .px_4()
+                                                                .py_2()
+                                                                .rounded_md()
+                                                                .cursor_pointer()
+                                                                .bg(theme.player_play_pause_bg)
+                                                                .text_color(theme.player_play_pause_text)
+                                                                .hover(|t| t.bg(theme.player_play_pause_hover))
+                                                                .on_click(move |_, _, cx: &mut App| {
+                                                                    cx.global_mut::<NdCurrentCoverArt>().0 = album_art.clone();
+                                                                    let urls: Vec<String> = songs.iter().map(|s| s.stream_url.clone()).collect();
+                                                                    let rt2 = rt.clone();
+                                                                    rt2.spawn(async move {
+                                                                        if let Some(first_url) = urls.first() {
+                                                                            let _ = crate::client::play_track(first_url.clone()).await;
+                                                                        }
+                                                                        for url in urls.iter().skip(1) {
+                                                                            let _ = crate::client::insert_track_last(url.clone()).await;
+                                                                        }
+                                                                    });
+                                                                })
+                                                                .child(Icon::new(Icons::Play).size_4())
+                                                                .child(div().text_sm().font_weight(FontWeight(600.0)).child("Play"))
+                                                        })
+                                                        .child({
+                                                            let songs = sel.songs.clone();
+                                                            let rt = cx.global::<Controller>().rt();
+                                                            let album_art = cover_url.clone();
+                                                            div()
+                                                                .id("nd_album_shuffle_btn")
+                                                                .flex()
+                                                                .items_center()
+                                                                .gap_x_2()
+                                                                .px_4()
+                                                                .py_2()
+                                                                .rounded_md()
+                                                                .cursor_pointer()
+                                                                .bg(theme.player_icons_bg_active)
+                                                                .text_color(theme.library_text)
+                                                                .hover(|t| t.bg(theme.player_icons_bg_hover))
+                                                                .on_click(move |_, _, cx: &mut App| {
+                                                                    cx.global_mut::<NdCurrentCoverArt>().0 = album_art.clone();
+                                                                    let mut urls: Vec<String> = songs.iter().map(|s| s.stream_url.clone()).collect();
+                                                                    use std::time::{SystemTime, UNIX_EPOCH};
+                                                                    let mut x = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.subsec_nanos() as u64).unwrap_or(42) | 1;
+                                                                    let n = urls.len();
+                                                                    for i in (1..n).rev() {
+                                                                        x ^= x << 13; x ^= x >> 7; x ^= x << 17;
+                                                                        let j = (x % (i as u64 + 1)) as usize;
+                                                                        urls.swap(i, j);
+                                                                    }
+                                                                    let rt2 = rt.clone();
+                                                                    rt2.spawn(async move {
+                                                                        if let Some(first_url) = urls.first() {
+                                                                            let _ = crate::client::play_track(first_url.clone()).await;
+                                                                        }
+                                                                        for url in urls.iter().skip(1) {
+                                                                            let _ = crate::client::insert_track_last(url.clone()).await;
+                                                                        }
+                                                                    });
+                                                                })
+                                                                .child(Icon::new(Icons::Shuffle).size_4())
+                                                                .child(div().text_sm().font_weight(FontWeight(500.0)).child("Shuffle"))
+                                                        }),
+                                                ),
+                                        ),
+                                )
+                                .when(sel.loading, |t| {
+                                    t.child(skeleton_track_list(10, 0x1E2235))
+                                })
+                                .when(!sel.loading, |t| {
+                                    let mut sorted_songs = sel.songs.clone();
+                                    sorted_songs.sort_by_key(|s| s.track.unwrap_or(u32::MAX));
+                                    t.child(
+                                        div()
+                                            .pb_6()
+                                            .flex()
+                                            .flex_col()
+                                            .children(sorted_songs.into_iter().enumerate().map(|(i, song)| {
+                                                nd_song_row(
+                                                    ("nd_album_song", i),
+                                                    song.id.clone(),
+                                                    song.title.clone(),
+                                                    song.artist.clone(),
+                                                    song.album.clone(),
+                                                    song.artist_id.clone(),
+                                                    song.album_id.clone(),
+                                                    song.stream_url.clone(),
+                                                    song.duration,
+                                                    song.track,
+                                                    song.cover_art.clone(),
+                                                )
+                                            })),
+                                    )
+                                }),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Artists ──────────────────────────────────────
+                LibrarySection::NdArtists => {
+                    let nd = nd_state.clone();
+                    let nd_creds = nd.active_server().cloned().unwrap_or_default();
+                    let artists = nd_data.artists.clone();
+                    let artists_loading = nd_data.loading;
+                    div()
+                        .id("nd_artists_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .when(artists_loading, |t| {
+                            t.child(skeleton_artist_grid(artist_cols as usize, 3, 0x1E2235))
+                        })
+                        .when(!artists_loading, |t| t.child(
+                            div()
+                                .w_full()
+                                .p_6()
+                                .grid()
+                                .grid_cols(artist_cols)
+                                .gap_6()
+                                .children(artists.into_iter().enumerate().map(|(idx, artist)| {
+                                    let aid = artist.id.clone();
+                                    let aname = artist.name.clone();
+                                    let cover_url =
+                                        artist.cover_art.as_ref().map(|cid| {
+                                            crate::navidrome::cover_art_url(
+                                                &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt,
+                                                cid, Some(200),
+                                            )
+                                        });
+                                    div()
+                                        .id(("nd_artist_card", idx))
+                                        .flex()
+                                        .flex_col()
+                                        .items_center()
+                                        .gap_y_2()
+                                        .cursor_pointer()
+                                        .hover(|this| this.opacity(0.8))
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            let sel = cx.global_mut::<NdSelectedArtist>();
+                                            sel.id = aid.clone();
+                                            sel.name = aname.clone();
+                                            sel.albums = vec![];
+                                            sel.loading = false;
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::NdArtistDetail;
+                                        })
+                                        .child({
+                                            let mut container = div()
+                                                .w_full()
+                                                .rounded_full()
+                                                .overflow_hidden()
+                                                .flex_shrink_0();
+                                            container.style().aspect_ratio = Some(1.0_f32);
+                                            if let Some(url) = cover_url {
+                                                container.child(
+                                                    img(url)
+                                                        .w_full()
+                                                        .h_full()
+                                                        .rounded_full()
+                                                        .object_fit(ObjectFit::Cover),
+                                                )
+                                            } else {
+                                                container
+                                                    .bg(theme.library_art_bg)
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .text_color(theme.player_icons_text)
+                                                    .child(Icon::new(Icons::Artist).size_8())
+                                            }
+                                        })
+                                        .child(
+                                            div()
+                                                .w_full()
+                                                .flex()
+                                                .flex_col()
+                                                .items_center()
+                                                .gap_y_0p5()
+                                                .child(
+                                                    div()
+                                                        .w_full()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(500.0))
+                                                        .text_color(theme.library_text)
+                                                        .text_center()
+                                                        .truncate()
+                                                        .child(artist.name.clone()),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(format!("{} albums", artist.album_count)),
+                                                ),
+                                        )
+                                })),
+                        ))
+                        .into_any_element()
+                }
+
+                // ── Navidrome Artist Detail ────────────────────────────────
+                LibrarySection::NdArtistDetail => {
+                    let nd = nd_state.clone();
+                    let nd_creds = nd.active_server().cloned().unwrap_or_default();
+                    let sel = nd_sel_artist.clone();
+                    let cover_url = sel.cover_art.as_ref().map(|cid| {
+                        crate::navidrome::cover_art_url(
+                            &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt, cid, Some(300),
+                        )
+                    });
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px_6()
+                                .py_3()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(
+                                    div()
+                                        .id("nd_artist_back")
+                                        .p_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_color(theme.library_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::NdArtists;
+                                        })
+                                        .child(Icon::new(Icons::ChevronLeft).size_4()),
+                                )
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .text_color(theme.library_text)
+                                        .child(sel.name.clone()),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("nd_artist_detail_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .p_6()
+                                .when(sel.loading, |t| t.child(skeleton_album_grid(3, 2, 0x1E2235)))
+                                .when(!sel.loading, |t| t.flex().flex_col().gap_y_6()
+                                .child(
+                                    div()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_4()
+                                        .child(if let Some(url) = cover_url {
+                                            div()
+                                                .w(px(80.0))
+                                                .h(px(80.0))
+                                                .flex_shrink_0()
+                                                .rounded_full()
+                                                .overflow_hidden()
+                                                .child(
+                                                    img(url)
+                                                        .w_full()
+                                                        .h_full()
+                                                        .rounded_full()
+                                                        .object_fit(ObjectFit::Cover),
+                                                )
+                                                .into_any_element()
+                                        } else {
+                                            div()
+                                                .w(px(80.0))
+                                                .h(px(80.0))
+                                                .flex_shrink_0()
+                                                .rounded_full()
+                                                .bg(theme.library_art_bg)
+                                                .flex()
+                                                .items_center()
+                                                .justify_center()
+                                                .text_color(theme.player_icons_text)
+                                                .child(Icon::new(Icons::Artist).size_8())
+                                                .into_any_element()
+                                        })
+                                        .child(
+                                            div()
+                                                .text_2xl()
+                                                .font_weight(FontWeight(700.0))
+                                                .text_color(theme.library_text)
+                                                .child(sel.name.clone()),
+                                        ),
+                                )
+                                .child(
+                                    div()
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_3()
+                                        .child(
+                                            div()
+                                                .text_lg()
+                                                .font_weight(FontWeight(700.0))
+                                                .text_color(theme.library_text)
+                                                .child("Albums"),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .flex_wrap()
+                                                .gap_4()
+                                                .children(sel.albums.into_iter().enumerate().map(
+                                                    |(idx, album)| {
+                                                        let aid = album.id.clone();
+                                                        let aname = album.name.clone();
+                                                        let cover_url = album.cover_art.as_ref().map(|cid| {
+                                                            crate::navidrome::cover_art_url(
+                                                                &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt,
+                                                                cid, Some(300),
+                                                            )
+                                                        });
+                                                        div()
+                                                            .id(("nd_artist_album", idx))
+                                                            .w(px(140.0))
+                                                            .flex()
+                                                            .flex_col()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                let sel2 = cx.global_mut::<NdSelectedAlbum>();
+                                                                sel2.id = aid.clone();
+                                                                sel2.name = aname.clone();
+                                                                sel2.songs = vec![];
+                                                                sel2.loading = false;
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    LibrarySection::NdAlbumDetail;
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .w(px(140.0))
+                                                                    .h(px(140.0))
+                                                                    .rounded_lg()
+                                                                    .overflow_hidden()
+                                                                    .bg(theme.library_art_bg)
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .justify_center()
+                                                                    .when_some(cover_url, |t, url| {
+                                                                        t.child(
+                                                                            img(url)
+                                                                                .w_full()
+                                                                                .h_full()
+                                                                                .object_fit(
+                                                                                    ObjectFit::Cover,
+                                                                                ),
+                                                                        )
+                                                                    })
+                                                                    .when(album.cover_art.is_none(), |t| {
+                                                                        t.child(
+                                                                            Icon::new(Icons::Disc)
+                                                                                .size_8()
+                                                                                .text_color(
+                                                                                    theme.player_icons_text,
+                                                                                ),
+                                                                        )
+                                                                    }),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .text_sm()
+                                                                    .font_weight(FontWeight(600.0))
+                                                                    .text_color(theme.library_text)
+                                                                    .truncate()
+                                                                    .child(album.name.clone()),
+                                                            )
+                                                            .when_some(album.year, |t, y| {
+                                                                t.child(
+                                                                    div()
+                                                                        .text_xs()
+                                                                        .text_color(theme.library_header_text)
+                                                                        .child(y.to_string()),
+                                                                )
+                                                            })
+                                                    },
+                                                )),
+                                        ),
+                                ))
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Genres ───────────────────────────────────────
+                LibrarySection::NdGenres => {
+                    let genres = nd_data.genres.clone();
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .px_6()
+                                .py_4()
+                                .gap_x_3()
+                                .child(
+                                    Icon::new(Icons::Navidrome)
+                                        .size_5()
+                                        .text_color(theme.library_text),
+                                )
+                                .child(
+                                    div()
+                                        .text_xl()
+                                        .font_weight(FontWeight(700.0))
+                                        .text_color(theme.library_text)
+                                        .child("Genres"),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("nd_genres_grid_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .px_6()
+                                .pb_6()
+                                .child(
+                                    div()
+                                        .w_full()
+                                        .flex()
+                                        .flex_wrap()
+                                        .gap_3()
+                                        .children(genres.into_iter().enumerate().map(|(idx, genre)| {
+                                            let gname = genre.name.clone();
+                                            let gname2 = genre.name.clone();
+                                            let color = neon_color_for(&genre.name);
+                                            div()
+                                                .id(("nd_genre_card", idx))
+                                                .w(px(160.0))
+                                                .h(px(80.0))
+                                                .rounded_lg()
+                                                .overflow_hidden()
+                                                .bg(color)
+                                                .flex()
+                                                .flex_col()
+                                                .justify_end()
+                                                .px_3()
+                                                .pb_3()
+                                                .cursor_pointer()
+                                                .hover(|t| t.opacity(0.85))
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    let sel = cx.global_mut::<NdSelectedGenre>();
+                                                    sel.name = gname.clone();
+                                                    sel.songs = vec![];
+                                                    sel.loading = false;
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::NdGenreDetail;
+                                                })
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(700.0))
+                                                        .text_color(gpui::black())
+                                                        .truncate()
+                                                        .child(gname2),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(gpui::black())
+                                                        .child(format!(
+                                                            "{} songs",
+                                                            genre.song_count
+                                                        )),
+                                                )
+                                        })),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Genre Detail ─────────────────────────────────
+                LibrarySection::NdGenreDetail => {
+                    let sel = nd_sel_genre.clone();
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px_6()
+                                .py_3()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(
+                                    div()
+                                        .id("nd_genre_back")
+                                        .p_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_color(theme.library_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::NdGenres;
+                                        })
+                                        .child(Icon::new(Icons::ChevronLeft).size_4()),
+                                )
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .text_color(theme.library_text)
+                                        .child(sel.name.clone()),
+                                )
+                        )
+                        .child(
+                            div()
+                                .id("nd_genre_detail_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .pb_6()
+                                .when(sel.loading, |t| t.child(skeleton_track_list(12, 0x1E2235)))
+                                .when(!sel.loading, |t| {
+                                    let mut sorted = sel.songs.clone();
+                                    sorted.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+                                    t.children(sorted.into_iter().enumerate().map(|(i, song)| {
+                                        nd_song_row(
+                                            ("nd_genre_song", i),
+                                            song.id.clone(),
+                                            song.title.clone(),
+                                            song.artist.clone(),
+                                            song.album.clone(),
+                                            song.artist_id.clone(),
+                                            song.album_id.clone(),
+                                            song.stream_url.clone(),
+                                            song.duration,
+                                            None,
+                                            song.cover_art.clone(),
+                                        )
+                                    }))
+                                })
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Playlists ────────────────────────────────────
+                LibrarySection::NdPlaylists => {
+                    let nd = nd_state.clone();
+                    let nd_creds = nd.active_server().cloned().unwrap_or_default();
+                    let playlists = nd_data.playlists.clone();
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .px_6()
+                                .py_4()
+                                .gap_x_3()
+                                .child(
+                                    Icon::new(Icons::Navidrome)
+                                        .size_5()
+                                        .text_color(theme.library_text),
+                                )
+                                .child(
+                                    div()
+                                        .text_xl()
+                                        .font_weight(FontWeight(700.0))
+                                        .text_color(theme.library_text)
+                                        .child("Playlists"),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("nd_genres_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .px_6()
+                                .pb_6()
+                                .child(
+                                    div()
+                                        .w_full()
+                                        .flex()
+                                        .flex_wrap()
+                                        .gap_4()
+                                        .children(playlists.into_iter().enumerate().map(|(idx, pl)| {
+                                            let pid = pl.id.clone();
+                                            let pname = pl.name.clone();
+                                            let pname2 = pl.name.clone();
+                                            let cover_url = pl.cover_art.as_ref().map(|cid| {
+                                                crate::navidrome::cover_art_url(
+                                                    &nd_creds.base_url, &nd_creds.user, &nd_creds.token, &nd_creds.salt,
+                                                    cid, Some(300),
+                                                )
+                                            });
+                                            div()
+                                                .id(("nd_pl_card", idx))
+                                                .w(px(160.0))
+                                                .flex()
+                                                .flex_col()
+                                                .gap_y_2()
+                                                .cursor_pointer()
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    let sel = cx.global_mut::<NdSelectedPlaylist>();
+                                                    sel.id = pid.clone();
+                                                    sel.name = pname.clone();
+                                                    sel.tracks = vec![];
+                                                    sel.loading = false;
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::NdPlaylistDetail;
+                                                })
+                                                .child(
+                                                    div()
+                                                        .w(px(160.0))
+                                                        .h(px(160.0))
+                                                        .rounded_lg()
+                                                        .overflow_hidden()
+                                                        .bg(theme.library_art_bg)
+                                                        .flex()
+                                                        .items_center()
+                                                        .justify_center()
+                                                        .when_some(cover_url, |t, url| {
+                                                            t.child(
+                                                                img(url)
+                                                                    .w_full()
+                                                                    .h_full()
+                                                                    .object_fit(ObjectFit::Cover),
+                                                            )
+                                                        })
+                                                        .when(pl.cover_art.is_none(), |t| {
+                                                            t.child(
+                                                                Icon::new(Icons::Playlist)
+                                                                    .size_10()
+                                                                    .text_color(theme.player_icons_text),
+                                                            )
+                                                        }),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(600.0))
+                                                        .text_color(theme.library_text)
+                                                        .truncate()
+                                                        .child(pname2),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(format!("{} songs", pl.song_count)),
+                                                )
+                                                .when_some(pl.comment.clone(), |t, c| {
+                                                    t.child(
+                                                        div()
+                                                            .text_xs()
+                                                            .text_color(theme.library_header_text)
+                                                            .truncate()
+                                                            .child(c),
+                                                    )
+                                                })
+                                        })),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Playlist Detail ──────────────────────────────
+                LibrarySection::NdPlaylistDetail => {
+                    let sel = nd_sel_playlist.clone();
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px_6()
+                                .py_3()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(
+                                    div()
+                                        .id("nd_pl_back")
+                                        .p_1p5()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_color(theme.library_text)
+                                        .hover(|t| t.bg(theme.library_track_bg_hover))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::NdPlaylists;
+                                        })
+                                        .child(Icon::new(Icons::ChevronLeft).size_4()),
+                                )
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .text_color(theme.library_text)
+                                        .child(sel.name.clone()),
+                                )
+                                .child(
+                                    div()
+                                        .ml_auto()
+                                        .child(
+                                            div()
+                                                .id("nd_pl_play_btn")
+                                                .px_4()
+                                                .py_1p5()
+                                                .rounded_full()
+                                                .bg(gpui::rgb(0x6F00FF))
+                                                .text_sm()
+                                                .text_color(gpui::white())
+                                                .cursor_pointer()
+                                                .hover(|t| t.bg(gpui::rgb(0x5900DD)))
+                                                .on_click({
+                                                    let tracks = sel.tracks.clone();
+                                                    let rt = cx.global::<Controller>().rt();
+                                                    move |_, _, _| {
+                                                        let urls: Vec<String> = tracks.iter().map(|s| s.stream_url.clone()).collect();
+                                                        let rt2 = rt.clone();
+                                                        rt2.spawn(async move {
+                                                            if let Some(first_url) = urls.first() {
+                                                                let _ = crate::client::play_track(first_url.clone()).await;
+                                                            }
+                                                            for url in urls.iter().skip(1) {
+                                                                let _ = crate::client::insert_track_last(url.clone()).await;
+                                                            }
+                                                        });
+                                                    }
+                                                })
+                                                .child("Play all"),
+                                        ),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("nd_playlist_detail_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .pb_6()
+                                .when(sel.loading, |t| t.child(skeleton_track_list(12, 0x1E2235)))
+                                .when(!sel.loading, |t| t.children(sel.tracks.iter().enumerate().map(|(i, song)| {
+                                    nd_song_row(
+                                        ("nd_pl_track", i),
+                                        song.id.clone(),
+                                        song.title.clone(),
+                                        song.artist.clone(),
+                                        song.album.clone(),
+                                        song.artist_id.clone(),
+                                        song.album_id.clone(),
+                                        song.stream_url.clone(),
+                                        song.duration,
+                                        Some((i + 1) as u32),
+                                        song.cover_art.clone(),
+                                    )
+                                }))),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Songs ────────────────────────────────────────
+                LibrarySection::NdSongs => {
+                    let songs = nd_songs_state.songs.clone();
+                    let loading = nd_songs_state.loading;
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .w_full()
+                                .flex_shrink_0()
+                                .flex()
+                                .items_center()
+                                .gap_x_4()
+                                .px_6()
+                                .py_4()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(
+                                    div()
+                                        .w(px(28.0))
+                                        .flex_shrink_0()
+                                        .text_xs()
+                                        .font_weight(FontWeight::MEDIUM)
+                                        .text_color(theme.library_header_text)
+                                        .child("#"),
+                                )
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w_0()
+                                        .text_xs()
+                                        .font_weight(FontWeight::MEDIUM)
+                                        .text_color(theme.library_header_text)
+                                        .child("TITLE"),
+                                )
+                                .child(
+                                    div()
+                                        .w(px(56.0))
+                                        .flex_shrink_0()
+                                        .text_xs()
+                                        .font_weight(FontWeight::MEDIUM)
+                                        .text_color(theme.library_header_text)
+                                        .child("TIME"),
+                                )
+                                .child(div().w(px(28.0)).flex_shrink_0())
+                                .child(div().w(px(28.0)).flex_shrink_0()),
+                        )
+                        .child(
+                            div()
+                                .id("nd_songs_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .overflow_y_scroll()
+                                .pb_6()
+                                .when(loading, |t| t.child(skeleton_track_list(15, 0x1E2235)))
+                                .when(!loading, |t| {
+                                    let mut sorted = songs.clone();
+                                    sorted.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+                                    t.children(sorted.into_iter().enumerate().map(|(i, song)| {
+                                        nd_song_row(
+                                            ("nd_songs_row", i),
+                                            song.id.clone(),
+                                            song.title.clone(),
+                                            song.artist.clone(),
+                                            song.album.clone(),
+                                            song.artist_id.clone(),
+                                            song.album_id.clone(),
+                                            song.stream_url.clone(),
+                                            song.duration,
+                                            None,
+                                            song.cover_art.clone(),
+                                        )
+                                    }))
+                                }),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Navidrome Likes ────────────────────────────────────────
+                LibrarySection::NdLikes => {
+                    let songs = nd_likes_state.songs.clone();
+                    let songs_play = songs.clone();
+                    let songs_shuffle = songs.clone();
+                    let loading = nd_likes_state.loading;
+                    let n_liked = songs.len();
+                    div()
+                        .id("nd_likes_scroll")
+                        .flex_1()
+                        .min_w_0()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .min_w_0()
+                                .flex()
+                                .flex_col()
+                                .child(
+                                    div()
+                                        .px_6()
+                                        .pt_5()
+                                        .pb_6()
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_4()
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .child(
+                                                    Icon::new(Icons::Heart)
+                                                        .size_8()
+                                                        .text_color(gpui::rgb(0xFFFFFF)),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_1()
+                                                        .child(
+                                                            div()
+                                                                .text_2xl()
+                                                                .font_weight(FontWeight(700.0))
+                                                                .text_color(theme.library_text)
+                                                                .child("Liked Songs"),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .text_color(theme.library_header_text)
+                                                                .child(format!(
+                                                                    "{} track{}",
+                                                                    n_liked,
+                                                                    if n_liked == 1 { "" } else { "s" }
+                                                                )),
+                                                        ),
+                                                ),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .child(
+                                                    div()
+                                                        .id("nd_likes_play_btn")
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_2()
+                                                        .px_4()
+                                                        .py_2()
+                                                        .rounded_md()
+                                                        .cursor_pointer()
+                                                        .bg(theme.player_play_pause_bg)
+                                                        .text_color(theme.player_play_pause_text)
+                                                        .hover(|this| this.bg(theme.player_play_pause_hover))
+                                                        .on_click({
+                                                            let rt = cx.global::<Controller>().rt();
+                                                            move |_, _, _| {
+                                                                let urls: Vec<String> = songs_play.iter().map(|s| s.stream_url.clone()).collect();
+                                                                let rt2 = rt.clone();
+                                                                rt2.spawn(async move {
+                                                                    if let Some(first) = urls.first() {
+                                                                        let _ = crate::client::play_track(first.clone()).await;
+                                                                    }
+                                                                    for url in urls.iter().skip(1) {
+                                                                        let _ = crate::client::insert_track_last(url.clone()).await;
+                                                                    }
+                                                                });
+                                                            }
+                                                        })
+                                                        .child(Icon::new(Icons::Play).size_4())
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .font_weight(FontWeight(600.0))
+                                                                .child("Play"),
+                                                        ),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .id("nd_likes_shuffle_btn")
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_2()
+                                                        .px_4()
+                                                        .py_2()
+                                                        .rounded_md()
+                                                        .cursor_pointer()
+                                                        .bg(theme.player_icons_bg_active)
+                                                        .text_color(theme.library_text)
+                                                        .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                                        .on_click({
+                                                            let rt = cx.global::<Controller>().rt();
+                                                            move |_, _, _| {
+                                                                let mut urls: Vec<String> = songs_shuffle.iter().map(|s| s.stream_url.clone()).collect();
+                                                                let n = urls.len();
+                                                                use std::time::{SystemTime, UNIX_EPOCH};
+                                                                let mut x = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.subsec_nanos() as u64).unwrap_or(42) | 1;
+                                                                for i in (1..n).rev() {
+                                                                    x ^= x << 13; x ^= x >> 7; x ^= x << 17;
+                                                                    let j = (x % (i as u64 + 1)) as usize;
+                                                                    urls.swap(i, j);
+                                                                }
+                                                                let rt2 = rt.clone();
+                                                                rt2.spawn(async move {
+                                                                    if let Some(first) = urls.first() {
+                                                                        let _ = crate::client::play_track(first.clone()).await;
+                                                                    }
+                                                                    for url in urls.iter().skip(1) {
+                                                                        let _ = crate::client::insert_track_last(url.clone()).await;
+                                                                    }
+                                                                });
+                                                            }
+                                                        })
+                                                        .child(Icon::new(Icons::Shuffle).size_4())
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .font_weight(FontWeight(500.0))
+                                                                .child("Shuffle"),
+                                                        ),
+                                                ),
+                                        ),
+                                )
+                                .child(
+                                    div()
+                                        .w_full()
+                                        .flex_shrink_0()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_4()
+                                        .px_6()
+                                        .py_3()
+                                        .border_b_1()
+                                        .border_color(theme.library_table_border)
+                                        .child(
+                                            div()
+                                                .w(px(28.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("#"),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex_1()
+                                                .min_w_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TITLE"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w(px(56.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TIME"),
+                                        )
+                                        .child(div().w(px(28.0)).flex_shrink_0())
+                                        .child(div().w(px(28.0)).flex_shrink_0()),
+                                )
+                                .when(loading, |t| t.child(skeleton_track_list(15, 0x1E2235)))
+                                .when(!loading, |t| t.children(songs.iter().enumerate().map(|(i, song)| {
+                                    nd_song_row(
+                                        ("nd_likes_row", i),
+                                        song.id.clone(),
+                                        song.title.clone(),
+                                        song.artist.clone(),
+                                        song.album.clone(),
+                                        song.artist_id.clone(),
+                                        song.album_id.clone(),
+                                        song.stream_url.clone(),
+                                        song.duration,
+                                        None,
+                                        song.cover_art.clone(),
+                                    )
+                                }))),
+                        )
+                        .into_any_element()
+                }
             };
             content_inner
         }; // end if/else search
@@ -4583,12 +6909,20 @@ impl Render for LibraryPage {
                                             .py_2p5()
                                             .cursor_pointer()
                                             .hover(|this| this.text_color(theme.library_text))
-                                            .on_click(|_, _, cx: &mut App| {
-                                                // Navigate to the Playlists grid and expand the list.
-                                                *cx.global_mut::<LibrarySection>() =
-                                                    LibrarySection::Playlists;
-                                                cx.global_mut::<PlaylistsSidebarCollapsed>().0 =
-                                                    false;
+                                            .on_click(move |_, _, cx: &mut App| {
+                                                if nd_connected
+                                                    && cx
+                                                        .global::<NavidromeServerState>()
+                                                        .connected()
+                                                {
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::NdPlaylists;
+                                                } else {
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::Playlists;
+                                                    cx.global_mut::<PlaylistsSidebarCollapsed>().0 =
+                                                        false;
+                                                }
                                             })
                                             .child(
                                                 div()
@@ -4787,6 +7121,282 @@ impl Render for LibraryPage {
                                     }),
                             ),
                             )
+                            // ── Navidrome sidebar section ──────────────────
+                            .child({
+                                let nd = nd_state.clone();
+                                let nd_url_input = self.nd_url_input.clone();
+                                let nd_user_input = self.nd_user_input.clone();
+                                let nd_pass_input = self.nd_pass_input.clone();
+                                let has_servers = !nd.servers.is_empty();
+                                div()
+                                    .w_full()
+                                    .flex()
+                                    .flex_col()
+                                    // ── Section header ───────────────────────
+                                    .child(
+                                        div()
+                                            .id("nd_sidebar_header")
+                                            .w_full()
+                                            .flex()
+                                            .items_center()
+                                            .justify_between()
+                                            .px_4()
+                                            .py_2p5()
+                                            .child(
+                                                div()
+                                                    .flex()
+                                                    .items_center()
+                                                    .gap_x_2()
+                                                    .text_sm()
+                                                    .text_color(theme.library_header_text)
+                                                    .when(has_servers, |t| {
+                                                        t.child(
+                                                            div()
+                                                                .id("nd_collapse_btn")
+                                                                .cursor_pointer()
+                                                                .on_click(|_, _, cx: &mut App| {
+                                                                    cx.stop_propagation();
+                                                                    let c = cx.global_mut::<NavidromeServerState>();
+                                                                    c.sidebar_collapsed = !c.sidebar_collapsed;
+                                                                })
+                                                                .child(
+                                                                    Icon::new(Icons::ChevronLeft)
+                                                                        .size_3()
+                                                                        .rotate(if nd.sidebar_collapsed {
+                                                                            gpui::Radians(-std::f32::consts::PI)
+                                                                        } else {
+                                                                            gpui::Radians(-std::f32::consts::FRAC_PI_2)
+                                                                        })
+                                                                        .text_color(theme.library_header_text),
+                                                                ),
+                                                        )
+                                                    })
+                                                    .child(
+                                                        Icon::new(Icons::Navidrome)
+                                                            .size_4()
+                                                            .text_color(theme.library_header_text),
+                                                    )
+                                                    .child("Navidrome"),
+                                            )
+                                            // "Add server" (+) button always visible
+                                            .child({
+                                                let showing = nd.show_add_form;
+                                                div()
+                                                    .id("nd_add_btn")
+                                                    .cursor_pointer()
+                                                    .text_color(theme.library_header_text)
+                                                    .hover(|t| t.text_color(theme.library_text))
+                                                    .on_click(move |_, _, cx: &mut App| {
+                                                        cx.stop_propagation();
+                                                        cx.global_mut::<NavidromeServerState>()
+                                                            .show_add_form = !showing;
+                                                    })
+                                                    .child(Icon::new(Icons::CirclePlus).size_4())
+                                            }),
+                                    )
+                                    // ── Saved server list ────────────────────
+                                    .when(has_servers && !nd.sidebar_collapsed, |outer| {
+                                        outer.children(nd.servers.iter().enumerate().map(|(idx, srv)| {
+                                            let srv_id = srv.id.clone();
+                                            let srv_id2 = srv.id.clone();
+                                            let is_active = nd.active_id.as_deref() == Some(&srv.id);
+                                            // derive a short display label from the URL
+                                            let label = srv.base_url
+                                                .trim_start_matches("https://")
+                                                .trim_start_matches("http://")
+                                                .to_string();
+                                            div()
+                                                .id(("nd_srv_row", idx))
+                                                .w_full()
+                                                .flex()
+                                                .items_center()
+                                                .justify_between()
+                                                .px_4()
+                                                .py_1()
+                                                .cursor_pointer()
+                                                .hover(|t| t.bg(theme.library_track_bg_hover))
+                                                .on_click({
+                                                    let srv_id3 = srv_id.clone();
+                                                    move |_, _, cx: &mut App| {
+                                                        let state = cx.global_mut::<NavidromeServerState>();
+                                                        if state.active_id.as_deref() != Some(&srv_id3) {
+                                                            state.active_id = Some(srv_id3.clone());
+                                                            let servers = state.servers.clone();
+                                                            let active_id = state.active_id.clone();
+                                                            crate::nd_persist::save_servers(
+                                                                &servers,
+                                                                active_id.as_deref(),
+                                                            );
+                                                            *cx.global_mut::<NdLibraryData>() = NdLibraryData::default();
+                                                            *cx.global_mut::<NdSelectedAlbum>() = NdSelectedAlbum::default();
+                                                            *cx.global_mut::<NdSelectedArtist>() = NdSelectedArtist::default();
+                                                            *cx.global_mut::<NdSelectedGenre>() = NdSelectedGenre::default();
+                                                            *cx.global_mut::<NdSelectedPlaylist>() = NdSelectedPlaylist::default();
+                                                            *cx.global_mut::<LibrarySection>() = LibrarySection::NdAlbums;
+                                                        }
+                                                    }
+                                                })
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_1p5()
+                                                        .flex_1()
+                                                        .min_w_0()
+                                                        .when(is_active, |t| {
+                                                            t.child(
+                                                                div()
+                                                                    .w_1p5()
+                                                                    .h_1p5()
+                                                                    .rounded_full()
+                                                                    .bg(gpui::rgb(0x6F00FF)),
+                                                            )
+                                                        })
+                                                        .when(!is_active, |t| {
+                                                            t.child(div().w_1p5().h_1p5())
+                                                        })
+                                                        .child(
+                                                            div()
+                                                                .text_xs()
+                                                                .truncate()
+                                                                .text_color(if is_active {
+                                                                    theme.library_text
+                                                                } else {
+                                                                    theme.library_header_text
+                                                                })
+                                                                .child(label),
+                                                        ),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .id(("nd_srv_remove", idx))
+                                                        .cursor_pointer()
+                                                        .text_color(theme.library_header_text)
+                                                        .hover(|t| t.text_color(gpui::rgb(0xFF4444)))
+                                                        .on_click(move |_, _, cx: &mut App| {
+                                                            cx.stop_propagation();
+                                                            let state = cx.global_mut::<NavidromeServerState>();
+                                                            let was_active = state.active_id.as_deref() == Some(&srv_id2);
+                                                            state.remove_server(&srv_id2);
+                                                            let servers = state.servers.clone();
+                                                            let active_id = state.active_id.clone();
+                                                            crate::nd_persist::save_servers(
+                                                                &servers,
+                                                                active_id.as_deref(),
+                                                            );
+                                                            if was_active {
+                                                                *cx.global_mut::<NdLibraryData>() = NdLibraryData::default();
+                                                                if cx.global::<NavidromeServerState>().active_id.is_none() {
+                                                                    *cx.global_mut::<LibrarySection>() = LibrarySection::Home;
+                                                                }
+                                                            }
+                                                        })
+                                                        .child(Icon::new(Icons::WinClose).size_3()),
+                                                )
+                                        }).collect::<Vec<_>>())
+                                    })
+                                    // ── Add-server form ──────────────────────
+                                    .when(nd.show_add_form, {
+                                        let nd = nd.clone();
+                                        move |t| {
+                                        t.child(
+                                            div()
+                                                .w_full()
+                                                .px_4()
+                                                .pb_3()
+                                                .flex()
+                                                .flex_col()
+                                                .gap_y_2()
+                                                .child(nd_url_input)
+                                                .child(nd_user_input)
+                                                .child(nd_pass_input)
+                                                .when_some(nd.connect_error.clone(), |t, err| {
+                                                    t.child(
+                                                        div()
+                                                            .text_xs()
+                                                            .text_color(gpui::rgb(0xFF4444))
+                                                            .child(err),
+                                                    )
+                                                })
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .gap_x_2()
+                                                        .child(
+                                                            div()
+                                                                .id("nd_cancel_btn")
+                                                                .text_xs()
+                                                                .cursor_pointer()
+                                                                .px_2()
+                                                                .py_1()
+                                                                .rounded_md()
+                                                                .text_color(theme.library_header_text)
+                                                                .hover(|t| t.bg(theme.library_track_bg_hover))
+                                                                .on_click(|_, _, cx: &mut App| {
+                                                                    let s = cx.global_mut::<NavidromeServerState>();
+                                                                    s.show_add_form = false;
+                                                                    s.connect_error = None;
+                                                                })
+                                                                .child("Cancel"),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .id("nd_connect_submit")
+                                                                .text_xs()
+                                                                .cursor_pointer()
+                                                                .px_2()
+                                                                .py_1()
+                                                                .rounded_md()
+                                                                .bg(gpui::rgb(0x6F00FF))
+                                                                .text_color(gpui::white())
+                                                                .hover(|t| t.bg(gpui::rgb(0x5900DD)))
+                                                                .on_click(cx.listener(|this, _, _, cx| {
+                                                                    this.spawn_nd_connect(cx);
+                                                                }))
+                                                                .child(if nd.connecting {
+                                                                    "Connecting…"
+                                                                } else {
+                                                                    "Add"
+                                                                }),
+                                                        ),
+                                                ),
+                                        )
+                                    }})
+                                    // ── Disconnect button (reset to local) ───
+                                    .when(nd.connected(), |t| {
+                                        t.child(
+                                            div()
+                                                .id("nd_disconnect_btn")
+                                                .w_full()
+                                                .px_4()
+                                                .pb_3()
+                                                .child(
+                                                    div()
+                                                        .id("nd_disconnect_inner")
+                                                        .cursor_pointer()
+                                                        .text_xs()
+                                                        .px_2()
+                                                        .py_1()
+                                                        .rounded_md()
+                                                        .text_color(theme.library_header_text)
+                                                        .hover(|t| t.text_color(gpui::rgb(0xFF4444)))
+                                                        .on_click(|_, _, cx: &mut App| {
+                                                            let state = cx.global_mut::<NavidromeServerState>();
+                                                            state.active_id = None;
+                                                            let servers = state.servers.clone();
+                                                            crate::nd_persist::save_servers(&servers, None);
+                                                            *cx.global_mut::<NdLibraryData>() = NdLibraryData::default();
+                                                            *cx.global_mut::<NdSongsState>() = NdSongsState::default();
+                                                            *cx.global_mut::<NdLikesState>() = NdLikesState::default();
+                                                            *cx.global_mut::<NdStarredIds>() = NdStarredIds::default();
+                                                            cx.global_mut::<NdContextMenuState>().0 = None;
+                                                            *cx.global_mut::<LibrarySection>() = LibrarySection::Home;
+                                                        })
+                                                        .child("Use local library"),
+                                                ),
+                                        )
+                                    })
+                            })
                             .child(server_footer)
                     )
                     .child(content),
@@ -5571,6 +8181,227 @@ impl Render for LibraryPage {
                                     },
                                 ))
                         }),
+                )
+            })
+            // ── Navidrome Song Context Menu ───────────────────────────────────────
+            .when_some(nd_context_menu, |this, menu| {
+                let nd_creds_ctx = nd_state.active_server().cloned().unwrap_or_default();
+                let header_art_url = menu.cover_art.as_ref().map(|cid| {
+                    crate::navidrome::cover_art_url(
+                        &nd_creds_ctx.base_url,
+                        &nd_creds_ctx.user,
+                        &nd_creds_ctx.token,
+                        &nd_creds_ctx.salt,
+                        cid,
+                        Some(200),
+                    )
+                });
+                let menu_w = px(240.0);
+                let menu_h = px(240.0);
+                let margin = px(8.0);
+                let max_x = viewport.width - menu_w - margin;
+                let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
+                let menu_x = if menu_x < margin { margin } else { menu_x };
+                let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
+                let menu_y = if overflows_bottom {
+                    menu.pos.y - menu_h
+                } else {
+                    menu.pos.y
+                };
+                let menu_y = if menu_y < margin { margin } else { menu_y };
+                let surl_play = menu.stream_url.clone();
+                let surl_next = menu.stream_url.clone();
+                let surl_last = menu.stream_url.clone();
+                let artist_id_nav = menu.artist_id.clone();
+                let artist_nav = menu.artist.clone();
+                let album_id_nav = menu.album_id.clone();
+                let album_nav = menu.album.clone();
+                this.child(
+                    div()
+                        .id("nd_ctx_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.stop_propagation();
+                            cx.global_mut::<NdContextMenuState>().0 = None;
+                        }),
+                )
+                .child(
+                    div()
+                        .absolute()
+                        .left(menu_x)
+                        .top(menu_y)
+                        .w(menu_w)
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_md()
+                        .overflow_hidden()
+                        .flex()
+                        .flex_col()
+                        // Header
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap_x_3()
+                                .px_3()
+                                .py_3()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .child(if let Some(url) = header_art_url {
+                                    div()
+                                        .w(px(40.0))
+                                        .h(px(40.0))
+                                        .rounded_md()
+                                        .flex_shrink_0()
+                                        .overflow_hidden()
+                                        .child(
+                                            img(url).w_full().h_full().object_fit(ObjectFit::Cover),
+                                        )
+                                        .into_any_element()
+                                } else {
+                                    div()
+                                        .w(px(40.0))
+                                        .h(px(40.0))
+                                        .rounded_md()
+                                        .flex_shrink_0()
+                                        .bg(theme.library_art_bg)
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .text_color(theme.player_icons_text)
+                                        .child(Icon::new(Icons::Music).size_4())
+                                        .into_any_element()
+                                })
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w_0()
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_0p5()
+                                        .child(
+                                            div()
+                                                .text_sm()
+                                                .font_weight(FontWeight(600.0))
+                                                .text_color(theme.library_text)
+                                                .truncate()
+                                                .child(menu.title.clone()),
+                                        )
+                                        .child(
+                                            div()
+                                                .text_xs()
+                                                .text_color(theme.library_header_text)
+                                                .truncate()
+                                                .child(menu.artist.clone()),
+                                        ),
+                                ),
+                        )
+                        // Play Now
+                        .child(
+                            div()
+                                .id("nd_ctx_play_now")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let rt = cx.global::<Controller>().rt();
+                                    let url = surl_play.clone();
+                                    rt.spawn(async move {
+                                        let _ = crate::client::play_track(url).await;
+                                    });
+                                    cx.global_mut::<NdContextMenuState>().0 = None;
+                                })
+                                .child("Play Now"),
+                        )
+                        // Play Next
+                        .child(
+                            div()
+                                .id("nd_ctx_play_next")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let rt = cx.global::<Controller>().rt();
+                                    let url = surl_next.clone();
+                                    rt.spawn(insert_track_next(url));
+                                    cx.global_mut::<NdContextMenuState>().0 = None;
+                                })
+                                .child("Play Next"),
+                        )
+                        // Play Last
+                        .child(
+                            div()
+                                .id("nd_ctx_play_last")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let rt = cx.global::<Controller>().rt();
+                                    let url = surl_last.clone();
+                                    rt.spawn(insert_track_last(url));
+                                    cx.global_mut::<NdContextMenuState>().0 = None;
+                                })
+                                .child("Play Last"),
+                        )
+                        .child(div().h(px(1.0)).bg(theme.library_table_border).mx_2())
+                        // Go to Artist
+                        .child(
+                            div()
+                                .id("nd_ctx_go_artist")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let sel = cx.global_mut::<NdSelectedArtist>();
+                                    sel.id = artist_id_nav.clone();
+                                    sel.name = artist_nav.clone();
+                                    sel.albums = vec![];
+                                    sel.loading = false;
+                                    *cx.global_mut::<LibrarySection>() =
+                                        LibrarySection::NdArtistDetail;
+                                    cx.global_mut::<NdContextMenuState>().0 = None;
+                                })
+                                .child("Go to Artist"),
+                        )
+                        // Go to Album
+                        .child(
+                            div()
+                                .id("nd_ctx_go_album")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let sel = cx.global_mut::<NdSelectedAlbum>();
+                                    sel.id = album_id_nav.clone();
+                                    sel.name = album_nav.clone();
+                                    sel.songs = vec![];
+                                    sel.loading = false;
+                                    *cx.global_mut::<LibrarySection>() =
+                                        LibrarySection::NdAlbumDetail;
+                                    cx.global_mut::<NdContextMenuState>().0 = None;
+                                })
+                                .child("Go to Album"),
+                        ),
                 )
             })
             // ── Create Playlist Modal ─────────────────────────────────────────────���

@@ -42,6 +42,181 @@ pub fn equalizer_bars(id: usize, is_playing: bool) -> impl IntoElement {
         .child(make_bar(2))
 }
 
+/// A single skeleton "pill" (fully-rounded ends) that pulses between dim and bright.
+/// Use for text-like placeholders (title, artist, duration rows).
+pub fn skeleton_pill(id: impl Into<SharedString>, w: f32, h: f32, color: u32) -> AnyElement {
+    div()
+        .w(px(w))
+        .h(px(h))
+        .rounded(px(h / 2.0))
+        .bg(rgb(color))
+        .with_animation(
+            id.into(),
+            Animation::new(Duration::from_millis(1200)).repeat(),
+            move |this, t: f32| {
+                let alpha = 0.25 + 0.35 * (t * PI).sin();
+                this.opacity(alpha)
+            },
+        )
+        .into_any_element()
+}
+
+/// A skeleton rectangle with a fixed corner radius (e.g. `rounded_lg` = 8px).
+/// Use for square/rectangular placeholders like album art thumbnails.
+pub fn skeleton_rect(
+    id: impl Into<SharedString>,
+    w: f32,
+    h: f32,
+    corner_px: f32,
+    color: u32,
+) -> AnyElement {
+    div()
+        .w(px(w))
+        .h(px(h))
+        .rounded(px(corner_px))
+        .bg(rgb(color))
+        .with_animation(
+            id.into(),
+            Animation::new(Duration::from_millis(1200)).repeat(),
+            move |this, t: f32| {
+                let alpha = 0.25 + 0.35 * (t * PI).sin();
+                this.opacity(alpha)
+            },
+        )
+        .into_any_element()
+}
+
+/// A skeleton circle (fully-rounded square). Use for artist avatar placeholders.
+pub fn skeleton_circle(id: impl Into<SharedString>, size: f32, color: u32) -> AnyElement {
+    skeleton_pill(id, size, size, color)
+}
+
+/// Full skeleton loading layout for a list of N track rows.
+pub fn skeleton_track_list(count: usize, color: u32) -> impl IntoElement {
+    div()
+        .w_full()
+        .flex()
+        .flex_col()
+        .children((0..count).map(move |i| {
+            div()
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_4()
+                .px_6()
+                .py_3()
+                .child(skeleton_pill(format!("sk_num_{i}"), 20.0, 12.0, color))
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .flex()
+                        .flex_col()
+                        .gap_y_1()
+                        .child(skeleton_pill(
+                            format!("sk_title_{i}"),
+                            200.0 - (i % 3) as f32 * 30.0,
+                            12.0,
+                            color,
+                        ))
+                        .child(skeleton_pill(
+                            format!("sk_artist_{i}"),
+                            120.0 - (i % 2) as f32 * 20.0,
+                            10.0,
+                            color,
+                        )),
+                )
+                .child(skeleton_pill(format!("sk_dur_{i}"), 36.0, 12.0, color))
+        }))
+}
+
+/// Skeleton grid of album cards — art is a rounded_lg square (8 px corners), not a circle.
+pub fn skeleton_album_grid(cols: usize, rows: usize, color: u32) -> impl IntoElement {
+    div()
+        .w_full()
+        .p_6()
+        .flex()
+        .flex_col()
+        .gap_y_8()
+        .children((0..rows).map(move |row| {
+            div()
+                .w_full()
+                .flex()
+                .items_start()
+                .gap_x_4()
+                .children((0..cols).map(move |col| {
+                    let idx = row * cols + col;
+                    div()
+                        .w(px(150.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .flex_col()
+                        .gap_y_2()
+                        // rounded_lg square (matches actual album card)
+                        .child(skeleton_rect(
+                            format!("sk_alb_art_{idx}"),
+                            150.0,
+                            150.0,
+                            8.0,
+                            color,
+                        ))
+                        .child(skeleton_pill(
+                            format!("sk_alb_title_{idx}"),
+                            110.0 - (idx % 3) as f32 * 10.0,
+                            12.0,
+                            color,
+                        ))
+                        .child(skeleton_pill(
+                            format!("sk_alb_artist_{idx}"),
+                            80.0 - (idx % 2) as f32 * 10.0,
+                            10.0,
+                            color,
+                        ))
+                }))
+        }))
+}
+
+/// Skeleton grid of artist cards — avatar is a full circle (matches actual artist card).
+pub fn skeleton_artist_grid(cols: usize, rows: usize, color: u32) -> impl IntoElement {
+    div()
+        .w_full()
+        .p_6()
+        .flex()
+        .flex_col()
+        .gap_y_8()
+        .children((0..rows).map(move |row| {
+            div()
+                .w_full()
+                .flex()
+                .items_start()
+                .gap_x_4()
+                .children((0..cols).map(move |col| {
+                    let idx = row * cols + col;
+                    div()
+                        .w(px(120.0))
+                        .flex_shrink_0()
+                        .flex()
+                        .flex_col()
+                        .items_center()
+                        .gap_y_2()
+                        // full circle (matches actual artist avatar)
+                        .child(skeleton_circle(format!("sk_art_av_{idx}"), 120.0, color))
+                        .child(skeleton_pill(
+                            format!("sk_art_name_{idx}"),
+                            80.0 - (idx % 3) as f32 * 8.0,
+                            12.0,
+                            color,
+                        ))
+                        .child(skeleton_pill(
+                            format!("sk_art_count_{idx}"),
+                            55.0 - (idx % 2) as f32 * 8.0,
+                            10.0,
+                            color,
+                        ))
+                }))
+        }))
+}
+
 pub fn ease_in_out_expo() -> impl Fn(f32) -> f32 {
     |t: f32| {
         if t == 0.0 {

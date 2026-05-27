@@ -6,6 +6,7 @@ pub mod http_client;
 pub mod jellyfin;
 pub mod kodi;
 pub mod navidrome;
+pub mod nd_persist;
 pub mod now_playing;
 pub mod server;
 pub mod startup;

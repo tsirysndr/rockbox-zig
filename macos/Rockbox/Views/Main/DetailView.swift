@@ -93,6 +93,23 @@ struct DetailView: View {
         onAlbumSelected: { album in navigation.goToAlbum(album) },
         onArtistSelected: { artist in navigation.goToArtist(artist) }
       )
+    } else if let ndAlbum = navigation.selectedNdAlbum {
+      NdAlbumDetailView(
+        album: ndAlbum,
+        onBack: { navigation.selectedNdAlbum = nil },
+        onArtistSelected: { artist in navigation.goToNdArtist(artist) }
+      )
+    } else if let ndArtist = navigation.selectedNdArtist {
+      NdArtistDetailView(
+        artist: ndArtist,
+        onBack: { navigation.selectedNdArtist = nil },
+        onAlbumSelected: { album in navigation.goToNdAlbum(album) }
+      )
+    } else if let ndPlaylist = navigation.selectedNdPlaylist {
+      NdPlaylistDetailView(
+        playlist: ndPlaylist,
+        onBack: { navigation.selectedNdPlaylist = nil }
+      )
     } else if let selection {
       selectionView(for: selection)
     } else {
@@ -121,6 +138,12 @@ struct DetailView: View {
       PlaylistsView()
     case .files:
       FilesListView()
+    case .navidrome:
+      NdLibraryView(
+        onAlbumSelected: { album in navigation.goToNdAlbum(album) },
+        onArtistSelected: { artist in navigation.goToNdArtist(artist) },
+        onPlaylistSelected: { playlist in navigation.goToNdPlaylist(playlist) }
+      )
     }
   }
 }

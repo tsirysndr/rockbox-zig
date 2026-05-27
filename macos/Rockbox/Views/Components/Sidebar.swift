@@ -11,6 +11,7 @@ struct Sidebar: View {
   @Binding var selection: SidebarItem?
   @EnvironmentObject var searchManager: SearchManager
   @ObservedObject var serverManager = ServerManager.shared
+  @ObservedObject private var ndManager = NavidromeManager.shared
 
   var body: some View {
     ZStack {
@@ -53,10 +54,14 @@ struct Sidebar: View {
 
         List(selection: $selection) {
           Section("Library") {
-            ForEach(SidebarItem.allCases) { item in
+            ForEach(SidebarItem.allCases.filter { $0 != .navidrome }) { item in
               Label(item.rawValue, systemImage: item.icon)
                 .tag(item)
             }
+          }
+          Section("Navidrome") {
+            Label(SidebarItem.navidrome.rawValue, systemImage: SidebarItem.navidrome.icon)
+              .tag(SidebarItem.navidrome)
           }
         }
         .listStyle(.sidebar)

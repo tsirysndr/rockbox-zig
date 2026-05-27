@@ -15,6 +15,11 @@ class NavigationManager: ObservableObject {
     @Published var selectedSmartPlaylist: SmartPlaylist? = nil
     @Published var selectedGenre: Genre? = nil
 
+    // Navidrome navigation
+    @Published var selectedNdAlbum: NdAlbum? = nil
+    @Published var selectedNdArtist: NdArtist? = nil
+    @Published var selectedNdPlaylist: NdPlaylist? = nil
+
     func goToAlbum(_ album: Album) {
         selectedArtist = nil
         selectedPlaylist = nil
@@ -91,6 +96,24 @@ class NavigationManager: ObservableObject {
         }
     }
     
+    func goToNdAlbum(_ album: NdAlbum) {
+        selectedNdArtist = nil
+        selectedNdPlaylist = nil
+        selectedNdAlbum = album
+    }
+
+    func goToNdArtist(_ artist: NdArtist) {
+        selectedNdAlbum = nil
+        selectedNdPlaylist = nil
+        selectedNdArtist = artist
+    }
+
+    func goToNdPlaylist(_ playlist: NdPlaylist) {
+        selectedNdAlbum = nil
+        selectedNdArtist = nil
+        selectedNdPlaylist = playlist
+    }
+
     func goBack() {
         if selectedAlbum != nil {
             selectedAlbum = nil
@@ -102,6 +125,12 @@ class NavigationManager: ObservableObject {
             selectedSmartPlaylist = nil
         } else if selectedGenre != nil {
             selectedGenre = nil
+        } else if selectedNdAlbum != nil {
+            selectedNdAlbum = nil
+        } else if selectedNdArtist != nil {
+            selectedNdArtist = nil
+        } else if selectedNdPlaylist != nil {
+            selectedNdPlaylist = nil
         }
     }
 
@@ -111,6 +140,9 @@ class NavigationManager: ObservableObject {
         selectedPlaylist = nil
         selectedSmartPlaylist = nil
         selectedGenre = nil
+        selectedNdAlbum = nil
+        selectedNdArtist = nil
+        selectedNdPlaylist = nil
     }
 }
 

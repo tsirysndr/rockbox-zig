@@ -55,7 +55,10 @@ impl Render for TextInput {
         };
 
         div()
-            .id("text_input_box")
+            .id(gpui::SharedString::from(format!(
+                "text_input_{}",
+                self.placeholder
+            )))
             .key_context("TextInput")
             .track_focus(&self.focus_handle)
             .on_click(cx.listener(|this, _, window, _cx| {
@@ -89,6 +92,7 @@ impl Render for TextInput {
                     }
                 }
             }))
+            .w_full()
             .px_3()
             .py_2()
             .rounded_lg()
@@ -101,13 +105,20 @@ impl Render for TextInput {
             })
             .flex()
             .items_center()
+            .overflow_hidden()
             .cursor_pointer()
             .text_sm()
             .text_color(text_color)
-            .child(if is_focused {
-                format!("{display}|")
-            } else {
-                display
-            })
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .truncate()
+                    .child(if is_focused {
+                        format!("{display}|")
+                    } else {
+                        display
+                    }),
+            )
     }
 }

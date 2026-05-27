@@ -1,6 +1,9 @@
 use crate::now_playing::{MediaCommand, NowPlayingManager};
 use crate::state::{AppState, PlaybackStatus, StateUpdate};
-use crate::ui::components::{LikedOrder, LikedSongs};
+use crate::ui::components::{
+    LikedOrder, LikedSongs, NavidromeServerState, NdCoverFetchState, NdCurrentCoverArt,
+    NdScrobbleState,
+};
 use gpui::{App, Entity, Global};
 use std::sync::{
     atomic::{AtomicU64, Ordering},
@@ -8,6 +11,11 @@ use std::sync::{
 };
 use std::time::Duration;
 use tokio::sync::mpsc;
+
+/// Staging slot: background tokio tasks post a resolved cover art URL here;
+/// the GPUI foreground poll drains it on the next tick.
+static PENDING_COVER_ART: std::sync::LazyLock<Mutex<Option<String>>> =
+    std::sync::LazyLock::new(|| Mutex::new(None));
 
 pub struct Controller {
     pub state: Entity<AppState>,
@@ -102,6 +110,116 @@ impl Controller {
                         state_for_poll.update(app, |_, cx| cx.notify());
                     });
                 }
+
+                // Navidrome cover art: if NdCurrentCoverArt is None for the playing track,
+                // fetch it once via getSong so the player/miniplayer shows the right art.
+                let cover_fetch_task = cx.update(|app| {
+                    let s = state_for_poll.read(app);
+                    let track = s.current_track()?;
+                    let path = &track.path;
+                    if !path.starts_with("http") { return None; }
+
+                    // Already have cover art for this track.
+                    if app.global::<NdCurrentCoverArt>().0.is_some() { return None; }
+
+                    let song_id = path.split('?').nth(1)?
+                        .split('&')
+                        .find(|p| p.starts_with("id="))
+                        .map(|p| p[3..].to_string())?;
+
+                    // Already fetched for this song.
+                    if app.global::<NdCoverFetchState>().fetched_id.as_deref() == Some(&song_id) {
+                        return None;
+                    }
+
+                    let nd = app.global::<NavidromeServerState>();
+                    let creds = nd.active_server()?.clone();
+                    Some((song_id, creds.base_url, creds.user, creds.token, creds.salt))
+                }).ok().flatten();
+
+                if let Some((song_id, base_url, user, token, salt)) = cover_fetch_task {
+                    let _ = cx.update(|app| {
+                        app.global_mut::<NdCoverFetchState>().fetched_id = Some(song_id.clone());
+                    });
+                    rt_handle.spawn(async move {
+                        if let Some(song) = crate::navidrome::get_song(&base_url, &user, &token, &salt, &song_id).await {
+                            if let Some(cid) = song.cover_art {
+                                let url = crate::navidrome::cover_art_url(&base_url, &user, &token, &salt, &cid, Some(300));
+                                PENDING_COVER_ART.lock().unwrap().replace(url);
+                            }
+                        }
+                    });
+                }
+
+                // Drain pending cover art set from the async fetch above.
+                if let Some(url) = PENDING_COVER_ART.lock().unwrap().take() {
+                    let _ = cx.update(|app| {
+                        app.global_mut::<NdCurrentCoverArt>().0 = Some(url);
+                    });
+                }
+
+                // Navidrome scrobble: submit when position > 30s AND > 50% of duration.
+                let scrobble_task = cx.update(|app| {
+                    let s = state_for_poll.read(app);
+                    let track = s.current_track()?;
+                    let path = &track.path;
+                    if !path.starts_with("http") {
+                        return None; // local track — nothing to scrobble
+                    }
+                    let duration = track.duration;
+                    let position = s.position;
+                    if s.status != PlaybackStatus::Playing { return None; }
+                    if duration == 0 { return None; }
+                    let threshold = (duration / 2).max(30);
+                    if position < threshold { return None; }
+
+                    // Extract song ID from stream URL query param.
+                    let song_id = path.split('?').nth(1)?
+                        .split('&')
+                        .find(|p| p.starts_with("id="))
+                        .map(|p| p[3..].to_string())?;
+
+                    // Check whether we already scrobbled this song ID.
+                    let already = app.global::<NdScrobbleState>().scrobbled_id.as_deref() == Some(&song_id);
+                    if already { return None; }
+
+                    // Fetch ND credentials.
+                    let nd = app.global::<NavidromeServerState>();
+                    let creds = nd.active_server()?.clone();
+
+                    Some((song_id, creds.base_url, creds.user, creds.token, creds.salt))
+                }).ok().flatten();
+
+                if let Some((song_id, base_url, user, token, salt)) = scrobble_task {
+                    // Mark scrobbled before firing so rapid ticks don't double-submit.
+                    let _ = cx.update(|app| {
+                        app.global_mut::<NdScrobbleState>().scrobbled_id = Some(song_id.clone());
+                    });
+                    rt_handle.spawn(async move {
+                        crate::navidrome::scrobble_song(&base_url, &user, &token, &salt, &song_id).await;
+                    });
+                }
+
+                // Reset per-track state when the track changes.
+                let _ = cx.update(|app| {
+                    let s = state_for_poll.read(app);
+                    let current_id = s.current_track()
+                        .and_then(|t| {
+                            t.path.split('?').nth(1)?
+                                .split('&')
+                                .find(|p| p.starts_with("id="))
+                                .map(|p| p[3..].to_string())
+                        });
+                    let scrobbled = app.global::<NdScrobbleState>().scrobbled_id.clone();
+                    if scrobbled.is_some() && scrobbled != current_id {
+                        app.global_mut::<NdScrobbleState>().scrobbled_id = None;
+                    }
+                    let fetched = app.global::<NdCoverFetchState>().fetched_id.clone();
+                    if fetched.is_some() && fetched != current_id {
+                        app.global_mut::<NdCoverFetchState>().fetched_id = None;
+                        app.global_mut::<NdCurrentCoverArt>().0 = None;
+                    }
+                });
 
                 // Media-controls tick: drain OS key events and push now-playing info.
                 if let Some(np) = &np_for_poll {

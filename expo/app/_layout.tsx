@@ -47,6 +47,8 @@ import { Colors } from "@/constants/theme";
 import { PlayerProvider } from "@/lib/player-context";
 import { RockboxClient } from "@/lib/rockbox-client";
 import { RockboxStreams } from "@/lib/rockbox-streams";
+import { hydrateNdServers } from "@/lib/navidrome-store";
+import { NdScrobble } from "@/lib/navidrome-scrobble";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -103,6 +105,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded]);
+
+  useEffect(() => { hydrateNdServers(); }, []);
 
   // Android API 33+: ask the user once for "All files access" so the
   // embedded daemon's filesystem-based scanner can read /storage/emulated/0/Music.
@@ -173,7 +177,24 @@ export default function RootLayout() {
             name="genre/[id]"
             options={{ animation: "slide_from_right" }}
           />
+          <Stack.Screen
+            name="settings/navidrome"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="nd-album/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="nd-artist/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="nd-playlist/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
         </Stack>
+        <NdScrobble />
         <PersistentMiniPlayer />
         <TrackContextMenu />
         <StatusBar style="light" />

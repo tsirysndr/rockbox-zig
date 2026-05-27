@@ -92,6 +92,12 @@ export default function SettingsScreen() {
           value: serverLabel,
           onPress: () => router.push("/settings/server"),
         },
+        {
+          kind: "link",
+          label: "Navidrome / Subsonic",
+          icon: "musical-notes-outline",
+          onPress: () => router.push("/settings/navidrome" as any),
+        },
       ],
     },
     {

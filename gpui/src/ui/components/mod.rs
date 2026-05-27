@@ -33,6 +33,16 @@ pub enum LibrarySection {
     Playlists,
     PlaylistDetail,
     SmartPlaylistDetail,
+    NdAlbums,
+    NdAlbumDetail,
+    NdArtists,
+    NdArtistDetail,
+    NdGenres,
+    NdGenreDetail,
+    NdPlaylists,
+    NdPlaylistDetail,
+    NdSongs,
+    NdLikes,
 }
 impl gpui::Global for LibrarySection {}
 
@@ -339,3 +349,201 @@ pub struct DiscoveredServers {
     pub scanning: bool,
 }
 impl gpui::Global for DiscoveredServers {}
+
+// ── Navidrome / Subsonic integration ─────────────────────────────────────────
+
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+pub struct NdSavedServer {
+    pub id: String,
+    pub base_url: String,
+    pub user: String,
+    pub token: String,
+    pub salt: String,
+}
+
+#[derive(Clone, Default)]
+pub struct NavidromeServerState {
+    pub servers: Vec<NdSavedServer>,
+    pub active_id: Option<String>,
+    pub connecting: bool,
+    pub connect_error: Option<String>,
+    pub show_add_form: bool,
+    pub sidebar_collapsed: bool,
+}
+
+impl NavidromeServerState {
+    pub fn connected(&self) -> bool {
+        self.active_id.is_some()
+    }
+
+    pub fn active_server(&self) -> Option<&NdSavedServer> {
+        self.active_id
+            .as_ref()
+            .and_then(|id| self.servers.iter().find(|s| &s.id == id))
+    }
+
+    pub fn remove_server(&mut self, id: &str) {
+        self.servers.retain(|s| s.id != id);
+        if self.active_id.as_deref() == Some(id) {
+            self.active_id = self.servers.first().map(|s| s.id.clone());
+        }
+    }
+}
+
+impl gpui::Global for NavidromeServerState {}
+
+#[derive(Clone, Default)]
+pub struct NdAlbumItem {
+    pub id: String,
+    pub name: String,
+    pub artist: String,
+    pub artist_id: String,
+    pub year: Option<u32>,
+    pub cover_art: Option<String>,
+    pub song_count: u32,
+}
+
+#[derive(Clone, Default)]
+pub struct NdArtistItem {
+    pub id: String,
+    pub name: String,
+    pub cover_art: Option<String>,
+    pub album_count: u32,
+}
+
+#[derive(Clone, Default)]
+pub struct NdGenreItem {
+    pub name: String,
+    pub song_count: u32,
+    pub album_count: u32,
+}
+
+#[derive(Clone, Default)]
+pub struct NdPlaylistItem {
+    pub id: String,
+    pub name: String,
+    pub comment: Option<String>,
+    pub song_count: u32,
+    pub cover_art: Option<String>,
+}
+
+#[derive(Clone, Default)]
+pub struct NdSongItem {
+    pub id: String,
+    pub title: String,
+    pub artist: String,
+    pub artist_id: String,
+    pub album: String,
+    pub album_id: String,
+    pub cover_art: Option<String>,
+    pub duration: u32,
+    pub track: Option<u32>,
+    pub stream_url: String,
+}
+
+#[derive(Clone, Default)]
+pub struct NdLibraryData {
+    pub albums: Vec<NdAlbumItem>,
+    pub artists: Vec<NdArtistItem>,
+    pub genres: Vec<NdGenreItem>,
+    pub playlists: Vec<NdPlaylistItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdLibraryData {}
+
+#[derive(Clone, Default)]
+pub struct NdSelectedAlbum {
+    pub id: String,
+    pub name: String,
+    pub artist: String,
+    pub cover_art: Option<String>,
+    pub songs: Vec<NdSongItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdSelectedAlbum {}
+
+#[derive(Clone, Default)]
+pub struct NdSelectedArtist {
+    pub id: String,
+    pub name: String,
+    pub cover_art: Option<String>,
+    pub albums: Vec<NdAlbumItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdSelectedArtist {}
+
+#[derive(Clone, Default)]
+pub struct NdSelectedGenre {
+    pub name: String,
+    pub songs: Vec<NdSongItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdSelectedGenre {}
+
+#[derive(Clone, Default)]
+pub struct NdSelectedPlaylist {
+    pub id: String,
+    pub name: String,
+    pub tracks: Vec<NdSongItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdSelectedPlaylist {}
+
+#[derive(Clone, Default)]
+pub struct NdSongsState {
+    pub songs: Vec<NdSongItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdSongsState {}
+
+#[derive(Clone, Default)]
+pub struct NdLikesState {
+    pub songs: Vec<NdSongItem>,
+    pub loading: bool,
+}
+impl gpui::Global for NdLikesState {}
+
+/// Set of starred song IDs for the active Navidrome server.
+#[derive(Clone, Default)]
+pub struct NdStarredIds(pub std::collections::HashSet<String>);
+impl gpui::Global for NdStarredIds {}
+
+/// Full cover art URL for the currently playing Navidrome track.
+/// Set when a Navidrome track is played; cleared when switching to a local track.
+#[derive(Clone, Default)]
+pub struct NdCurrentCoverArt(pub Option<String>);
+impl gpui::Global for NdCurrentCoverArt {}
+
+/// Tracks scrobble state for the current Navidrome track.
+/// `scrobbled_id` is the song ID that has already been scrobbled in this session;
+/// reset to None when the track changes.
+#[derive(Clone, Default)]
+pub struct NdScrobbleState {
+    pub scrobbled_id: Option<String>,
+}
+impl gpui::Global for NdScrobbleState {}
+
+/// Tracks the song ID for which we have already initiated a cover art fetch,
+/// to avoid duplicate API calls when NdCurrentCoverArt is None for the playing track.
+#[derive(Clone, Default)]
+pub struct NdCoverFetchState {
+    pub fetched_id: Option<String>,
+}
+impl gpui::Global for NdCoverFetchState {}
+
+#[derive(Clone)]
+pub struct NdContextMenu {
+    pub pos: gpui::Point<gpui::Pixels>,
+    pub song_id: String,
+    pub title: String,
+    pub artist_id: String,
+    pub artist: String,
+    pub album_id: String,
+    pub album: String,
+    pub cover_art: Option<String>,
+    pub stream_url: String,
+}
+
+#[derive(Clone, Default)]
+pub struct NdContextMenuState(pub Option<NdContextMenu>);
+impl gpui::Global for NdContextMenuState {}

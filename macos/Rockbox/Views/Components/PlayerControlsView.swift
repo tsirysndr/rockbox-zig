@@ -24,6 +24,7 @@ struct PlayerControlsView: View {
     @State private var showBluetoothPicker = false
     @State private var errorText: String? = nil
     @ObservedObject var library: MusicLibrary
+    @ObservedObject private var ndManager = NavidromeManager.shared
     @Binding var showQueue: Bool
     
     
@@ -83,22 +84,17 @@ struct PlayerControlsView: View {
                     .fill(player.currentTrack.color.gradient)
                     .frame(width: 44, height: 44)
                     .overlay {
-                        AsyncImage(url: player.currentTrack.albumArt) { phase in
+                        let artUrl = ndManager.coverArtUrl(forStreamUrl: player.currentTrack.path, size: 88) ?? player.currentTrack.albumArt
+                        CachedAsyncImage(url: artUrl) { phase in
                             switch phase {
-                            case .empty:
-                                Image(systemName: "music.note")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.8))
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                            case .failure:
+                            default:
                                 Image(systemName: "music.note")
                                     .font(.system(size: 14))
                                     .foregroundStyle(.white.opacity(0.8))
-                            @unknown default:
-                                EmptyView()
                             }
                         }
                     }
