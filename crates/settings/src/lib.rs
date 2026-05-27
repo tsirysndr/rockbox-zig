@@ -1,9 +1,5 @@
 use anyhow::Error;
-use rockbox_sys::{
-    self as rb,
-    sound::pcm,
-    types::user_settings::NewGlobalSettings,
-};
+use rockbox_sys::{self as rb, sound::pcm, types::user_settings::NewGlobalSettings};
 
 pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Error> {
     let settings: NewGlobalSettings = match new_settings.clone() {
