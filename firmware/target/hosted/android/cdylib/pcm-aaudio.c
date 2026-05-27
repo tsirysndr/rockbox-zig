@@ -26,7 +26,6 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
-#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_sink.h"
 

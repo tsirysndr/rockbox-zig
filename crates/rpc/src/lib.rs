@@ -980,7 +980,6 @@ pub mod api {
                     chromecast_port: None,
                     snapcast_tcp_host: None,
                     snapcast_tcp_port: None,
-                    normalize_volume: None,
                     subsonic_username: None,
                     subsonic_password: None,
                     subsonic_port: None,

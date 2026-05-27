@@ -43,7 +43,6 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
-#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_sink.h"
 
@@ -138,9 +137,6 @@ static void *fifo_thread(void *arg)
         const void *data = (fifo_vol_buf && size > 0)
             ? (pcm_copy_buffer(fifo_vol_buf, raw, size), fifo_vol_buf)
             : raw;
-        if (data == fifo_vol_buf)
-            pcm_normalizer_apply(fifo_vol_buf, size);
-
         /* Write current chunk in pieces so stop() can interrupt promptly */
         while (size > 0 && !fifo_stop) {
             ssize_t n = write(fifo_fd, data, size);
