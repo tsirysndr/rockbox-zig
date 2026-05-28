@@ -54,6 +54,33 @@ export function streamUrl(
   return `${base}/rest/stream.view?id=${encodeURIComponent(songId)}&${authParams(user, password)}`;
 }
 
+/**
+ * Derives a getCoverArt URL directly from a Navidrome stream URL.
+ * The stream URL carries id=, u=, t=, s= — everything needed to build
+ * the cover art request without requiring a connected server state.
+ * Returns null for non-ND paths (local files, non-Subsonic URLs).
+ */
+export function coverArtUrlFromStreamUrl(path: string, size = 300): string | null {
+  if (!path.startsWith("http")) return null;
+  const qIdx = path.indexOf("?");
+  if (qIdx === -1) return null;
+  const restIdx = path.indexOf("/rest/");
+  if (restIdx === -1) return null;
+  const base = path.slice(0, restIdx);
+  const query = path.slice(qIdx + 1);
+  const param = (name: string): string | null => {
+    const prefix = `${name}=`;
+    const part = query.split("&").find((p) => p.startsWith(prefix));
+    return part ? part.slice(prefix.length) : null;
+  };
+  const id = param("id");
+  const u = param("u");
+  const t = param("t");
+  const s = param("s");
+  if (!id || !u || !t || !s) return null;
+  return `${base}/rest/getCoverArt.view?id=${encodeURIComponent(id)}&size=${size}&u=${encodeURIComponent(u)}&t=${t}&s=${s}&v=1.16.1&c=rockbox&f=json`;
+}
+
 // ── API types ────────────────────────────────────────────────────────────────
 
 export type NdSong = {

@@ -4,6 +4,7 @@
  * to empty strings / 0 / null so the UI renders a sensible placeholder.
  */
 import { coverUrl } from "@/lib/cover-url";
+import { coverArtUrlFromStreamUrl } from "@/lib/navidrome-client";
 import type { Album, Artist, Genre, Playlist, Track } from "@/lib/types";
 
 export type ProtoTrack = {
@@ -65,16 +66,21 @@ const fallback = (s: string | null | undefined, alt = ""): string => s ?? alt;
 export function trackFromProto(p: ProtoTrack | undefined | null): Track {
   if (!p) return blankTrack();
   const durationSecs = Math.max(0, Math.floor((p.length ?? 0) / 1000));
+  const path = fallback(p.path);
+  // For ND HTTP streams, album_art from rockboxd is empty — derive cover art
+  // from the stream URL's embedded credentials (id=, u=, t=, s=) instead.
+  const artwork =
+    coverUrl(p.album_art) ?? coverArtUrlFromStreamUrl(path) ?? undefined;
   return {
     id: fallback(p.id),
-    path: fallback(p.path),
+    path,
     title: fallback(p.title, "(unknown)"),
     artist: fallback(p.artist),
     artistId: fallback(p.artist_id) || undefined,
     album: fallback(p.album),
     albumId: fallback(p.album_id) || undefined,
     duration: durationSecs,
-    artwork: coverUrl(p.album_art) ?? undefined,
+    artwork,
     trackNumber: p.track_number ?? undefined,
     discNumber: p.disc_number ?? undefined,
   };
