@@ -853,10 +853,22 @@ static bool fill_buffer(void)
 
     struct memory_handle *m = shrink_handle(HLIST_FIRST);
 
+    /* When a second handle is waiting for data (next track pre-buffering),
+     * limit each handle to one file-chunk per fill_buffer() pass so all
+     * handles are served in round-robin.  This prevents a single large
+     * handle — whether local or HTTP — from monopolising the buffering
+     * thread and starving the current-track ring buffer.
+     *
+     * With only one handle needing data, use 0 (fill all) so the initial
+     * load of a track is not artificially throttled. */
+    struct memory_handle *n = m ? HLIST_NEXT(m) : NULL;
+    bool multi = n && n->end < n->filesize;
+    size_t chunk = multi ? BUFFERING_DEFAULT_FILECHUNK : 0;
+
     mutex_unlock(&llist_mutex);
 
     while (queue_empty(&buffering_queue) && m) {
-        if (m->end < m->filesize && !buffer_handle(m->id, 0)) {
+        if (m->end < m->filesize && !buffer_handle(m->id, chunk)) {
             m = NULL;
             break;
         }
