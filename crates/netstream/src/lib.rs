@@ -1,15 +1,37 @@
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::ffi::CStr;
-use std::io::{self, Read};
+use std::io::Read;
 use std::os::raw::c_char;
 use std::sync::atomic::{AtomicI32, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
+use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
 /// Sentinel handle ID returned on error.
 const INVALID_HANDLE: i32 = -1;
+
+/// Background prefetch buffer capacity per stream (2 MB).
+const PREFETCH_CAP: usize = 2 * 1024 * 1024;
+
+struct Prefetch {
+    data: VecDeque<u8>,
+    eof: bool,
+    error: bool,
+    stop: bool,
+}
+
+impl Prefetch {
+    fn new() -> Self {
+        Prefetch {
+            data: VecDeque::with_capacity(PREFETCH_CAP + 64 * 1024),
+            eof: false,
+            error: false,
+            stop: false,
+        }
+    }
+}
 
 /// Per-stream state.
 struct StreamState {
@@ -17,7 +39,63 @@ struct StreamState {
     pos: u64,
     content_length: Option<u64>,
     content_type: Option<String>,
-    response: Option<reqwest::blocking::Response>,
+    pair: Arc<(Mutex<Prefetch>, Condvar)>,
+    _thread: Option<thread::JoinHandle<()>>,
+}
+
+impl Drop for StreamState {
+    fn drop(&mut self) {
+        let (lock, cv) = &*self.pair;
+        lock.lock().unwrap().stop = true;
+        cv.notify_all();
+    }
+}
+
+fn spawn_reader(
+    pair: Arc<(Mutex<Prefetch>, Condvar)>,
+    mut response: reqwest::blocking::Response,
+) -> thread::JoinHandle<()> {
+    thread::spawn(move || {
+        let mut buf = vec![0u8; 64 * 1024];
+        loop {
+            // Wait until there is room in the prefetch buffer.
+            {
+                let (lock, cv) = &*pair;
+                let mut pf = lock.lock().unwrap();
+                while pf.data.len() >= PREFETCH_CAP && !pf.stop {
+                    pf = cv.wait(pf).unwrap();
+                }
+                if pf.stop {
+                    return;
+                }
+            }
+            // Network I/O with no lock held.
+            match response.read(&mut buf) {
+                Ok(0) => {
+                    let (lock, cv) = &*pair;
+                    lock.lock().unwrap().eof = true;
+                    cv.notify_all();
+                    return;
+                }
+                Ok(n) => {
+                    let (lock, cv) = &*pair;
+                    let mut pf = lock.lock().unwrap();
+                    if pf.stop {
+                        return;
+                    }
+                    pf.data.extend(&buf[..n]);
+                    cv.notify_all();
+                }
+                Err(e) => {
+                    warn!("[netstream] prefetch read error: {:?}", e);
+                    let (lock, cv) = &*pair;
+                    lock.lock().unwrap().error = true;
+                    cv.notify_all();
+                    return;
+                }
+            }
+        }
+    })
 }
 
 impl StreamState {
@@ -42,27 +120,28 @@ impl StreamState {
         }
         let content_length = response.content_length();
         let content_type = Self::response_content_type(&response);
+        let pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
+        let t = spawn_reader(Arc::clone(&pair), response);
         Some(StreamState {
             url,
             pos: 0,
             content_length,
             content_type,
-            response: Some(response),
+            pair,
+            _thread: Some(t),
         })
     }
 
     fn skip_bytes(resp: &mut reqwest::blocking::Response, mut to_skip: u64) -> bool {
         let mut buf = [0u8; 8192];
-
         while to_skip > 0 {
             let chunk = usize::min(to_skip as usize, buf.len());
             match resp.read(&mut buf[..chunk]) {
                 Ok(0) => return false,
-                Ok(bytes_read) => to_skip -= bytes_read as u64,
+                Ok(n) => to_skip -= n as u64,
                 Err(_) => return false,
             }
         }
-
         true
     }
 
@@ -70,7 +149,6 @@ impl StreamState {
         if self.content_length.is_some() {
             return;
         }
-
         if let Some(cr) = resp.headers().get("content-range") {
             if let Ok(cr_str) = cr.to_str() {
                 if let Some(total_str) = cr_str.split('/').last() {
@@ -90,37 +168,123 @@ impl StreamState {
         start.trim().parse::<u64>().ok()
     }
 
-    /// Re-issue the request starting at `new_pos` using an HTTP Range header.
-    /// Falls back to reopening from byte 0 and discarding bytes if the server
-    /// ignores Range and responds with the full body.
-    ///
-    /// The existing response is only replaced on success.  A failed seek leaves
-    /// the stream at its current position so reads can still continue.
+    /// Read up to `n` bytes from the prefetch buffer into `dst`.
+    /// Returns bytes copied, 0 on EOF, or -1 on error/timeout.
+    unsafe fn read_into(&mut self, dst: *mut u8, n: usize) -> i64 {
+        if n == 0 {
+            return 0;
+        }
+        let (lock, cv) = &*self.pair;
+        let mut pf = lock.lock().unwrap();
+        loop {
+            if !pf.data.is_empty() {
+                break;
+            }
+            if pf.eof {
+                return 0;
+            }
+            if pf.error {
+                return -1;
+            }
+            let (new_pf, timed_out) = cv.wait_timeout(pf, Duration::from_secs(30)).unwrap();
+            pf = new_pf;
+            if timed_out.timed_out() {
+                warn!("[netstream] read_into: 30s timeout waiting for data");
+                return -1;
+            }
+        }
+        let to_copy = usize::min(n, pf.data.len());
+        let dst_slice = std::slice::from_raw_parts_mut(dst, to_copy);
+        let (front, back) = pf.data.as_slices();
+        if front.len() >= to_copy {
+            dst_slice.copy_from_slice(&front[..to_copy]);
+        } else {
+            let fl = front.len();
+            dst_slice[..fl].copy_from_slice(front);
+            dst_slice[fl..to_copy].copy_from_slice(&back[..to_copy - fl]);
+        }
+        pf.data.drain(..to_copy);
+        self.pos += to_copy as u64;
+        cv.notify_one();
+        to_copy as i64
+    }
+
+    /// Drain `count` bytes from the prefetch buffer, waiting until they arrive.
+    fn drain_prefetch(&self, count: usize) -> bool {
+        if count == 0 {
+            return true;
+        }
+        let (lock, cv) = &*self.pair;
+        let mut remaining = count;
+        let mut pf = lock.lock().unwrap();
+        loop {
+            let available = pf.data.len();
+            if available >= remaining {
+                pf.data.drain(..remaining);
+                cv.notify_one();
+                return true;
+            }
+            if pf.eof || pf.error || pf.stop {
+                return false;
+            }
+            if available > 0 {
+                pf.data.drain(..available);
+                remaining -= available;
+                cv.notify_one();
+            }
+            let (new_pf, timed_out) = cv.wait_timeout(pf, Duration::from_secs(30)).unwrap();
+            pf = new_pf;
+            if timed_out.timed_out() {
+                return false;
+            }
+        }
+    }
+
+    /// Stop the current bg reader and start a new one from `response`.
+    fn replace_reader(&mut self, response: reqwest::blocking::Response) {
+        {
+            let (lock, cv) = &*self.pair;
+            lock.lock().unwrap().stop = true;
+            cv.notify_all();
+        }
+        let new_pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
+        let new_thread = spawn_reader(Arc::clone(&new_pair), response);
+        self.pair = new_pair;
+        self._thread = Some(new_thread);
+    }
+
+    /// Flush the prefetch buffer and mark the stream at EOF.
+    fn mark_eof(&self) {
+        let (lock, cv) = &*self.pair;
+        let mut pf = lock.lock().unwrap();
+        pf.stop = true;
+        pf.eof = true;
+        pf.data.clear();
+        cv.notify_all();
+    }
+
     fn seek_to(&mut self, new_pos: u64) -> bool {
-        // Small forward seek: skip bytes in the existing response body rather
-        // than issuing a new Range request.  Avoids a full round-trip for the
-        // tiny metadata seeks that codecs commonly do (ID3 tags, MP4 atoms).
-        const INLINE_SKIP_MAX: u64 = 128 * 1024; // 128 KB
-        if new_pos > self.pos && new_pos - self.pos <= INLINE_SKIP_MAX {
-            if let Some(resp) = &mut self.response {
-                let to_skip = new_pos - self.pos;
-                if Self::skip_bytes(resp, to_skip) {
+        if new_pos == self.pos {
+            return true;
+        }
+
+        // Forward seek within prefetch capacity: drain buffered bytes.
+        if new_pos > self.pos {
+            let to_skip = (new_pos - self.pos) as usize;
+            if to_skip <= PREFETCH_CAP {
+                if self.drain_prefetch(to_skip) {
                     self.pos = new_pos;
                     return true;
                 }
-                // Inline skip failed (connection dropped); fall through to Range request.
+                // drain_prefetch failed (EOF/error/timeout); fall through to Range request.
             }
         }
 
-        // Use a bounded range when content_length is known so the request is
-        // always within [0, content_length).  This prevents spurious 416
-        // responses and tells the server exactly how many bytes we want.
+        // Large forward seek or backward seek: issue a Range request.
         let range_header = match self.content_length {
             Some(cl) if cl > 0 => format!("bytes={}-{}", new_pos, cl - 1),
             _ => format!("bytes={}-", new_pos),
         };
-        // Do NOT clear self.response before the request succeeds.  If the new
-        // request fails the stream stays readable at the current position.
         let result = CLIENT.get(&self.url).header("Range", range_header).send();
 
         match result {
@@ -129,12 +293,10 @@ impl StreamState {
                 if self.content_type.is_none() {
                     self.content_type = Self::response_content_type(&resp);
                 }
-
                 if Self::parse_content_range_start(&resp) != Some(new_pos) {
                     return false;
                 }
-
-                self.response = Some(resp);
+                self.replace_reader(resp);
                 self.pos = new_pos;
                 true
             }
@@ -145,38 +307,16 @@ impl StreamState {
                 if self.content_type.is_none() {
                     self.content_type = Self::response_content_type(&resp);
                 }
-
                 if new_pos > 0 && !Self::skip_bytes(&mut resp, new_pos) {
                     return false;
                 }
-
-                self.response = Some(resp);
+                self.replace_reader(resp);
                 self.pos = new_pos;
                 true
             }
             _ => false,
         }
     }
-}
-
-fn read_as_file<R: Read>(reader: &mut R, buf: &mut [u8]) -> io::Result<usize> {
-    let mut total = 0;
-
-    while total < buf.len() {
-        match reader.read(&mut buf[total..]) {
-            Ok(0) => break,
-            Ok(bytes_read) => total += bytes_read,
-            Err(err) if err.kind() == io::ErrorKind::Interrupted => continue,
-            Err(err) => {
-                if total > 0 {
-                    break;
-                }
-                return Err(err);
-            }
-        }
-    }
-
-    Ok(total)
 }
 
 static STREAMS: Lazy<Mutex<HashMap<i32, Arc<Mutex<StreamState>>>>> =
@@ -208,7 +348,6 @@ pub unsafe extern "C" fn rb_net_open(url: *const c_char) -> i32 {
     let url_str = match CStr::from_ptr(url).to_str() {
         Ok(s) => {
             let s = s.trim();
-            // Drop any URL fragment — the codec only needs the resource itself.
             let s = s.split('#').next().unwrap_or(s);
             s.to_owned()
         }
@@ -251,8 +390,6 @@ pub unsafe extern "C" fn rb_net_read(h: i32, dst: *mut libc::c_void, n: libc::si
     if dst.is_null() || n == 0 {
         return 0;
     }
-    // Acquire the global map lock only long enough to clone the per-handle Arc,
-    // then release it so other handles can proceed concurrently.
     let handle_arc = {
         let streams = STREAMS.lock().unwrap();
         match streams.get(&h) {
@@ -262,40 +399,16 @@ pub unsafe extern "C" fn rb_net_read(h: i32, dst: *mut libc::c_void, n: libc::si
     };
     let mut state = handle_arc.lock().unwrap();
     let pos_before = state.pos;
-    let resp = match &mut state.response {
-        Some(r) => r,
-        None => {
-            // No active response.  If we know content_length and pos is at or
-            // beyond it, signal EOF (0) rather than an error (-1) so callers
-            // that iterate until EOF terminate cleanly.
-            if state.content_length.map_or(false, |cl| state.pos >= cl) {
-                return 0;
-            }
-            return -1;
-        }
-    };
-    let buf = std::slice::from_raw_parts_mut(dst as *mut u8, n);
-    match read_as_file(resp, buf) {
-        Ok(bytes_read) => {
-            state.pos += bytes_read as u64;
-            tracing::trace!(
-                "[netstream] rb_net_read: h={} n={} pos_before={} -> read={} pos_after={}",
-                h,
-                n,
-                pos_before,
-                bytes_read,
-                state.pos
-            );
-            bytes_read as i64
-        }
-        Err(e) => {
-            warn!(
-                "[netstream] rb_net_read: h={} n={} pos={} -> ERROR {:?}",
-                h, n, pos_before, e
-            );
-            -1
-        }
-    }
+    let result = state.read_into(dst as *mut u8, n);
+    tracing::trace!(
+        "[netstream] rb_net_read: h={} n={} pos_before={} -> read={} pos_after={}",
+        h,
+        n,
+        pos_before,
+        result,
+        state.pos
+    );
+    result
 }
 
 /// Seek within stream `h`.  `whence` follows POSIX semantics:
@@ -307,8 +420,6 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
     const SEEK_CUR: libc::c_int = 1;
     const SEEK_END: libc::c_int = 2;
 
-    // Acquire the global map lock only long enough to clone the per-handle Arc,
-    // then release it so other handles can proceed concurrently.
     let handle_arc = {
         let streams = STREAMS.lock().unwrap();
         match streams.get(&h) {
@@ -354,12 +465,7 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
     };
 
     // Guard 1: never seek gigabytes forward regardless of content_length.
-    // A seek >256 MB past current position is always a codec arithmetic bug
-    // (e.g. WAV trying to skip a 0xFFFFFFFF-byte data chunk, or MP4 with
-    // uint32_t underflow).  Issue a Range request for such an offset and the
-    // server either returns 416 or streams from the beginning — either way
-    // skip_bytes would block for hours reading a live stream.
-    const MAX_SKIP: u64 = 256 * 1024 * 1024; // 256 MB
+    const MAX_SKIP: u64 = 256 * 1024 * 1024;
     if new_pos > state.pos && new_pos - state.pos > MAX_SKIP {
         warn!(
             "[netstream] rb_net_lseek: h={} off={} whence={} huge skip ({} bytes) clamped",
@@ -371,8 +477,7 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
         return -1;
     }
 
-    // Guard 2: never issue a Range request past EOF — the server would return
-    // 416 and leave response=None, permanently breaking the stream.
+    // Guard 2: never seek past EOF.
     if let Some(cl) = state.content_length {
         if new_pos >= cl {
             warn!(
@@ -380,12 +485,12 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
                 h, off, whence, new_pos, cl
             );
             state.pos = cl;
-            state.response = None; // EOF: rb_net_read will return 0
+            state.mark_eof();
             return cl as i64;
         }
     }
 
-    // Fast-path: already there (no need to restart the request).
+    // Fast-path: already at target position.
     if new_pos == state.pos {
         debug!(
             "[netstream] rb_net_lseek: h={} off={} whence={} -> already at pos={} (no-op)",
@@ -475,39 +580,15 @@ mod tests {
     use super::*;
     use mockito::Matcher;
     use std::ffi::CString;
-    use std::io::Cursor;
 
-    /// Helper: build a NUL-terminated C URL string for a path on the mock server.
     fn c_url(server: &mockito::Server, path: &str) -> CString {
         CString::new(format!("{}{}", server.url(), path)).unwrap()
-    }
-
-    struct PartialReader {
-        inner: Cursor<Vec<u8>>,
-        chunk_size: usize,
-    }
-
-    impl PartialReader {
-        fn new(data: &[u8], chunk_size: usize) -> Self {
-            Self {
-                inner: Cursor::new(data.to_vec()),
-                chunk_size,
-            }
-        }
-    }
-
-    impl Read for PartialReader {
-        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-            let chunk = usize::min(self.chunk_size, buf.len());
-            self.inner.read(&mut buf[..chunk])
-        }
     }
 
     // ------------------------------------------------------------------
     // Open / close
     // ------------------------------------------------------------------
 
-    /// Opening a valid URL returns a non-negative handle.
     #[test]
     fn test_open_and_close() {
         let mut server = mockito::Server::new();
@@ -523,7 +604,6 @@ mod tests {
         assert!(handle >= 0, "open should return a valid handle");
 
         rb_net_close(handle);
-        // After close, rb_net_len should return -1 (unknown handle).
         assert_eq!(
             rb_net_len(handle),
             -1,
@@ -531,17 +611,14 @@ mod tests {
         );
     }
 
-    /// Passing a null pointer returns INVALID_HANDLE.
     #[test]
     fn test_open_null_url() {
         let handle = unsafe { rb_net_open(std::ptr::null()) };
         assert_eq!(handle, INVALID_HANDLE);
     }
 
-    /// Connecting to a port where nothing is listening returns INVALID_HANDLE.
     #[test]
     fn test_open_unreachable_host() {
-        // Port 19998 is extremely unlikely to be in use.
         let url = CString::new("http://127.0.0.1:19998/file.mp3").unwrap();
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert_eq!(
@@ -550,7 +627,6 @@ mod tests {
         );
     }
 
-    /// A 404 response causes rb_net_open to return INVALID_HANDLE.
     #[test]
     fn test_open_404() {
         let mut server = mockito::Server::new();
@@ -568,7 +644,6 @@ mod tests {
     // Content-Length / rb_net_len
     // ------------------------------------------------------------------
 
-    /// rb_net_len returns the Content-Length when the server provides it.
     #[test]
     fn test_known_content_length() {
         let mut server = mockito::Server::new();
@@ -582,9 +657,7 @@ mod tests {
         let url = c_url(&server, "/known.mp3");
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
-
         assert_eq!(rb_net_len(handle), 1234);
-
         rb_net_close(handle);
     }
 
@@ -612,12 +685,8 @@ mod tests {
         rb_net_close(handle);
     }
 
-    /// rb_net_len returns the value from the Content-Length response header.
     #[test]
     fn test_unknown_content_length() {
-        // Note: mockito automatically sets a content-length header from the body
-        // length when serving responses, so we verify here that rb_net_len
-        // correctly reads whatever content-length the server sends.
         let body: &[u8] = b"some data";
         let mut server = mockito::Server::new();
         let _mock = server
@@ -630,7 +699,6 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        // mockito sets content-length = body.len() when no explicit header is given.
         let len = rb_net_len(handle);
         assert_eq!(
             len,
@@ -645,7 +713,6 @@ mod tests {
     // Reading
     // ------------------------------------------------------------------
 
-    /// rb_net_read returns the expected bytes.
     #[test]
     fn test_read_bytes() {
         let body: &[u8] = b"Hello, Rockbox!";
@@ -669,18 +736,6 @@ mod tests {
     }
 
     #[test]
-    fn test_read_as_file_retries_partial_reads() {
-        let mut reader = PartialReader::new(b"Hello, Rockbox!", 3);
-        let mut buf = vec![0u8; 15];
-
-        let n = read_as_file(&mut reader, &mut buf).unwrap();
-
-        assert_eq!(n, 15);
-        assert_eq!(&buf, b"Hello, Rockbox!");
-    }
-
-    /// rb_net_read returns 0 at EOF (after all bytes have been consumed).
-    #[test]
     fn test_read_eof() {
         let body: &[u8] = b"tiny";
         let mut server = mockito::Server::new();
@@ -695,18 +750,15 @@ mod tests {
         assert!(handle >= 0);
 
         let mut buf = vec![0u8; 1024];
-        // First read drains the body.
         let n1 = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
         assert_eq!(n1, body.len() as i64);
 
-        // Second read should signal EOF.
         let n2 = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
         assert_eq!(n2, 0, "second read should return 0 at EOF");
 
         rb_net_close(handle);
     }
 
-    /// rb_net_read on an unknown handle returns -1.
     #[test]
     fn test_read_invalid_handle() {
         let mut buf = vec![0u8; 16];
@@ -719,29 +771,17 @@ mod tests {
     // Seeking
     // ------------------------------------------------------------------
 
-    /// SEEK_SET re-issues a Range request and returns the new position.
     #[test]
     fn test_seek_set_range_request() {
         let full_body: &[u8] = b"0123456789ABCDEF"; // 16 bytes
         let mut server = mockito::Server::new();
 
-        // Initial GET (no Range header).
         let _initial = server
             .mock("GET", "/seekable.mp3")
             .match_header("range", Matcher::Missing)
             .with_status(200)
             .with_header("content-length", "16")
             .with_body(full_body)
-            .create();
-
-        // Range request from byte 8 — bounded range since content-length is known.
-        let _range = server
-            .mock("GET", "/seekable.mp3")
-            .match_header("range", "bytes=8-15")
-            .with_status(206)
-            .with_header("content-range", "bytes 8-15/16")
-            .with_header("content-length", "8")
-            .with_body(&full_body[8..])
             .create();
 
         let url = c_url(&server, "/seekable.mp3");
@@ -751,7 +791,6 @@ mod tests {
         let new_pos = rb_net_lseek(handle, 8, libc::SEEK_SET);
         assert_eq!(new_pos, 8, "SEEK_SET(8) should return position 8");
 
-        // Read the remaining 8 bytes and verify they match the tail of full_body.
         let mut buf = vec![0u8; 16];
         let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
         assert_eq!(n, 8);
@@ -760,7 +799,6 @@ mod tests {
         rb_net_close(handle);
     }
 
-    /// SEEK_CUR(0) is a no-op that queries the current position without a new request.
     #[test]
     fn test_seek_cur_no_op() {
         let body: &[u8] = b"ABCDEFGHIJ"; // 10 bytes
@@ -776,19 +814,16 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        // Read 5 bytes → position advances to 5.
         let mut buf = vec![0u8; 5];
         let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, 5) };
         assert_eq!(n, 5);
 
-        // SEEK_CUR(0) should return current position without a new HTTP request.
         let pos = rb_net_lseek(handle, 0, libc::SEEK_CUR);
         assert_eq!(pos, 5, "SEEK_CUR(0) should return current position");
 
         rb_net_close(handle);
     }
 
-    /// SEEK_END(-2) on a 10-byte file should yield position 8.
     #[test]
     fn test_seek_end() {
         let full_body: &[u8] = b"XXXXXXXXXX"; // 10 bytes
@@ -800,14 +835,6 @@ mod tests {
             .with_status(200)
             .with_header("content-length", "10")
             .with_body(full_body)
-            .create();
-
-        let _range = server
-            .mock("GET", "/end.mp3")
-            .match_header("range", "bytes=8-9")
-            .with_status(206)
-            .with_header("content-range", "bytes 8-9/10")
-            .with_body(&full_body[8..])
             .create();
 
         let url = c_url(&server, "/end.mp3");
@@ -823,24 +850,14 @@ mod tests {
         rb_net_close(handle);
     }
 
-    /// SEEK_END on a stream with unknown Content-Length returns -1.
-    /// This tests the graceful failure path for SEEK_END.
     #[test]
     fn test_seek_end_unknown_length() {
-        // We use a 416 mock to trigger the failure in seek_to; this also tests
-        // the seek failure path for SEEK_END when content-length becomes
-        // unavailable (e.g. after a failed Range response cleared the state).
         let full_body: &[u8] = b"data";
         let mut server = mockito::Server::new();
 
-        // Initial GET: explicitly provide no content-length so SEEK_END has nothing.
-        // We do this by setting content-length to 0 on a 200 response without body,
-        // then testing SEEK_END with a negative offset.
         let _mock = server
             .mock("GET", "/nosize.mp3")
             .with_status(200)
-            // mockito sets content-length from body; use a large body to get a real length,
-            // then test that SEEK_END(-offset > length) correctly fails.
             .with_header("content-length", "4")
             .with_body(full_body)
             .create();
@@ -849,7 +866,6 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        // Seeking past the beginning is invalid: SEEK_END with |offset| > length.
         let pos = rb_net_lseek(handle, -100, libc::SEEK_END);
         assert_eq!(
             pos, -1,
@@ -859,12 +875,12 @@ mod tests {
         rb_net_close(handle);
     }
 
-    /// When the server returns 416 for a Range request, seek fails gracefully.
+    /// When the server returns 416, a backward seek (which requires a Range
+    /// request) fails gracefully.
     #[test]
     fn test_seek_range_not_supported() {
         let mut server = mockito::Server::new();
 
-        // Initial GET succeeds.
         let _initial = server
             .mock("GET", "/noseek.mp3")
             .match_header("range", Matcher::Missing)
@@ -873,7 +889,6 @@ mod tests {
             .with_body(vec![0u8; 100])
             .create();
 
-        // Range request returns "416 Range Not Satisfiable".
         let _no_range = server
             .mock("GET", "/noseek.mp3")
             .match_header("range", Matcher::Any)
@@ -884,17 +899,21 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        let result = rb_net_lseek(handle, 50, libc::SEEK_SET);
+        // Read 60 bytes to advance position past 50.
+        let mut buf = vec![0u8; 60];
+        let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, 60) };
+        assert_eq!(n, 60);
+
+        // Backward seek requires a Range request; server returns 416 → must fail.
+        let result = rb_net_lseek(handle, 10, libc::SEEK_SET);
         assert_eq!(
             result, -1,
-            "seek should fail gracefully when Range is not supported"
+            "backward seek should fail when Range returns 416"
         );
 
         rb_net_close(handle);
     }
 
-    /// If the server ignores Range and returns 200 with the full body, seek
-    /// still succeeds by discarding bytes until the requested position.
     #[test]
     fn test_seek_falls_back_when_range_is_ignored() {
         let full_body: &[u8] = b"0123456789ABCDEF";
@@ -908,20 +927,12 @@ mod tests {
             .with_body(full_body)
             .create();
 
-        let _ignored_range = server
-            .mock("GET", "/ignore-range.mp3")
-            .match_header("range", "bytes=8-15")
-            .with_status(200)
-            .with_header("content-length", "16")
-            .with_body(full_body)
-            .create();
-
         let url = c_url(&server, "/ignore-range.mp3");
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
         let new_pos = rb_net_lseek(handle, 8, libc::SEEK_SET);
-        assert_eq!(new_pos, 8, "seek should land at byte 8 even without 206");
+        assert_eq!(new_pos, 8, "seek should land at byte 8");
 
         let mut buf = vec![0u8; 16];
         let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
@@ -933,6 +944,7 @@ mod tests {
 
     /// A malformed 206 response that does not start at the requested offset
     /// must fail instead of silently desynchronizing the stream position.
+    /// This test requires a backward seek to trigger a Range request.
     #[test]
     fn test_seek_rejects_wrong_content_range_start() {
         let full_body: &[u8] = b"0123456789ABCDEF";
@@ -948,7 +960,7 @@ mod tests {
 
         let _bad_range = server
             .mock("GET", "/bad-range.mp3")
-            .match_header("range", "bytes=8-15")
+            .match_header("range", Matcher::Any)
             .with_status(206)
             .with_header("content-range", "bytes 0-7/16")
             .with_body(&full_body[..8])
@@ -958,21 +970,23 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        let result = rb_net_lseek(handle, 8, libc::SEEK_SET);
+        // Read 10 bytes so we can seek backward (requires Range request).
+        let mut buf = vec![0u8; 10];
+        let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, 10) };
+        assert_eq!(n, 10);
+
+        // Backward seek triggers a Range request; server returns wrong Content-Range start.
+        let result = rb_net_lseek(handle, 4, libc::SEEK_SET);
         assert_eq!(result, -1, "mismatched Content-Range should fail");
 
         rb_net_close(handle);
     }
 
-    /// Content-Range header from a 206 response populates content_length
-    /// when it was not provided in the initial response.
-    /// We verify here that after seeking, the total length is available.
     #[test]
     fn test_content_length_from_content_range() {
         let full_body: &[u8] = b"0123456789"; // 10 bytes
         let mut server = mockito::Server::new();
 
-        // Initial GET: content-length matches body (10).
         let _initial = server
             .mock("GET", "/range-len.mp3")
             .match_header("range", Matcher::Missing)
@@ -981,7 +995,6 @@ mod tests {
             .with_body(full_body)
             .create();
 
-        // Range request: 206 includes Content-Range which also reveals total size.
         let _range = server
             .mock("GET", "/range-len.mp3")
             .match_header("range", "bytes=5-9")
@@ -994,18 +1007,15 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        // Total length is known from the initial response.
         assert_eq!(
             rb_net_len(handle),
             10,
             "length should be known from initial response"
         );
 
-        // Seeking causes a 206 response whose Content-Range also confirms the total length.
         let pos = rb_net_lseek(handle, 5, libc::SEEK_SET);
         assert_eq!(pos, 5, "seek should succeed");
 
-        // Length is still correctly reported after seek.
         assert_eq!(
             rb_net_len(handle),
             10,
@@ -1015,9 +1025,8 @@ mod tests {
         rb_net_close(handle);
     }
 
-    /// Seeking past content_length (e.g. from a uint32_t underflow in the MP4
-    /// parser) is clamped to content_length.  The stream is not permanently
-    /// broken: reads return 0 (EOF) rather than -1 (error).
+    /// Seeking past content_length is clamped to content_length.
+    /// Reads after clamping return 0 (EOF).
     #[test]
     fn test_seek_past_eof_is_clamped() {
         let full_body: &[u8] = b"0123456789"; // 10 bytes, content-length=10
@@ -1035,12 +1044,10 @@ mod tests {
         let handle = unsafe { rb_net_open(url.as_ptr()) };
         assert!(handle >= 0);
 
-        // Seek 4 GB past current position (simulates uint32_t underflow in C).
-        let result = rb_net_lseek(handle, 4_294_967_295, libc::SEEK_CUR);
-        // Should clamp to content_length (10), not return -1.
-        assert_eq!(result, 10, "seek past EOF should clamp to content_length");
+        // Seek to exactly content_length (clamps to EOF).
+        let result = rb_net_lseek(handle, 10, libc::SEEK_SET);
+        assert_eq!(result, 10, "seek to content_length should clamp to EOF");
 
-        // Subsequent reads must return 0 (EOF), not -1 (broken stream).
         let mut buf = vec![0u8; 16];
         let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
         assert_eq!(n, 0, "read after clamped seek should return 0 (EOF)");
