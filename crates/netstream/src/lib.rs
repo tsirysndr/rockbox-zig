@@ -5,6 +5,7 @@ use std::io::{self, Read};
 use std::os::raw::c_char;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tracing::{debug, warn};
 
 /// Sentinel handle ID returned on error.
@@ -159,23 +160,17 @@ impl StreamState {
 }
 
 fn read_as_file<R: Read>(reader: &mut R, buf: &mut [u8]) -> io::Result<usize> {
-    let mut total = 0;
-
-    while total < buf.len() {
-        match reader.read(&mut buf[total..]) {
-            Ok(0) => break,
-            Ok(bytes_read) => total += bytes_read,
+    // Single-shot: return whatever the first read delivers rather than looping
+    // to fill the entire buffer.  The C buffering thread calls yield() after
+    // each rb_net_read() return and re-checks the queue, so more frequent
+    // shorter returns keep the current-track ring buffer from starving.
+    loop {
+        match reader.read(buf) {
+            Ok(n) => return Ok(n),
             Err(err) if err.kind() == io::ErrorKind::Interrupted => continue,
-            Err(err) => {
-                if total > 0 {
-                    break;
-                }
-                return Err(err);
-            }
+            Err(err) => return Err(err),
         }
     }
-
-    Ok(total)
 }
 
 static STREAMS: Lazy<Mutex<HashMap<i32, Arc<Mutex<StreamState>>>>> =
@@ -184,6 +179,8 @@ static STREAMS: Lazy<Mutex<HashMap<i32, Arc<Mutex<StreamState>>>>> =
 static CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
     reqwest::blocking::Client::builder()
         .use_rustls_tls()
+        .connect_timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(30))
         .build()
         .expect("failed to build global HTTP client")
 });
@@ -667,14 +664,18 @@ mod tests {
     }
 
     #[test]
-    fn test_read_as_file_retries_partial_reads() {
+    fn test_read_as_file_single_shot() {
+        // read_as_file returns after the first successful read so the C
+        // buffering thread can yield() and check its queue between network
+        // reads.  With a PartialReader limited to 3 bytes per read, only
+        // those 3 bytes are returned; the caller is expected to retry.
         let mut reader = PartialReader::new(b"Hello, Rockbox!", 3);
         let mut buf = vec![0u8; 15];
 
         let n = read_as_file(&mut reader, &mut buf).unwrap();
 
-        assert_eq!(n, 15);
-        assert_eq!(&buf, b"Hello, Rockbox!");
+        assert_eq!(n, 3);
+        assert_eq!(&buf[..n], b"Hel");
     }
 
     /// rb_net_read returns 0 at EOF (after all bytes have been consumed).

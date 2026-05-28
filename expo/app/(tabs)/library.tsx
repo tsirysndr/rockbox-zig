@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -26,7 +26,6 @@ import { useIsConnected } from "@/lib/connection";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
-import { qk } from "@/lib/queries";
 import { RockboxClient } from "@/lib/rockbox-client";
 import {
   useLibraryAlbums,
@@ -50,29 +49,19 @@ import { useNdActiveServer } from "@/lib/navidrome-store";
 import { usePlayer } from "@/lib/player-context";
 import type { LibrarySection, Track } from "@/lib/types";
 
-type NdSection = "nd-albums" | "nd-artists" | "nd-songs" | "nd-liked" | "nd-playlists";
+type Source = "local" | "navidrome";
 
-const LOCAL_SECTIONS: { id: LibrarySection; label: string }[] = [
+const SECTIONS: { id: LibrarySection; label: string }[] = [
   { id: "playlists", label: "Playlists" },
-  { id: "songs", label: "Songs" },
   { id: "albums", label: "Albums" },
   { id: "artists", label: "Artists" },
+  { id: "songs", label: "Songs" },
   { id: "liked", label: "Liked" },
 ];
 
-const ND_SECTIONS: { id: NdSection; label: string }[] = [
-  { id: "nd-albums", label: "Albums" },
-  { id: "nd-artists", label: "Artists" },
-  { id: "nd-songs", label: "Songs" },
-  { id: "nd-liked", label: "Liked" },
-  { id: "nd-playlists", label: "Playlists" },
-];
-
-type ActiveSection = LibrarySection | "navidrome";
-
 export default function LibraryScreen() {
-  const [section, setSection] = useState<ActiveSection>("playlists");
-  const [ndSection, setNdSection] = useState<NdSection>("nd-albums");
+  const [section, setSection] = useState<LibrarySection>("playlists");
+  const [source, setSource] = useState<Source>("local");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -82,6 +71,11 @@ export default function LibraryScreen() {
   const isConnected = useIsConnected();
   const ndServer = useNdActiveServer();
   const qc = useQueryClient();
+
+  // Auto-reset to local when ND server is disconnected
+  useEffect(() => {
+    if (!ndServer && source === "navidrome") setSource("local");
+  }, [ndServer, source]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -112,7 +106,7 @@ export default function LibraryScreen() {
   const { data: playlists } = useLibraryPlaylists();
   const { data: likedTracks } = useLibraryLikedTracks();
 
-  // ND data (only fetched when ND section is active)
+  // ND data
   const { data: ndAlbums = [], isLoading: ndAlbumsLoading } = useNdAlbums();
   const { data: ndArtists = [], isLoading: ndArtistsLoading } = useNdArtists();
   const { data: ndSongs = [], isLoading: ndSongsLoading } = useNdSongs();
@@ -164,7 +158,6 @@ export default function LibraryScreen() {
     [q, likedTracks],
   );
 
-  // ND search filters
   const filteredNdAlbums = useMemo(
     () => (q ? ndAlbums.filter((a) => a.name.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q)) : ndAlbums),
     [q, ndAlbums],
@@ -199,11 +192,6 @@ export default function LibraryScreen() {
     () => (q ? ndPlaylists.filter((p) => p.name.toLowerCase().includes(q)) : ndPlaylists),
     [q, ndPlaylists],
   );
-
-  const topSections = [
-    ...LOCAL_SECTIONS,
-    ...(ndServer ? [{ id: "navidrome" as ActiveSection, label: "Navidrome" }] : []),
-  ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -257,14 +245,34 @@ export default function LibraryScreen() {
         </View>
       ) : null}
 
-      {/* Top-level section pills */}
+      {/* Source toggle — only shown when a Navidrome server is connected */}
+      {ndServer ? (
+        <View className="flex-row items-center px-4 pb-2 gap-2">
+          {(["local", "navidrome"] as Source[]).map((src) => {
+            const active = source === src;
+            return (
+              <Pressable
+                key={src}
+                onPress={() => setSource(src)}
+                className={`h-7 px-3.5 rounded-full items-center justify-center ${active ? "bg-accent" : "bg-bg-card"}`}
+              >
+                <Text className={`text-[12px] font-sans ${active ? "text-white font-semibold" : "text-text-secondary font-medium"}`}>
+                  {src === "local" ? "Local" : ndServer.label || "Navidrome"}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
+      {/* Section pills */}
       <View className="h-12 mb-1">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center", gap: 8 }}
         >
-          {topSections.map((s) => {
+          {SECTIONS.map((s) => {
             const active = s.id === section;
             return (
               <Pressable
@@ -283,35 +291,33 @@ export default function LibraryScreen() {
         </ScrollView>
       </View>
 
-      {/* ND sub-section pills */}
-      {section === "navidrome" ? (
-        <View className="h-10 mb-1">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center", gap: 6 }}
-          >
-            {ND_SECTIONS.map((s) => {
-              const active = s.id === ndSection;
-              return (
-                <Pressable
-                  key={s.id}
-                  onPress={() => setNdSection(s.id)}
-                  className={`h-7 px-3 rounded-full items-center justify-center ${active ? "bg-accent/80" : "bg-bg-elevated"}`}
-                >
-                  <Text className={`text-[12px] font-sans ${active ? "text-white font-semibold" : "text-text-secondary"}`}>
-                    {s.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      ) : null}
-
       {/* ── Content ─────────────────────────────────────────────────────────── */}
 
-      {!isConnected && section !== "navidrome" ? (
+      {source === "navidrome" ? (
+        <NdSectionContent
+          section={section}
+          ndAlbums={filteredNdAlbums}
+          ndArtists={filteredNdArtists}
+          ndSongs={filteredNdSongs}
+          ndStarred={filteredNdStarred}
+          ndPlaylists={filteredNdPlaylists}
+          ndAlbumsLoading={ndAlbumsLoading}
+          ndArtistsLoading={ndArtistsLoading}
+          ndSongsLoading={ndSongsLoading}
+          ndStarredLoading={ndStarredLoading}
+          ndPlaylistsLoading={ndPlaylistsLoading}
+          ndStarredIds={ndStarredIds}
+          starMut={starMut}
+          unstarMut={unstarMut}
+          ndServer={ndServer}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          playQueue={playQueue}
+          bottomPad={bottomPad}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      ) : !isConnected ? (
         <NotConnectedState />
       ) : section === "playlists" ? (
         <FlatList
@@ -463,6 +469,7 @@ export default function LibraryScreen() {
             </View>
           }
           ListEmptyComponent={<Text className="text-text-secondary px-4 font-sans">No liked songs yet. Tap the heart on any track.</Text>}
+          contentContainerStyle={{ paddingBottom: bottomPad }}
           renderItem={({ item }) => {
             const isCurrent = currentTrack?.id === item.id && !!item.id;
             return (
@@ -483,30 +490,6 @@ export default function LibraryScreen() {
               </Pressable>
             );
           }}
-        />
-      ) : section === "navidrome" ? (
-        <NdSectionContent
-          ndSection={ndSection}
-          ndAlbums={filteredNdAlbums}
-          ndArtists={filteredNdArtists}
-          ndSongs={filteredNdSongs}
-          ndStarred={filteredNdStarred}
-          ndPlaylists={filteredNdPlaylists}
-          ndAlbumsLoading={ndAlbumsLoading}
-          ndArtistsLoading={ndArtistsLoading}
-          ndSongsLoading={ndSongsLoading}
-          ndStarredLoading={ndStarredLoading}
-          ndPlaylistsLoading={ndPlaylistsLoading}
-          ndStarredIds={ndStarredIds}
-          starMut={starMut}
-          unstarMut={unstarMut}
-          ndServer={ndServer}
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          playQueue={playQueue}
-          bottomPad={bottomPad}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
         />
       ) : null}
 
@@ -545,7 +528,7 @@ export default function LibraryScreen() {
 // ── Navidrome section content ─────────────────────────────────────────────────
 
 type NdSectionContentProps = {
-  ndSection: NdSection;
+  section: LibrarySection;
   ndAlbums: import("@/lib/navidrome-client").NdAlbum[];
   ndArtists: import("@/lib/navidrome-client").NdArtist[];
   ndSongs: import("@/lib/navidrome-client").NdSong[];
@@ -569,7 +552,7 @@ type NdSectionContentProps = {
 };
 
 function NdSectionContent({
-  ndSection,
+  section,
   ndAlbums,
   ndArtists,
   ndSongs,
@@ -616,9 +599,23 @@ function NdSectionContent({
     };
   }
 
+  if (!ndServer) {
+    return (
+      <View className="flex-1 px-4 py-8 items-center gap-3">
+        <Ionicons name="musical-notes-outline" size={40} color={Colors.textMuted} />
+        <Text className="text-text-secondary text-[14px] font-sans text-center">
+          Connect a Navidrome server in Settings → Navidrome / Subsonic
+        </Text>
+        <Pressable onPress={() => router.push("/settings/navidrome" as any)} className="mt-2 px-4 py-2 rounded-full bg-accent active:opacity-80">
+          <Text className="text-white text-[13px] font-display">Connect</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   // ── Albums ────────────────────────────────────────────────────────────────
 
-  if (ndSection === "nd-albums") {
+  if (section === "albums") {
     return (
       <FlatList
         key="nd-albums"
@@ -639,20 +636,10 @@ function NdSectionContent({
                 </View>
               ))}
             </View>
-          ) : !ndServer ? (
-            <View className="px-4 py-8 items-center gap-3">
-              <Ionicons name="musical-notes-outline" size={40} color={Colors.textMuted} />
-              <Text className="text-text-secondary text-[14px] font-sans text-center">
-                Connect a Navidrome server in Settings → Navidrome / Subsonic
-              </Text>
-              <Pressable onPress={() => router.push("/settings/navidrome" as any)} className="mt-2 px-4 py-2 rounded-full bg-accent active:opacity-80">
-                <Text className="text-white text-[13px] font-display">Connect</Text>
-              </Pressable>
-            </View>
           ) : null
         }
         renderItem={({ item }) => {
-          const artSrc = item.coverArt && ndServer
+          const artSrc = item.coverArt
             ? coverArtUrl(ndServer.baseUrl, ndServer.user, ndServer.password, item.coverArt, 300)
             : null;
           return (
@@ -679,7 +666,7 @@ function NdSectionContent({
 
   // ── Artists ───────────────────────────────────────────────────────────────
 
-  if (ndSection === "nd-artists") {
+  if (section === "artists") {
     return (
       <FlatList
         key="nd-artists"
@@ -703,7 +690,7 @@ function NdSectionContent({
           ) : null
         }
         renderItem={({ item }) => {
-          const artSrc = item.coverArt && ndServer
+          const artSrc = item.coverArt
             ? coverArtUrl(ndServer.baseUrl, ndServer.user, ndServer.password, item.coverArt, 150)
             : null;
           return (
@@ -730,8 +717,8 @@ function NdSectionContent({
 
   // ── Songs ─────────────────────────────────────────────────────────────────
 
-  if (ndSection === "nd-songs") {
-    const tracks = ndSongs.map(ndSongToTrack);
+  if (section === "songs") {
+    const songTracks = ndSongs.map(ndSongToTrack);
     return (
       <FlatList
         key="nd-songs"
@@ -755,15 +742,15 @@ function NdSectionContent({
           ) : null
         }
         renderItem={({ item, index }) => {
-          const track = tracks[index];
+          const track = songTracks[index];
           const isCurrent = currentTrack?.id === item.id;
           const isStarred = ndStarredIds.has(item.id);
-          const artSrc = item.coverArt && ndServer
+          const artSrc = item.coverArt
             ? coverArtUrl(ndServer.baseUrl, ndServer.user, ndServer.password, item.coverArt, 150)
             : null;
           return (
             <Pressable
-              onPress={() => track && playQueue(tracks, { startIdx: index })}
+              onPress={() => track && playQueue(songTracks, { startIdx: index })}
               className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover"
             >
               <Text className="text-text-muted text-[13px] font-mono w-6 text-right">{index + 1}</Text>
@@ -792,8 +779,8 @@ function NdSectionContent({
 
   // ── Liked (starred) ───────────────────────────────────────────────────────
 
-  if (ndSection === "nd-liked") {
-    const tracks = ndStarred.map(ndSongToTrack);
+  if (section === "liked") {
+    const likedTracks = ndStarred.map(ndSongToTrack);
     return (
       <FlatList
         key="nd-liked"
@@ -812,11 +799,11 @@ function NdSectionContent({
               </View>
             </View>
             <View className="flex-row items-center gap-4 mt-4">
-              <Pressable hitSlop={6} onPress={() => playQueue(tracks, { shuffle: true })} disabled={tracks.length === 0}>
-                <Ionicons name="shuffle" size={26} color={tracks.length === 0 ? Colors.textMuted : Colors.textPrimary} />
+              <Pressable hitSlop={6} onPress={() => playQueue(likedTracks, { shuffle: true })} disabled={likedTracks.length === 0}>
+                <Ionicons name="shuffle" size={26} color={likedTracks.length === 0 ? Colors.textMuted : Colors.textPrimary} />
               </Pressable>
               <View className="flex-1" />
-              <Pressable onPress={() => playQueue(tracks)} disabled={tracks.length === 0} className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 disabled:opacity-40" style={{ shadowColor: Colors.accent, shadowOpacity: 0.5, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } }}>
+              <Pressable onPress={() => playQueue(likedTracks)} disabled={likedTracks.length === 0} className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 disabled:opacity-40" style={{ shadowColor: Colors.accent, shadowOpacity: 0.5, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } }}>
                 <Ionicons name="play" size={26} color="#FFFFFF" style={{ marginLeft: 3 }} />
               </Pressable>
             </View>
@@ -829,13 +816,13 @@ function NdSectionContent({
           )
         }
         renderItem={({ item, index }) => {
-          const track = tracks[index];
+          const track = likedTracks[index];
           const isCurrent = currentTrack?.id === item.id;
-          const artSrc = item.coverArt && ndServer
+          const artSrc = item.coverArt
             ? coverArtUrl(ndServer.baseUrl, ndServer.user, ndServer.password, item.coverArt, 150)
             : null;
           return (
-            <Pressable onPress={() => track && playQueue(tracks, { startIdx: index })} className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover">
+            <Pressable onPress={() => track && playQueue(likedTracks, { startIdx: index })} className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover">
               {artSrc ? (
                 <Image source={artSrc} className="w-11 h-11 rounded" contentFit="cover" />
               ) : (
@@ -884,7 +871,7 @@ function NdSectionContent({
         ) : null
       }
       renderItem={({ item }) => {
-        const artSrc = item.coverArt && ndServer
+        const artSrc = item.coverArt
           ? coverArtUrl(ndServer.baseUrl, ndServer.user, ndServer.password, item.coverArt, 150)
           : null;
         return (

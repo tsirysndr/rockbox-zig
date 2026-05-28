@@ -679,6 +679,13 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
         return true;
     }
 
+    /* For HTTP streams, limit to one file-chunk per call so that fill_buffer()
+     * can round-robin between handles.  Without this, buffer_handle() loops
+     * filling as much HTTP data as fits in the ring buffer — blocking the
+     * buffering thread for seconds and starving the current-track handle. */
+    if (to_buffer == 0 && stream_is_http_fd(h->fd))
+        to_buffer = BUFFERING_DEFAULT_FILECHUNK;
+
     bool stop = false;
     while (h->end < h->filesize && !stop)
     {

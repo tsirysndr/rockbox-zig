@@ -17,6 +17,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+/* Define LOGF_ENABLE to enable logf output in this file */
+/* #define LOGF_ENABLE */
+#include "logf.h"
+
 /* ------------------------------------------------------------------
  * C declarations for the Rust ABI exported by crates/netstream.
  * ------------------------------------------------------------------ */
@@ -50,16 +54,16 @@ int stream_open(const char *path, int flags)
 
     if (path_is_url(path)) {
         int32_t h = rb_net_open(path);
-        fprintf(stderr, "[streamfd] stream_open(URL): url=%s handle=%d\n", path, (int)h);
+        logf("[streamfd] stream_open(URL): url=%s handle=%d", path, (int)h);
         if (h < 0)
             return -1;
         int fd = STREAM_HTTP_FD_BASE - (int)h;
-        fprintf(stderr, "[streamfd] stream_open: url=%s -> http_fd=%d\n", path, fd);
+        logf("[streamfd] stream_open: url=%s -> http_fd=%d", path, fd);
         return fd;
     }
 
     int fd = open(path, flags);
-    fprintf(stderr, "[streamfd] stream_open(file): path=%s -> fd=%d\n", path, fd);
+    logf("[streamfd] stream_open(file): path=%s -> fd=%d", path, fd);
     return fd;
 }
 
@@ -67,19 +71,18 @@ ssize_t stream_read(int fd, void *buf, size_t n)
 {
     if (stream_is_http_fd(fd)) {
         int64_t r = rb_net_read(http_fd_to_handle(fd), buf, n);
-        fprintf(stderr, "[streamfd] stream_read: http_fd=%d n=%zu -> %lld\n", fd, n, (long long)r);
+        logf("[streamfd] stream_read: http_fd=%d n=%zu -> %lld", fd, n, (long long)r);
         return (ssize_t)r;
     }
-    ssize_t r = read(fd, buf, n);
-    return r;
+    return read(fd, buf, n);
 }
 
 off_t stream_lseek(int fd, off_t off, int whence)
 {
     if (stream_is_http_fd(fd)) {
         int64_t r = rb_net_lseek(http_fd_to_handle(fd), (int64_t)off, whence);
-        fprintf(stderr, "[streamfd] stream_lseek: http_fd=%d off=%lld whence=%d -> %lld\n",
-                fd, (long long)off, whence, (long long)r);
+        logf("[streamfd] stream_lseek: http_fd=%d off=%lld whence=%d -> %lld",
+             fd, (long long)off, whence, (long long)r);
         return (off_t)r;
     }
     return lseek(fd, off, whence);
@@ -90,8 +93,8 @@ int stream_close(int fd)
     if (fd == -1)
         return 0;
     if (stream_is_http_fd(fd)) {
-        fprintf(stderr, "[streamfd] stream_close: http_fd=%d (handle=%d)\n",
-                fd, http_fd_to_handle(fd));
+        logf("[streamfd] stream_close: http_fd=%d (handle=%d)",
+             fd, http_fd_to_handle(fd));
         rb_net_close(http_fd_to_handle(fd));
         return 0;
     }
@@ -102,14 +105,9 @@ off_t stream_filesize_fd(int fd)
 {
     if (stream_is_http_fd(fd)) {
         int64_t len = rb_net_len(http_fd_to_handle(fd));
-        off_t result;
-        if (len < 0) {
-            result = (off_t)0x7FFFFFFF;
-        } else {
-            result = (off_t)len;
-        }
-        fprintf(stderr, "[streamfd] stream_filesize_fd: http_fd=%d -> %lld (raw_len=%lld)\n",
-                fd, (long long)result, (long long)len);
+        off_t result = len < 0 ? (off_t)0x7FFFFFFF : (off_t)len;
+        logf("[streamfd] stream_filesize_fd: http_fd=%d -> %lld (raw_len=%lld)",
+             fd, (long long)result, (long long)len);
         return result;
     }
     return filesize(fd);
