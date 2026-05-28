@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.28]
+
+### Added
+- `netstream`: background prefetch thread per HTTP stream — a dedicated thread fills a 2 MB `VecDeque` buffer from the network so `rb_net_read` drains in sub-µs without ever blocking on TCP; forward seeks within the prefetch window consume buffered bytes without issuing a new `Range` request; backward or large (>2 MB) forward seeks issue a `Range` request and replace the reader thread atomically
+
+### Fixed
+- HTTP streaming: removed reqwest total-request timeout (only `connect_timeout` 15 s remains) — the previous 30 s deadline killed large remote files mid-stream; `read_as_file()` reverted to a retry-loop that fills the full requested buffer
+- Buffering interleaving: `fill_buffer()` now passes `BUFFERING_DEFAULT_FILECHUNK` instead of `0` when a second handle has remaining data, so next-track pre-buffering round-robins with the current track instead of monopolising the buffering thread and starving the ring buffer
+- HTTP pre-buffering cutting current-track playback: `buffer_handle()` caps HTTP handles to one `BUFFERING_DEFAULT_FILECHUNK` per call; `streamfd.c` replaces per-chunk `fprintf(stderr, …)` with `logf()` (compiled out in production) to eliminate hundreds of blocking `write(2)` syscalls per track
+- Expo: Navidrome cover art now appears in the miniplayer, full-screen player, and queue when playing ND HTTP streams — `coverArtUrlFromStreamUrl()` added to `navidrome-client.ts` reconstructs a `getCoverArt` URL from the `id`, `u`, `t`, `s` parameters embedded in the stream URL; used as a fallback in `trackFromProto` when `album_art` is empty
+
 ## [2026.05.27]
 
 ### Added
