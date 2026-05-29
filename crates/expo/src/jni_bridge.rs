@@ -131,6 +131,28 @@ macro_rules! bridge_json_int {
     };
 }
 
+// ── JNI_OnLoad — initialize ndk-context for cpal's Android backend ──────────
+
+/// Called by Android's dynamic linker when `System.loadLibrary("rockbox_expo")`
+/// runs — before any JNI methods are called, before rb_daemon_start().
+///
+/// cpal's Android backend (oboe → android_media) needs the JavaVM* to call JNI
+/// methods that enumerate supported audio buffer sizes. It retrieves it via
+/// `ndk_context::android_context()`. If ndk_context was never initialized that
+/// call hits `.expect("android context was not initialized")` which panics, and
+/// the panic unwinds through pcm_cpal_start's extern "C" boundary → process abort.
+///
+/// Registering JNI_OnLoad and calling `ndk_context::initialize_android_context`
+/// here fixes that: the JavaVM* is valid for the lifetime of the process.
+#[no_mangle]
+pub unsafe extern "system" fn JNI_OnLoad(
+    vm: *mut std::ffi::c_void,
+    _reserved: *mut std::ffi::c_void,
+) -> i32 {
+    ndk_context::initialize_android_context(vm, std::ptr::null_mut());
+    0x0001_0006 // JNI_VERSION_1_6
+}
+
 // ── Init / health ───────────────────────────────────────────────────────────
 
 bridge_unit_str!(

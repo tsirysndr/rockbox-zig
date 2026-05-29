@@ -9,8 +9,8 @@
 # is produced by cargo via crates/expo/build.rs, NOT by this make. Our job:
 #
 #   1. Pull in the Android target-tree sources (system-android.c,
-#      pcm-aaudio.c, lc-android.c, rb_zig_compat.c, lcd-noop.c, button-noop.c)
-#      so they end up in libfirmware.a.
+#      lc-android.c, rb_zig_compat.c, lcd-noop.c, button-noop.c) so they
+#      end up in libfirmware.a. Audio output uses pcm-cpal.c (oboe/AAudio).
 #   2. Build a "static-libs.stamp" sentinel after all required archives have
 #      been (re)built — $(BINARY) points at it via tools/configure.
 

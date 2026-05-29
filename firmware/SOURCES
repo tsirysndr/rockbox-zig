@@ -1997,7 +1997,7 @@ target/hosted/kernel-unix.c
 target/hosted/filesystem-unix.c
 
 #if defined(CODECS_STATIC)
-/* cdylib build — headless, cpal, BINFMT_STATIC. */
+/* cdylib build — headless, cpal PCM (AAudio via oboe), BINFMT_STATIC. */
 target/hosted/android/cdylib/system-android.c
 target/hosted/headless/pcm-cpal.c
 target/hosted/android/cdylib/lc-android.c

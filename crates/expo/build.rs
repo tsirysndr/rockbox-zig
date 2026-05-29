@@ -136,12 +136,16 @@ fn link_firmware() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Android system libs needed by our cdylib files (pcm-aaudio.c uses
-    // AAudio, system-android.c uses __android_log_print).
+    // Android system libs needed by system-android.c (__android_log_print).
+    // c++_shared is required because cpal's oboe backend is C++ — oboe-sys's
+    // build.rs compiles the C++ source but leaves the C++ runtime link commented
+    // out, so __cxa_pure_virtual and other ABI symbols are missing from the .so
+    // without this explicit flag. cargo-ndk will bundle libc++_shared.so in the
+    // APK alongside our .so when it sees the DT_NEEDED entry.
     if target_os == "android" {
         println!("cargo:rustc-link-lib=dylib=log");
         println!("cargo:rustc-link-lib=dylib=android");
-        println!("cargo:rustc-link-lib=dylib=aaudio");
+        println!("cargo:rustc-link-lib=dylib=c++_shared");
     }
 
     // Codecs each ship their own copy of libogg (vorbis/opus/speex/tremor

@@ -31,7 +31,7 @@ embedded-daemon = [
     # Enabling `ffi` on each makes their #[no_mangle] pcm_*_* C-ABI
     # exports actually compile (gated otherwise so desktop dev builds
     # without the firmware don't pay for them).
-    "dep:rockbox-cpal-sink",      # builtin sink on Android cdylib (replaces pcm-aaudio.c)
+    "dep:rockbox-cpal-sink",      # cpal PCM sink on Android cdylib (replaces pcm-aaudio.c)
     "dep:rockbox-airplay",
     "dep:rockbox-slim",       "rockbox-slim/ffi",
     "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
@@ -80,6 +80,10 @@ jni = "0.21"
 # init/teardown logs to `adb logcat -s rockbox`.
 tracing            = "0.1"
 tracing-android    = "0.2"
+# ndk-context provides the JavaVM* / Activity* pointers used by cpal's Android
+# audio backend (oboe → android_media JNI). We initialize it in JNI_OnLoad so
+# that pcm_cpal_start() can call cpal::default_host() without panicking.
+ndk-context        = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "registry", "fmt"] }
 
 [build-dependencies]

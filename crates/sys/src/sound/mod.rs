@@ -78,10 +78,9 @@ pub fn keyclick_click(rawbutton: bool, action: i32) {
 /// Stock crossfade setter — drives the firmware directly. **Don't call
 /// while audio is actively playing**: the firmware reconfigures the PCM
 /// buffer ring (pcmbuf_init / audio_remake_audio_buffers), and on hosted
-/// pthread targets (Android cdylib's pcm-aaudio.c) the writer pthread
-/// runs asynchronously and races into half-rebuilt state → SIGSEGV at
-/// PC=0 inside pcmbuf_pcm_callback. Use [`audio_set_crossfade_safe`] for
-/// any caller that might fire mid-playback.
+/// pthread targets the writer pthread runs asynchronously and races into
+/// half-rebuilt state → SIGSEGV at PC=0 inside pcmbuf_pcm_callback.
+/// Use [`audio_set_crossfade_safe`] for any caller that might fire mid-playback.
 pub fn audio_set_crossfade(crossfade: i32) {
     unsafe { crate::audio_set_crossfade(crossfade) }
 }

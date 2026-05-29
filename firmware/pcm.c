@@ -86,7 +86,7 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_BUILTIN]      = &webapi_pcm_sink,    /* Web Audio API = default on WASM */
 #elif defined(CODECS_STATIC)
-    [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on headless + Android cdylib */
+    [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on Android cdylib + headless */
 #else
     [PCM_SINK_BUILTIN]      = &builtin_pcm_sink,
 #endif

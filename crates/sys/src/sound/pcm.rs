@@ -9,7 +9,8 @@ pub const PCM_SINK_SQUEEZELITE: i32 = 3;
 pub const PCM_SINK_UPNP: i32 = 4;
 pub const PCM_SINK_CHROMECAST: i32 = 5;
 pub const PCM_SINK_SNAPCAST_TCP: i32 = 6;
-// PCM_SINK_CPAL = 7 on Android cdylib and headless macOS/Linux builds
+// PCM_SINK_AAUDIO = 7 on Android cdylib builds
+// PCM_SINK_CPAL   = 7 on headless macOS/Linux builds
 pub const PCM_SINK_CPAL: i32 = 7;
 
 pub fn apply_settings() {
