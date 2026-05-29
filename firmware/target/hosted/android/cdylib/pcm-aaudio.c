@@ -1,12 +1,19 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  *
- * AAudio PCM sink for the Android cdylib build. Models pcm-fifo.c —
- * push-with-completion-callback contract: the engine calls
- * sink_dma_start(addr, size) once, then a writer thread drains the
- * chunk into an AAudio output stream and asks the engine for the next
- * via pcm_play_dma_complete_callback().
+ * AAudio PCM sink for the Android cdylib build.
  *
- * Write mode (not callback mode) — see project memory note for rationale.
+ * Architecture (mirrors pcm-cpal.c / cpal-sink.rs exactly):
+ *
+ *   aa_thread  →  ring_push(data)  →  512 KB ring buffer  →  data_callback  →  speaker
+ *
+ * The ring buffer decouples Rockbox's chunk-based output from AAudio's
+ * hardware callback timing.  When the ring is momentarily empty (e.g. during
+ * an HTTP prefetch stall), the callback writes silence in real-time — the
+ * firmware never injects silence itself.  This is identical to how
+ * cpal-sink's VecDeque works on Linux/macOS, giving Android the same smooth
+ * HTTP streaming behaviour.
+ *
+ * Uses AAudio data-callback mode (not blocking-write mode).
  * Requires AAudio (NDK API 26+).
  */
 
@@ -37,31 +44,120 @@
 #define LOGW(fmt, ...) __android_log_print(ANDROID_LOG_WARN,  TAG, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) __android_log_print(ANDROID_LOG_ERROR, TAG, fmt, ##__VA_ARGS__)
 
-#define BYTES_PER_FRAME 4   /* S16_LE stereo */
+#define BYTES_PER_FRAME 4   /* S16_LE stereo: 2 ch × 2 bytes */
 
-static AAudioStream *aa_stream      = NULL;
-/* HW_FREQ_DEFAULT is an INDEX into hw_freq_sampr (not Hz). Until the first
- * codec calls set_freq, aa_sample_rate=0 means "let AAudio pick the device
- * default rate" — better than opening at "index Hz" (4, 6, …) which AAudio
- * silently rejects and falls back to the device rate anyway. set_freq will
- * resolve the index to a real rate (44100, 48000, …) on the first call. */
-static int32_t       aa_sample_rate = 0;
+/* ── Stop / disconnect flags (declared early so ring_push can read them) ──── */
 
-static const void *pcm_data = NULL;
-static size_t      pcm_size = 0;
+static volatile bool   aa_stop         = false;
+static volatile bool   aa_disconnected = false;
 
-static void  *aa_vol_buf     = NULL;
-static size_t aa_vol_buf_cap = 0;
+/* ── Ring buffer ─────────────────────────────────────────────────────────────
+ *
+ * 512 KB ≈ 2.9 s at 44100 Hz / 128 kbps.  Same capacity as the VecDeque in
+ * crates/cpal-sink/src/lib.rs — chosen to absorb typical HTTP jitter without
+ * perceptible startup latency.
+ *
+ * Producer: aa_thread (blocks on back-pressure via ring_space_cv).
+ * Consumer: data_callback on AAudio's high-priority thread (non-blocking;
+ *           fills silence for any shortfall).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+#define RING_SIZE (512 * 1024)
+
+static uint8_t         ring_buf[RING_SIZE];
+static size_t          ring_rd   = 0;   /* consumer read index  */
+static size_t          ring_wr   = 0;   /* producer write index */
+static size_t          ring_fill = 0;   /* bytes currently buffered */
+static pthread_mutex_t ring_mtx;
+static pthread_cond_t  ring_space_cv;   /* signalled when fill < RING_SIZE */
+
+static void ring_reset(void)
+{
+    pthread_mutex_lock(&ring_mtx);
+    ring_rd = ring_wr = ring_fill = 0;
+    pthread_cond_broadcast(&ring_space_cv);
+    pthread_mutex_unlock(&ring_mtx);
+}
+
+/* Push n bytes into the ring.  Blocks when full (back-pressure to aa_thread).
+ * Returns early if aa_stop or aa_disconnected is set. */
+static void ring_push(const void *src, size_t n)
+{
+    const uint8_t *p = (const uint8_t *)src;
+    while (n > 0) {
+        pthread_mutex_lock(&ring_mtx);
+        while (ring_fill >= RING_SIZE) {
+            if (aa_stop || aa_disconnected) {
+                pthread_mutex_unlock(&ring_mtx);
+                return;
+            }
+            pthread_cond_wait(&ring_space_cv, &ring_mtx);
+        }
+        if (aa_stop || aa_disconnected) {
+            pthread_mutex_unlock(&ring_mtx);
+            return;
+        }
+
+        size_t space = RING_SIZE - ring_fill;
+        size_t chunk = n < space ? n : space;
+
+        size_t tail = RING_SIZE - ring_wr;
+        if (chunk <= tail) {
+            memcpy(ring_buf + ring_wr, p, chunk);
+        } else {
+            memcpy(ring_buf + ring_wr, p,      tail);
+            memcpy(ring_buf,           p + tail, chunk - tail);
+        }
+        ring_wr    = (ring_wr + chunk) % RING_SIZE;
+        ring_fill += chunk;
+        p += chunk;
+        n -= chunk;
+        pthread_mutex_unlock(&ring_mtx);
+    }
+}
+
+/* Drain n bytes from the ring into dst.  Never blocks — fills any shortfall
+ * with silence.  Called from the AAudio data callback. */
+static void ring_pop(void *dst, size_t n)
+{
+    uint8_t *d = (uint8_t *)dst;
+    pthread_mutex_lock(&ring_mtx);
+
+    size_t avail = ring_fill < n ? ring_fill : n;
+    if (avail > 0) {
+        size_t tail = RING_SIZE - ring_rd;
+        if (avail <= tail) {
+            memcpy(d, ring_buf + ring_rd, avail);
+        } else {
+            memcpy(d,        ring_buf + ring_rd, tail);
+            memcpy(d + tail, ring_buf,            avail - tail);
+        }
+        ring_rd    = (ring_rd + avail) % RING_SIZE;
+        ring_fill -= avail;
+        pthread_cond_signal(&ring_space_cv);
+    }
+
+    pthread_mutex_unlock(&ring_mtx);
+
+    /* Underrun: fill remaining output with silence so the stream never
+     * produces garbage.  This is the ONLY place silence enters the signal
+     * chain — the firmware itself never injects silence. */
+    if (avail < n)
+        memset(d + avail, 0, n - avail);
+}
+
+/* ── AAudio stream ───────────────────────────────────────────────────────── */
+
+static AAudioStream   *aa_stream      = NULL;
+/* See set_freq comment: 0 means "let AAudio pick the device default rate". */
+static int32_t         aa_sample_rate = 0;
+
+static const void     *pcm_data = NULL;
+static size_t          pcm_size = 0;
 
 static pthread_mutex_t aa_mtx;
 static pthread_t       aa_tid;
 static volatile bool   aa_running      = false;
-static volatile bool   aa_stop         = false;
-static volatile bool   aa_disconnected = false;
-
-/* 512 stereo S16LE frames of silence — written to the stream between tracks
- * so AAudio never underruns during the inter-track gap. */
-static const int16_t s_silence[512 * 2] = {0};
 
 static void on_error(AAudioStream *s, void *ud, aaudio_result_t err)
 {
@@ -69,7 +165,24 @@ static void on_error(AAudioStream *s, void *ud, aaudio_result_t err)
     LOGW("AAudio error %d (%s) — flagging for reopen",
          err, AAudio_convertResultToText(err));
     aa_disconnected = true;
+    /* Unblock ring_push if it is waiting for space. */
+    pthread_mutex_lock(&ring_mtx);
+    pthread_cond_broadcast(&ring_space_cv);
+    pthread_mutex_unlock(&ring_mtx);
 }
+
+/* ── Data callback (AAudio high-priority thread) ─────────────────────────── */
+
+static aaudio_data_callback_result_t data_callback(
+    AAudioStream *stream, void *userData,
+    void *audioData, int32_t numFrames)
+{
+    (void)stream; (void)userData;
+    ring_pop(audioData, (size_t)numFrames * BYTES_PER_FRAME);
+    return AAUDIO_CALLBACK_RESULT_CONTINUE;
+}
+
+/* ── Stream open / close ─────────────────────────────────────────────────── */
 
 static aaudio_result_t open_stream(int32_t freq)
 {
@@ -82,26 +195,19 @@ static aaudio_result_t open_stream(int32_t freq)
     AAudioStreamBuilder_setDirection      (b, AAUDIO_DIRECTION_OUTPUT);
     AAudioStreamBuilder_setSharingMode    (b, AAUDIO_SHARING_MODE_SHARED);
     /* NONE (default) instead of LOW_LATENCY: music streaming needs buffer
-     * headroom for network jitter, not minimum latency. LOW_LATENCY requests
-     * a ~5ms hardware buffer which underruns whenever the codec read blocks
-     * waiting for an HTTP prefetch — audible as repeated glitches. NONE lets
-     * the driver pick a larger buffer (~100–200ms), eliminating those dropouts
-     * with no perceptible latency difference for music playback. */
+     * headroom for network jitter, not minimum latency. */
     AAudioStreamBuilder_setPerformanceMode(b, AAUDIO_PERFORMANCE_MODE_NONE);
-    /* Request half a second of buffer capacity so brief network bursts /
-     * Wi-Fi retransmissions don't cause underruns. Fall back to 24000 frames
-     * (0.5s at 48kHz) when freq is 0 (postinit before the codec sets the
-     * sample rate). The driver may grant less; this is a hint. */
+    /* Request half a second of hardware buffer capacity.  The driver may
+     * grant less; this is a hint. */
     {
         int32_t cap = freq > 0 ? (int32_t)(freq / 2) : 24000;
         AAudioStreamBuilder_setBufferCapacityInFrames(b, cap);
     }
-    AAudioStreamBuilder_setFormat         (b, AAUDIO_FORMAT_PCM_I16);
-    AAudioStreamBuilder_setChannelCount   (b, 2);
-    AAudioStreamBuilder_setSampleRate     (b, freq);
-    /* setUsage / setContentType are API 28+ — metadata only, skip on API 26
-     * to keep the minSdk floor low. AAudio defaults to MEDIA / MUSIC anyway. */
-    AAudioStreamBuilder_setErrorCallback  (b, on_error, NULL);
+    AAudioStreamBuilder_setFormat       (b, AAUDIO_FORMAT_PCM_I16);
+    AAudioStreamBuilder_setChannelCount (b, 2);
+    AAudioStreamBuilder_setSampleRate   (b, freq);
+    AAudioStreamBuilder_setDataCallback (b, data_callback, NULL);
+    AAudioStreamBuilder_setErrorCallback(b, on_error, NULL);
 
     rc = AAudioStreamBuilder_openStream(b, &aa_stream);
     AAudioStreamBuilder_delete(b);
@@ -125,6 +231,8 @@ static void close_stream(void)
     aa_stream = NULL;
 }
 
+/* ── Writer thread ───────────────────────────────────────────────────────── */
+
 static void *aa_thread(void *arg)
 {
     (void)arg;
@@ -147,6 +255,7 @@ static void *aa_thread(void *arg)
             LOGI("recovering from disconnect");
             close_stream();
             aa_disconnected = false;
+            ring_reset();
             if (open_stream(aa_sample_rate) != AAUDIO_OK ||
                 AAudioStream_requestStart(aa_stream) != AAUDIO_OK) {
                 LOGE("recovery failed — exiting writer");
@@ -162,83 +271,27 @@ static void *aa_thread(void *arg)
         pthread_mutex_unlock(&aa_mtx);
 
         if (size == 0) {
-            /* Codec is momentarily starved.  For HTTP streams this happens
-             * every time the prefetch delivers data in TCP-sized bursts: the
-             * codec consumes one batch and the next hasn't arrived yet.
-             *
-             * The AAudio hardware buffer holds ~150-500 ms of audio
-             * (AAUDIO_PERFORMANCE_MODE_NONE).  Polling for real data lets
-             * that buffer absorb the gap instead of injecting audible silence
-             * on every 1-10 ms network hiccup.
-             *
-             * Poll in 1 ms steps for up to 150 ms before writing silence.
-             * 150 ms < the minimum hardware buffer so no underrun occurs. */
-            {
-                struct timespec t1ms = { 0, 1000000 };
-                for (int ms = 0; ms < 150 && !aa_stop; ms++) {
-                    pthread_mutex_lock(&aa_mtx);
-                    bool has_data = (pcm_data != NULL && pcm_size > 0);
-                    pthread_mutex_unlock(&aa_mtx);
-                    if (has_data) break;
-                    nanosleep(&t1ms, NULL);
-                }
-            }
-            /* Fall through to the top of the loop: if data arrived during
-             * the poll window we write it; otherwise we write one silence
-             * block to keep the stream alive and poll again next iteration. */
-            if (aa_stream) {
-                pthread_mutex_lock(&aa_mtx);
-                bool still_empty = (pcm_data == NULL || pcm_size == 0);
-                pthread_mutex_unlock(&aa_mtx);
-                if (still_empty)
-                    AAudioStream_write(aa_stream, s_silence,
-                                       sizeof(s_silence) / BYTES_PER_FRAME,
-                                       200LL * 1000000LL);
-            } else {
-                struct timespec t = { 0, 10000000 }; /* 10 ms */
-                nanosleep(&t, NULL);
-            }
+            /* No data yet or between tracks.  The ring buffer + data callback
+             * keep the stream alive with silence automatically — no explicit
+             * silence injection needed here. */
+            struct timespec t = { 0, 1000000 }; /* 1 ms */
+            nanosleep(&t, NULL);
             continue;
         }
 
-        /* SW volume scaling skipped on Android — AAudio + Java MediaSession
-         * handle volume system-side. Just write the raw PCM through. */
-        const void *data = raw;
-        (void)aa_vol_buf;
-        (void)aa_vol_buf_cap;
-
-        const uint8_t *p = (const uint8_t *)data;
-        size_t bytes_left = size;
-        while (bytes_left > 0 && !aa_stop && !aa_disconnected) {
-            int32_t frames_left = (int32_t)(bytes_left / BYTES_PER_FRAME);
-            int64_t timeout_ns = 200LL * 1000000LL;
-            aaudio_result_t written =
-                AAudioStream_write(aa_stream, p, frames_left, timeout_ns);
-            if (written < 0) {
-                LOGE("AAudio write failed: %d (%s)",
-                     written, AAudio_convertResultToText(written));
-                aa_disconnected = true;
-                break;
-            }
-            if (written == 0) continue;
-            size_t bytes_written = (size_t)written * BYTES_PER_FRAME;
-            p          += bytes_written;
-            bytes_left -= bytes_written;
-        }
-
+        /* Push chunk into ring (blocks on back-pressure, never on hardware).
+         * The data callback drains the ring at hardware rate in parallel. */
+        ring_push(raw, size);
         if (aa_stop) break;
 
+        /* Ask the firmware for the next PCM chunk. */
         pthread_mutex_lock(&aa_mtx);
         bool got_more = pcm_play_dma_complete_callback(PCM_DMAST_OK,
                                                         &pcm_data, &pcm_size);
         pthread_mutex_unlock(&aa_mtx);
 
         if (!got_more) {
-            /* End of track: don't stop — fall into the silence loop above so
-             * the AAudio stream keeps running until sink_dma_start() provides
-             * the next track's data.  This eliminates the pause/requestStart
-             * gap that causes audible cuts between tracks. */
-            logf("pcm-aaudio: no more PCM data, entering silence loop");
+            logf("pcm-aaudio: no more PCM data, entering idle loop");
             continue;
         }
         pcm_play_dma_status_callback(PCM_DMAST_STARTED);
@@ -251,8 +304,13 @@ static void *aa_thread(void *arg)
     return NULL;
 }
 
+/* ── Sink ops ────────────────────────────────────────────────────────────── */
+
 static void sink_dma_init(void)
 {
+    pthread_mutex_init(&ring_mtx, NULL);
+    pthread_cond_init (&ring_space_cv, NULL);
+
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -270,14 +328,7 @@ static void sink_dma_postinit(void)
 
 static void sink_set_freq(uint16_t freq_index)
 {
-    /* `freq_index` is an INDEX into sink->caps.samprs (== hw_freq_sampr),
-     * NOT a sample rate in Hz. firmware/pcm.c::pcm_set_frequency stores
-     * the index into pending_freq, then pcm_apply_settings forwards that
-     * raw index to set_freq. We must look up the actual Hz rate via
-     * hw_freq_sampr[idx] before passing it to AAudio — otherwise we open
-     * the stream at "4 Hz" (or whatever the index is), AAudio falls back
-     * to the device-default rate (48000), and 44100-Hz audio plays at
-     * 48000 Hz → ~9% faster → chipmunks. Same gotcha as pcm-sdl.c:107. */
+    /* `freq_index` is an INDEX into hw_freq_sampr, not Hz — look up the rate. */
     int32_t hz = (int32_t)hw_freq_sampr[freq_index];
 
     pthread_mutex_lock(&aa_mtx);
@@ -288,6 +339,7 @@ static void sink_set_freq(uint16_t freq_index)
     LOGI("set_freq idx=%u -> %d Hz (was %d Hz)", freq_index, hz, aa_sample_rate);
     aa_sample_rate = hz;
     close_stream();
+    ring_reset();   /* flush audio encoded at the old sample rate */
     open_stream(aa_sample_rate);
     pthread_mutex_unlock(&aa_mtx);
 }
@@ -310,22 +362,23 @@ static void sink_dma_start(const void *addr, size_t size)
         aa_running = true;
         pthread_create(&aa_tid, NULL, aa_thread, NULL);
     }
-    /* If aa_running is already true the thread is in the silence loop and
-     * will pick up the new pcm_data on its next iteration — no new thread. */
+    /* If already running the thread is idle-looping and will pick up
+     * pcm_data on its next 1 ms tick. */
 }
 
 static void sink_dma_stop(void)
 {
     logf("pcm-aaudio: stop");
-    /* Keep the writer thread alive — it transitions to the silence loop and
-     * keeps the AAudio stream running until sink_dma_start() is called for
-     * the next track.  Only null out the pending data so the thread sees no
-     * new chunk to write. */
+    /* Keep the writer thread and AAudio stream alive so the next track
+     * starts without a requestStart gap.  Just clear the pending chunk;
+     * the thread idles at 1 ms ticks until sink_dma_start() is called. */
     pthread_mutex_lock(&aa_mtx);
     pcm_data = NULL;
     pcm_size = 0;
     pthread_mutex_unlock(&aa_mtx);
 }
+
+/* ── Sink descriptor ─────────────────────────────────────────────────────── */
 
 struct pcm_sink aaudio_pcm_sink = {
     .caps = {
