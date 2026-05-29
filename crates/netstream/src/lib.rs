@@ -65,13 +65,19 @@ impl Drop for StreamState {
 
 /// Spawn a background reader that fills `pair` from `response`, retrying from
 /// `start_offset + bytes_written` on TCP error (up to MAX_RETRIES times).
-/// On Android, WiFi power saving can drop TCP connections mid-stream; this
-/// retry logic re-issues a Range request and picks up where the connection
-/// broke so the prefetch buffer (4 MB on Android) never goes dry.
+///
+/// `expected_bytes`: how many bytes this response should deliver
+/// (`content_length - start_offset`). Pass `None` if unknown (live/infinite
+/// streams). Used to detect premature EOF: Android mobile radio or power-save
+/// can close the TCP connection mid-stream, which makes `response.read()`
+/// return `Ok(0)` before all bytes have arrived. Without this check the stream
+/// would be marked as EOF, buffering.c would truncate the track, and playback
+/// would skip to the next file.
 fn spawn_reader(
     pair: Arc<(Mutex<Prefetch>, Condvar)>,
     url: String,
     start_offset: u64,
+    expected_bytes: Option<u64>,
     mut response: reqwest::blocking::Response,
 ) -> thread::JoinHandle<()> {
     thread::spawn(move || {
@@ -93,6 +99,50 @@ fn spawn_reader(
             // Network I/O with no lock held.
             match response.read(&mut buf) {
                 Ok(0) => {
+                    // Distinguish genuine EOF from a mid-stream TCP close.
+                    // Android power-save or LTE handover can terminate the TCP
+                    // connection cleanly (FIN), making read() return Ok(0) even
+                    // though not all bytes have arrived. Check bytes_written
+                    // against expected_bytes to detect this.
+                    let bytes_written = {
+                        let (lock, _) = &*pair;
+                        lock.lock().unwrap().bytes_written
+                    };
+                    let premature = expected_bytes
+                        .map(|exp| bytes_written < exp)
+                        .unwrap_or(false);
+
+                    if premature && retries < MAX_RETRIES {
+                        retries += 1;
+                        let resume_offset = start_offset + bytes_written;
+                        warn!(
+                            "[netstream] premature EOF at {}/{} bytes (attempt {}/{}), \
+                             reconnecting at offset {}",
+                            bytes_written,
+                            expected_bytes.unwrap_or(0),
+                            retries,
+                            MAX_RETRIES,
+                            resume_offset
+                        );
+                        thread::sleep(Duration::from_millis(200 * retries as u64));
+                        {
+                            let (lock, _) = &*pair;
+                            if lock.lock().unwrap().stop {
+                                return;
+                            }
+                        }
+                        let range_header = format!("bytes={}-", resume_offset);
+                        match CLIENT.get(&url).header("Range", range_header).send() {
+                            Ok(resp) if resp.status().as_u16() == 206 => {
+                                response = resp;
+                            }
+                            Ok(_) | Err(_) => {
+                                debug!("[netstream] Range reconnect after premature EOF failed");
+                            }
+                        }
+                        continue;
+                    }
+
                     let (lock, cv) = &*pair;
                     lock.lock().unwrap().eof = true;
                     cv.notify_all();
@@ -184,7 +234,7 @@ impl StreamState {
         let content_length = response.content_length();
         let content_type = Self::response_content_type(&response);
         let pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
-        let t = spawn_reader(Arc::clone(&pair), url.clone(), 0, response);
+        let t = spawn_reader(Arc::clone(&pair), url.clone(), 0, content_length, response);
         Some(StreamState {
             url,
             pos: 0,
@@ -315,8 +365,10 @@ impl StreamState {
             lock.lock().unwrap().stop = true;
             cv.notify_all();
         }
+        let expected = self.content_length.map(|cl| cl.saturating_sub(offset));
         let new_pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
-        let new_thread = spawn_reader(Arc::clone(&new_pair), self.url.clone(), offset, response);
+        let new_thread =
+            spawn_reader(Arc::clone(&new_pair), self.url.clone(), offset, expected, response);
         self.pair = new_pair;
         self._thread = Some(new_thread);
     }
