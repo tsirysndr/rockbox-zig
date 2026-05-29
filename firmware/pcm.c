@@ -83,12 +83,10 @@ extern struct pcm_sink iap_pcm_sink;
 #endif
 
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
-#if defined(__ANDROID__) && defined(CODECS_STATIC)
-    [PCM_SINK_BUILTIN]      = &aaudio_pcm_sink,    /* AAudio = default on Android cdylib */
-#elif (CONFIG_PLATFORM & PLATFORM_WASM)
+#if (CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_BUILTIN]      = &webapi_pcm_sink,    /* Web Audio API = default on WASM */
-#elif defined(CODECS_STATIC) && !defined(__ANDROID__)
-    [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on headless host */
+#elif defined(CODECS_STATIC)
+    [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on headless + Android cdylib */
 #else
     [PCM_SINK_BUILTIN]      = &builtin_pcm_sink,
 #endif
@@ -99,10 +97,7 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_UPNP]         = &upnp_pcm_sink,
     [PCM_SINK_CHROMECAST]   = &chromecast_pcm_sink,
     [PCM_SINK_SNAPCAST_TCP] = &tcp_pcm_sink,
-#if defined(__ANDROID__) && defined(CODECS_STATIC)
-    [PCM_SINK_AAUDIO]       = &aaudio_pcm_sink,    /* also addressable by name */
-#endif
-#if defined(CODECS_STATIC) && !defined(__ANDROID__)
+#if defined(CODECS_STATIC)
     [PCM_SINK_CPAL]         = &cpal_pcm_sink,      /* also addressable by name */
 #endif
 #endif

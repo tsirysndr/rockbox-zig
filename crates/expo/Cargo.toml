@@ -31,6 +31,7 @@ embedded-daemon = [
     # Enabling `ffi` on each makes their #[no_mangle] pcm_*_* C-ABI
     # exports actually compile (gated otherwise so desktop dev builds
     # without the firmware don't pay for them).
+    "dep:rockbox-cpal-sink",      # builtin sink on Android cdylib (replaces pcm-aaudio.c)
     "dep:rockbox-airplay",
     "dep:rockbox-slim",       "rockbox-slim/ffi",
     "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
@@ -66,6 +67,7 @@ rbnetstream        = { path = "../netstream",   package = "netstream", optional 
 # PCM sink crates with C ABI exports the firmware calls (pcm_airplay_*,
 # pcm_squeezelite_*, pcm_chromecast_*, pcm_upnp_*). Each has a tiny
 # _link_<name>() helper specifically for cdylib keepalive.
+rockbox-cpal-sink  = { path = "../cpal-sink",  optional = true }
 rockbox-airplay    = { path = "../airplay",    optional = true }
 rockbox-slim       = { path = "../slim",       optional = true }
 rockbox-chromecast = { path = "../chromecast", optional = true }

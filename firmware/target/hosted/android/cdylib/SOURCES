@@ -1,5 +1,4 @@
 system-android.c
-pcm-aaudio.c
 lc-android.c
 rb_zig_compat.c
 lcd-noop.c

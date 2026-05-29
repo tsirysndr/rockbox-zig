@@ -4,7 +4,7 @@
 //! The firmware spawns its own Rockbox kernel threads, one of which runs
 //! `crates/server::start_server` and binds gRPC on 127.0.0.1:6061.
 //! From there the existing tonic client (rb_play, rb_pause, …) targets
-//! that local port and audio plays out via AAudio.
+//! that local port and audio plays out via cpal (uses AAudio on Android ≥ 26).
 //!
 //! The mere existence of `extern fn main_c()` here is what keeps the C
 //! firmware code from being --gc-sections'd out of the final cdylib.
@@ -71,6 +71,8 @@ static _KEEPALIVE_ROCKBOX_SERVER: &[&str] = &rockbox_server::AUDIO_EXTENSIONS;
 /// helper isn't enough because rustc keeps just that one fn and GCs the
 /// unrelated `pcm_<sink>_*` exports. Referencing a real C-ABI fn pulls
 /// the entire crate's #[no_mangle] export set into the cdylib.
+#[used]
+static _KEEPALIVE_CPAL: extern "C" fn() = rockbox_cpal_sink::pcm_cpal_init;
 #[used]
 static _KEEPALIVE_AIRPLAY: unsafe extern "C" fn(*const c_char, u16) =
     rockbox_airplay::pcm_airplay_set_host;
