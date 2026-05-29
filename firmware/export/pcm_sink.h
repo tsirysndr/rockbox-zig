@@ -61,11 +61,8 @@ enum pcm_sink_ids {
     PCM_SINK_UPNP,
     PCM_SINK_CHROMECAST,
     PCM_SINK_SNAPCAST_TCP,
-#if defined(__ANDROID__) && defined(CODECS_STATIC)
-    PCM_SINK_AAUDIO,    /* AAudio output (also wired as BUILTIN on Android) */
-#endif
-#if defined(CODECS_STATIC) && !defined(__ANDROID__) && !(CONFIG_PLATFORM & PLATFORM_WASM)
-    PCM_SINK_CPAL,      /* cpal output (also wired as BUILTIN on headless host) */
+#if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
+    PCM_SINK_CPAL,      /* cpal output — BUILTIN on Android cdylib and headless host */
 #endif
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
@@ -107,15 +104,8 @@ extern struct pcm_sink tcp_pcm_sink;
 void pcm_tcp_set_host(const char *host);
 void pcm_tcp_set_port(uint16_t port);
 
-#if defined(__ANDROID__) && defined(CODECS_STATIC)
-/* AAudio sink — also wired as the BUILTIN sink on the Android cdylib build,
- * so applications get sound out of the box without calling pcm_switch_sink. */
-extern struct pcm_sink aaudio_pcm_sink;
-#endif
-
-#if defined(CODECS_STATIC) && !defined(__ANDROID__) && !(CONFIG_PLATFORM & PLATFORM_WASM)
-/* cpal sink — also wired as the BUILTIN sink on headless macOS/Linux builds,
- * so rockboxd produces sound out of the box without any settings.toml entry. */
+#if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
+/* cpal sink — BUILTIN on the Android cdylib and headless macOS/Linux builds. */
 extern struct pcm_sink cpal_pcm_sink;
 #endif
 
