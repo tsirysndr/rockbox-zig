@@ -465,11 +465,14 @@ pub extern "C" fn pcm_cpal_start() {
     }
     let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();
-    // Flush any leftover data from the previous session before arming running=true
-    // so stale audio from before a stop/seek cannot play at the start of the new chunk.
-    r.buf.clear();
-    cvar.notify_all();
+    // Do NOT clear the ring here. Explicit stops (user stop, seek, track change)
+    // already called pcm_cpal_flush() in sink_dma_stop, so the ring is already
+    // empty. For stall-recovery restarts (pcmbuf ran dry → network reconnected),
+    // the ring still holds valid continuation audio; clearing it would introduce
+    // a silence gap between the old decoded audio and the new. Instead, let the
+    // FIFO drain naturally — old audio plays out first, new audio follows.
     r.running = true;
+    cvar.notify_all();
 }
 
 #[no_mangle]

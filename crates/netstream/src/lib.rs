@@ -12,15 +12,17 @@ use tracing::{debug, warn};
 /// Sentinel handle ID returned on error.
 const INVALID_HANDLE: i32 = -1;
 
-/// Background prefetch buffer capacity per stream (4 MB on Android, 2 MB elsewhere).
-/// Larger on Android to cover WiFi reconnect time (~1-2s) at any bitrate.
+/// Background prefetch buffer capacity per stream.
+/// Android: 16 MB — at 3 Mbps FLAC (375 KB/s) that's ~42 s of buffer.
+///   A 15-second read_timeout fires and reconnects well before the buffer drains.
+/// Desktop: 4 MB — LAN speeds make stalls rare; 4 MB is plenty.
 #[cfg(target_os = "android")]
-const PREFETCH_CAP: usize = 4 * 1024 * 1024;
+const PREFETCH_CAP: usize = 16 * 1024 * 1024;
 #[cfg(not(target_os = "android"))]
-const PREFETCH_CAP: usize = 2 * 1024 * 1024;
+const PREFETCH_CAP: usize = 4 * 1024 * 1024;
 
 /// Max reconnect attempts on TCP error before giving up.
-const MAX_RETRIES: u32 = 5;
+const MAX_RETRIES: u32 = 8;
 
 struct Prefetch {
     data: VecDeque<u8>,
