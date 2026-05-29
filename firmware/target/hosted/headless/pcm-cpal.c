@@ -38,6 +38,7 @@ extern void pcm_cpal_set_volume(int vol_l, int vol_r);
 extern void pcm_cpal_start(void);
 extern void pcm_cpal_push(const void *data, size_t size);
 extern void pcm_cpal_stop(void);
+extern void pcm_cpal_flush(void);
 extern bool pcm_cpal_is_running(void);
 
 /* ── Writer-thread state ────────────────────────────────────────────────── */
@@ -48,6 +49,10 @@ static pthread_mutex_t cpal_mtx;
 static pthread_t       cpal_tid;
 static volatile bool   cpal_running = false;
 static volatile bool   cpal_stop    = false;
+/* Set true while cpal_thread is inside pcm_play_dma_complete_callback so
+ * sink_dma_stop knows whether it is being called because pcmbuf ran dry
+ * (leave ring to drain) or because of an explicit user stop (flush ring). */
+static volatile bool   cpal_draining = false;
 
 static void *cpal_thread(void *arg)
 {
@@ -69,19 +74,23 @@ static void *cpal_thread(void *arg)
         /* Push current chunk into cpal ring (blocks on back-pressure). */
         pcm_cpal_push(data, size);
 
-        /* Exit immediately if pcm_cpal_stop() was called (running=false) or
-         * cpal_stop was set.  This prevents blocking pthread_join in
-         * sink_dma_stop() while we wait for pcm_play_dma_complete_callback(). */
-        if (cpal_stop || !pcm_cpal_is_running()) break;
+        /* Exit if an explicit stop was requested from outside the thread. */
+        if (cpal_stop) break;
 
-        /* Ask firmware for next chunk; updates pcm_data / pcm_size. */
+        /* Set drain flag before calling the completion callback.  If pcmbuf
+         * is empty (HTTP stall) pcm_play_dma_complete_callback will call
+         * pcm_play_stop_int → sink_dma_stop internally.  cpal_draining=true
+         * tells sink_dma_stop NOT to flush the ring so the remaining decoded
+         * audio can play out while the network reconnects. */
+        cpal_draining = true;
         pthread_mutex_lock(&cpal_mtx);
         bool got_more = pcm_play_dma_complete_callback(PCM_DMAST_OK,
                                                         &pcm_data, &pcm_size);
         pthread_mutex_unlock(&cpal_mtx);
+        cpal_draining = false;
 
         if (!got_more) {
-            logf("pcm-cpal: no more PCM data");
+            logf("pcm-cpal: no more PCM data, ring draining");
             break;
         }
 
@@ -162,10 +171,19 @@ static void sink_dma_start(const void *addr, size_t size)
 
 static void sink_dma_stop(void)
 {
-    logf("pcm-cpal: stop");
+    logf("pcm-cpal: stop (draining=%d)", (int)cpal_draining);
 
     cpal_stop = true;
+    /* Always mark running=false so pcm_cpal_push() unblocks and exits. */
     pcm_cpal_stop();
+
+    /* cpal_draining is true when we reached here because pcmbuf ran dry
+     * (HTTP stall): pcm_play_dma_complete_callback → pcm_play_stop_int →
+     * sink_dma_stop.  In that case the ring still holds decoded audio that
+     * should play through while the network reconnects — do NOT flush.
+     * For an explicit user stop (cpal_draining=false) flush immediately. */
+    if (!cpal_draining)
+        pcm_cpal_flush();
 
     if (cpal_running) {
         pthread_join(cpal_tid, NULL);
@@ -175,6 +193,7 @@ static void sink_dma_stop(void)
     pthread_mutex_lock(&cpal_mtx);
     pcm_data = NULL;
     pcm_size = 0;
+    cpal_draining = false;
     pthread_mutex_unlock(&cpal_mtx);
 }
 

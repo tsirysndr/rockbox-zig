@@ -12,11 +12,20 @@ use tracing::{debug, warn};
 /// Sentinel handle ID returned on error.
 const INVALID_HANDLE: i32 = -1;
 
-/// Background prefetch buffer capacity per stream (2 MB).
+/// Background prefetch buffer capacity per stream (4 MB on Android, 2 MB elsewhere).
+/// Larger on Android to cover WiFi reconnect time (~1-2s) at any bitrate.
+#[cfg(target_os = "android")]
+const PREFETCH_CAP: usize = 4 * 1024 * 1024;
+#[cfg(not(target_os = "android"))]
 const PREFETCH_CAP: usize = 2 * 1024 * 1024;
+
+/// Max reconnect attempts on TCP error before giving up.
+const MAX_RETRIES: u32 = 5;
 
 struct Prefetch {
     data: VecDeque<u8>,
+    /// Total bytes the reader thread has written into `data` (wraps on u64 overflow after ~18 EB).
+    bytes_written: u64,
     eof: bool,
     error: bool,
     stop: bool,
@@ -26,6 +35,7 @@ impl Prefetch {
     fn new() -> Self {
         Prefetch {
             data: VecDeque::with_capacity(PREFETCH_CAP + 64 * 1024),
+            bytes_written: 0,
             eof: false,
             error: false,
             stop: false,
@@ -51,12 +61,21 @@ impl Drop for StreamState {
     }
 }
 
+/// Spawn a background reader that fills `pair` from `response`, retrying from
+/// `start_offset + bytes_written` on TCP error (up to MAX_RETRIES times).
+/// On Android, WiFi power saving can drop TCP connections mid-stream; this
+/// retry logic re-issues a Range request and picks up where the connection
+/// broke so the prefetch buffer (4 MB on Android) never goes dry.
 fn spawn_reader(
     pair: Arc<(Mutex<Prefetch>, Condvar)>,
+    url: String,
+    start_offset: u64,
     mut response: reqwest::blocking::Response,
 ) -> thread::JoinHandle<()> {
     thread::spawn(move || {
         let mut buf = vec![0u8; 64 * 1024];
+        let mut retries: u32 = 0;
+
         loop {
             // Wait until there is room in the prefetch buffer.
             {
@@ -84,14 +103,56 @@ fn spawn_reader(
                         return;
                     }
                     pf.data.extend(&buf[..n]);
+                    pf.bytes_written += n as u64;
+                    retries = 0;
                     cv.notify_all();
                 }
                 Err(e) => {
-                    warn!("[netstream] prefetch read error: {:?}", e);
-                    let (lock, cv) = &*pair;
-                    lock.lock().unwrap().error = true;
-                    cv.notify_all();
-                    return;
+                    if retries >= MAX_RETRIES {
+                        warn!(
+                            "[netstream] prefetch read error after {} retries: {:?}",
+                            retries, e
+                        );
+                        let (lock, cv) = &*pair;
+                        lock.lock().unwrap().error = true;
+                        cv.notify_all();
+                        return;
+                    }
+                    retries += 1;
+                    // Compute the byte offset the next Range request must start from:
+                    // everything the reader has written is either still in the prefetch
+                    // buffer or has been consumed by read_into; either way, the server
+                    // must resume from start_offset + bytes_written.
+                    let resume_offset = {
+                        let (lock, _) = &*pair;
+                        let pf = lock.lock().unwrap();
+                        if pf.stop {
+                            return;
+                        }
+                        start_offset + pf.bytes_written
+                    };
+                    warn!(
+                        "[netstream] TCP error (attempt {}/{}), reconnecting at offset {}: {:?}",
+                        retries, MAX_RETRIES, resume_offset, e
+                    );
+                    // Exponential back-off: 200ms × retry_count
+                    thread::sleep(Duration::from_millis(200 * retries as u64));
+                    {
+                        let (lock, _) = &*pair;
+                        if lock.lock().unwrap().stop {
+                            return;
+                        }
+                    }
+                    let range_header = format!("bytes={}-", resume_offset);
+                    match CLIENT.get(&url).header("Range", range_header).send() {
+                        Ok(resp) if resp.status().as_u16() == 206 => {
+                            response = resp;
+                        }
+                        Ok(_) | Err(_) => {
+                            // Server rejected Range or network down; retry loop continues.
+                            debug!("[netstream] Range reconnect failed, will retry");
+                        }
+                    }
                 }
             }
         }
@@ -121,7 +182,7 @@ impl StreamState {
         let content_length = response.content_length();
         let content_type = Self::response_content_type(&response);
         let pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
-        let t = spawn_reader(Arc::clone(&pair), response);
+        let t = spawn_reader(Arc::clone(&pair), url.clone(), 0, response);
         Some(StreamState {
             url,
             pos: 0,
@@ -241,15 +302,15 @@ impl StreamState {
         }
     }
 
-    /// Stop the current bg reader and start a new one from `response`.
-    fn replace_reader(&mut self, response: reqwest::blocking::Response) {
+    /// Stop the current bg reader and start a new one from `response` at `offset`.
+    fn replace_reader(&mut self, response: reqwest::blocking::Response, offset: u64) {
         {
             let (lock, cv) = &*self.pair;
             lock.lock().unwrap().stop = true;
             cv.notify_all();
         }
         let new_pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
-        let new_thread = spawn_reader(Arc::clone(&new_pair), response);
+        let new_thread = spawn_reader(Arc::clone(&new_pair), self.url.clone(), offset, response);
         self.pair = new_pair;
         self._thread = Some(new_thread);
     }
@@ -297,7 +358,7 @@ impl StreamState {
                 if Self::parse_content_range_start(&resp) != Some(new_pos) {
                     return false;
                 }
-                self.replace_reader(resp);
+                self.replace_reader(resp, new_pos);
                 self.pos = new_pos;
                 true
             }
@@ -311,7 +372,7 @@ impl StreamState {
                 if new_pos > 0 && !Self::skip_bytes(&mut resp, new_pos) {
                     return false;
                 }
-                self.replace_reader(resp);
+                self.replace_reader(resp, new_pos);
                 self.pos = new_pos;
                 true
             }

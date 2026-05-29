@@ -291,7 +291,11 @@ fn open_stream(rate: u32) {
             move |output: &mut [i16], _| {
                 let (lock, cvar) = ring_ref;
                 let mut r = lock.lock().unwrap();
-                if !r.running {
+                // When running=false the ring may still hold decoded audio
+                // buffered before a stall (pcmbuf drained but ring not yet).
+                // Drain it rather than silencing immediately so the listener
+                // hears smooth audio until the buffer actually runs dry.
+                if !r.running && r.buf.is_empty() {
                     output.fill(0);
                     return;
                 }
@@ -330,7 +334,7 @@ fn open_stream(rate: u32) {
             move |output: &mut [f32], _| {
                 let (lock, cvar) = ring_ref;
                 let mut r = lock.lock().unwrap();
-                if !r.running {
+                if !r.running && r.buf.is_empty() {
                     output.fill(0.0);
                     return;
                 }
@@ -459,8 +463,12 @@ pub extern "C" fn pcm_cpal_start() {
         rs.phase = 0.0;
         rs.cur_valid = false;
     }
-    let (lock, _cvar) = ring();
+    let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();
+    // Flush any leftover data from the previous session before arming running=true
+    // so stale audio from before a stop/seek cannot play at the start of the new chunk.
+    r.buf.clear();
+    cvar.notify_all();
     r.running = true;
 }
 
@@ -469,6 +477,22 @@ pub extern "C" fn pcm_cpal_stop() {
     let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();
     r.running = false;
+    // Do NOT clear the ring here. When pcmbuf runs dry (HTTP stall),
+    // pcm_play_dma_complete_callback calls pcm_play_stop_int → sink_dma_stop →
+    // pcm_cpal_stop. Clearing the ring at that point throws away up to ~3 s of
+    // already-decoded audio. Instead, leave the ring intact so the cpal callback
+    // can drain it while the network reconnects. pcm_cpal_start() flushes
+    // whatever (possibly stale) data remains before the next track begins.
+    cvar.notify_all();
+}
+
+/// Flush the ring immediately without stopping playback state.
+/// Called by pcm_cpal_start() before arming a new DMA session so stale
+/// data from the previous track cannot bleed into the new one.
+#[no_mangle]
+pub extern "C" fn pcm_cpal_flush() {
+    let (lock, cvar) = ring();
+    let mut r = lock.lock().unwrap();
     r.buf.clear();
     cvar.notify_all();
 }
