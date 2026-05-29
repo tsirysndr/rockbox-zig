@@ -170,21 +170,27 @@ impl StreamState {
 
     /// Read up to `n` bytes from the prefetch buffer into `dst`.
     /// Returns bytes copied, 0 on EOF, or -1 on error/timeout.
+    ///
+    /// Waits until the buffer holds at least min(n, PREFETCH_CAP) bytes before
+    /// returning. This eliminates the partial-read cascade that occurs when the
+    /// network delivers data one TCP packet (~1460 B) at a time: without this,
+    /// the Rockbox buffering layer calls rb_net_read dozens of times per codec
+    /// read (one wakeup per packet), generating a storm of interrupts that
+    /// stalls the audio thread — especially on Android where the AAudio write
+    /// period is very short.
     unsafe fn read_into(&mut self, dst: *mut u8, n: usize) -> i64 {
         if n == 0 {
             return 0;
         }
+        // We need to wait for enough bytes that the caller gets a full-sized
+        // read in one shot. Cap at PREFETCH_CAP so we never wait for more than
+        // the buffer can ever hold.
+        let min_needed = usize::min(n, PREFETCH_CAP);
         let (lock, cv) = &*self.pair;
         let mut pf = lock.lock().unwrap();
         loop {
-            if !pf.data.is_empty() {
+            if pf.data.len() >= min_needed || pf.eof || pf.error {
                 break;
-            }
-            if pf.eof {
-                return 0;
-            }
-            if pf.error {
-                return -1;
             }
             let (new_pf, timed_out) = cv.wait_timeout(pf, Duration::from_secs(30)).unwrap();
             pf = new_pf;
@@ -192,6 +198,12 @@ impl StreamState {
                 warn!("[netstream] read_into: 30s timeout waiting for data");
                 return -1;
             }
+        }
+        if pf.data.is_empty() {
+            if pf.error {
+                return -1;
+            }
+            return 0; // EOF
         }
         let to_copy = usize::min(n, pf.data.len());
         let dst_slice = std::slice::from_raw_parts_mut(dst, to_copy);

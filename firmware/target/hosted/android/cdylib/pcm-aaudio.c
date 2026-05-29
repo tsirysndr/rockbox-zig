@@ -81,7 +81,21 @@ static aaudio_result_t open_stream(int32_t freq)
     }
     AAudioStreamBuilder_setDirection      (b, AAUDIO_DIRECTION_OUTPUT);
     AAudioStreamBuilder_setSharingMode    (b, AAUDIO_SHARING_MODE_SHARED);
-    AAudioStreamBuilder_setPerformanceMode(b, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+    /* NONE (default) instead of LOW_LATENCY: music streaming needs buffer
+     * headroom for network jitter, not minimum latency. LOW_LATENCY requests
+     * a ~5ms hardware buffer which underruns whenever the codec read blocks
+     * waiting for an HTTP prefetch — audible as repeated glitches. NONE lets
+     * the driver pick a larger buffer (~100–200ms), eliminating those dropouts
+     * with no perceptible latency difference for music playback. */
+    AAudioStreamBuilder_setPerformanceMode(b, AAUDIO_PERFORMANCE_MODE_NONE);
+    /* Request half a second of buffer capacity so brief network bursts /
+     * Wi-Fi retransmissions don't cause underruns. Fall back to 24000 frames
+     * (0.5s at 48kHz) when freq is 0 (postinit before the codec sets the
+     * sample rate). The driver may grant less; this is a hint. */
+    {
+        int32_t cap = freq > 0 ? (int32_t)(freq / 2) : 24000;
+        AAudioStreamBuilder_setBufferCapacityInFrames(b, cap);
+    }
     AAudioStreamBuilder_setFormat         (b, AAUDIO_FORMAT_PCM_I16);
     AAudioStreamBuilder_setChannelCount   (b, 2);
     AAudioStreamBuilder_setSampleRate     (b, freq);
