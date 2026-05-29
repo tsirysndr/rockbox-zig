@@ -248,12 +248,16 @@ impl StreamState {
             if pf.error {
                 return -1;
             }
-            let (new_pf, timed_out) = cv.wait_timeout(pf, Duration::from_secs(30)).unwrap();
-            pf = new_pf;
-            if timed_out.timed_out() {
-                warn!("[netstream] read_into: 30s timeout waiting for data");
-                return -1;
+            if pf.stop {
+                return 0;
             }
+            // Wait up to 5 s per iteration so we re-check flags promptly when
+            // spawn_reader detects a TCP drop and sets pf.error after MAX_RETRIES.
+            // No hard failure on timeout — TCP stalls on mobile can last 30-90 s
+            // before the OS surfaces an error; giving up at 30 s was the cause of
+            // the "30 seconds then silence" symptom.
+            let (new_pf, _) = cv.wait_timeout(pf, Duration::from_secs(5)).unwrap();
+            pf = new_pf;
         }
         let to_copy = usize::min(n, pf.data.len());
         let dst_slice = std::slice::from_raw_parts_mut(dst, to_copy);
