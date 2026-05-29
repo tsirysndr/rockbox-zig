@@ -349,41 +349,88 @@ impl StreamState {
         }
 
         // Large forward seek or backward seek: issue a Range request.
+        // M4A/MP4 codecs do this twice during init when moov is at the end of the file
+        // (seek to end to read moov, then seek back to first audio frame). On LTE a
+        // single failed request is enough to abort the track, so we retry up to 3 times.
         let range_header = match self.content_length {
             Some(cl) if cl > 0 => format!("bytes={}-{}", new_pos, cl - 1),
             _ => format!("bytes={}-", new_pos),
         };
-        let result = CLIENT.get(&self.url).header("Range", range_header).send();
 
-        match result {
-            Ok(resp) if resp.status().as_u16() == 206 => {
-                self.update_content_length_from_content_range(&resp);
-                if self.content_type.is_none() {
-                    self.content_type = Self::response_content_type(&resp);
+        const SEEK_RETRIES: u32 = 3;
+        for attempt in 0..SEEK_RETRIES {
+            if attempt > 0 {
+                thread::sleep(Duration::from_millis(300 * attempt as u64));
+            }
+            match CLIENT
+                .get(&self.url)
+                .header("Range", &range_header)
+                .send()
+            {
+                Ok(resp) if resp.status().as_u16() == 206 => {
+                    self.update_content_length_from_content_range(&resp);
+                    if self.content_type.is_none() {
+                        self.content_type = Self::response_content_type(&resp);
+                    }
+                    if Self::parse_content_range_start(&resp) != Some(new_pos) {
+                        return false;
+                    }
+                    self.replace_reader(resp, new_pos);
+                    self.pos = new_pos;
+                    return true;
                 }
-                if Self::parse_content_range_start(&resp) != Some(new_pos) {
+                Ok(mut resp) if resp.status().is_success() => {
+                    // Server returned 200 — it doesn't support Range. Only continue if
+                    // new_pos is small enough to skip by reading and discarding; for a
+                    // moov-at-end seek (tens of MB) this would download the whole file,
+                    // so fail fast and let the codec give up rather than hanging.
+                    if new_pos > 512 * 1024 {
+                        warn!(
+                            "[netstream] server returned 200 for Range request; \
+                             seek to {} is too far to skip without Range support",
+                            new_pos
+                        );
+                        return false;
+                    }
+                    if self.content_length.is_none() {
+                        self.content_length = resp.content_length();
+                    }
+                    if self.content_type.is_none() {
+                        self.content_type = Self::response_content_type(&resp);
+                    }
+                    if new_pos > 0 && !Self::skip_bytes(&mut resp, new_pos) {
+                        return false;
+                    }
+                    self.replace_reader(resp, new_pos);
+                    self.pos = new_pos;
+                    return true;
+                }
+                Ok(resp) => {
+                    warn!(
+                        "[netstream] seek_to {}: server returned {} (attempt {}/{})",
+                        new_pos,
+                        resp.status(),
+                        attempt + 1,
+                        SEEK_RETRIES
+                    );
                     return false;
                 }
-                self.replace_reader(resp, new_pos);
-                self.pos = new_pos;
-                true
+                Err(e) => {
+                    warn!(
+                        "[netstream] seek_to {}: network error (attempt {}/{}): {:?}",
+                        new_pos,
+                        attempt + 1,
+                        SEEK_RETRIES,
+                        e
+                    );
+                }
             }
-            Ok(mut resp) if resp.status().is_success() => {
-                if self.content_length.is_none() {
-                    self.content_length = resp.content_length();
-                }
-                if self.content_type.is_none() {
-                    self.content_type = Self::response_content_type(&resp);
-                }
-                if new_pos > 0 && !Self::skip_bytes(&mut resp, new_pos) {
-                    return false;
-                }
-                self.replace_reader(resp, new_pos);
-                self.pos = new_pos;
-                true
-            }
-            _ => false,
         }
+        warn!(
+            "[netstream] seek_to {} failed after {} attempts",
+            new_pos, SEEK_RETRIES
+        );
+        false
     }
 }
 
