@@ -162,14 +162,39 @@ static void *aa_thread(void *arg)
         pthread_mutex_unlock(&aa_mtx);
 
         if (size == 0) {
-            /* No data yet (startup) or between tracks — write silence so the
-             * stream stays alive and doesn't underrun while the firmware is
-             * switching tracks. */
-            if (aa_stream)
-                AAudioStream_write(aa_stream, s_silence,
-                                   sizeof(s_silence) / BYTES_PER_FRAME,
-                                   200LL * 1000000LL);
-            else {
+            /* Codec is momentarily starved.  For HTTP streams this happens
+             * every time the prefetch delivers data in TCP-sized bursts: the
+             * codec consumes one batch and the next hasn't arrived yet.
+             *
+             * The AAudio hardware buffer holds ~150-500 ms of audio
+             * (AAUDIO_PERFORMANCE_MODE_NONE).  Polling for real data lets
+             * that buffer absorb the gap instead of injecting audible silence
+             * on every 1-10 ms network hiccup.
+             *
+             * Poll in 1 ms steps for up to 150 ms before writing silence.
+             * 150 ms < the minimum hardware buffer so no underrun occurs. */
+            {
+                struct timespec t1ms = { 0, 1000000 };
+                for (int ms = 0; ms < 150 && !aa_stop; ms++) {
+                    pthread_mutex_lock(&aa_mtx);
+                    bool has_data = (pcm_data != NULL && pcm_size > 0);
+                    pthread_mutex_unlock(&aa_mtx);
+                    if (has_data) break;
+                    nanosleep(&t1ms, NULL);
+                }
+            }
+            /* Fall through to the top of the loop: if data arrived during
+             * the poll window we write it; otherwise we write one silence
+             * block to keep the stream alive and poll again next iteration. */
+            if (aa_stream) {
+                pthread_mutex_lock(&aa_mtx);
+                bool still_empty = (pcm_data == NULL || pcm_size == 0);
+                pthread_mutex_unlock(&aa_mtx);
+                if (still_empty)
+                    AAudioStream_write(aa_stream, s_silence,
+                                       sizeof(s_silence) / BYTES_PER_FRAME,
+                                       200LL * 1000000LL);
+            } else {
                 struct timespec t = { 0, 10000000 }; /* 10 ms */
                 nanosleep(&t, NULL);
             }
