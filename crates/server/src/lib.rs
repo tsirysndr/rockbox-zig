@@ -861,7 +861,7 @@ pub extern "C" fn start_broker() {
 
         if !index_changed && !content_changed {
             thread::sleep(std::time::Duration::from_millis(100));
-            rb::system::sleep(rb::HZ);
+            rb::system::sleep(rb::HZ / 10);
             continue;
         }
 

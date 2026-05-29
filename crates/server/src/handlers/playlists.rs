@@ -346,6 +346,7 @@ pub async fn insert_tracks(
                     .map_err(ErrorInternalServerError)?;
             }
 
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
             return Ok(HttpResponse::Ok().body("0"));
         }
     }
