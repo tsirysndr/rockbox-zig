@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 
 import { coverUrl } from "@/lib/cover-url";
+import { coverArtUrlFromStreamUrl } from "@/lib/navidrome-client";
 import { RockboxClient } from "@/lib/rockbox-client";
 import {
   coversBaseUrl,
@@ -31,6 +32,11 @@ export function metadataFor(
     } else {
       artworkUrl = coverUrl(track.album_art);
     }
+  } else if (track.path) {
+    // ND HTTP stream tracks have no embedded album_art; derive the cover URL
+    // from the stream URL's id=, u=, t=, s= params (same logic as the in-app
+    // player in proto-mappers.ts).
+    artworkUrl = coverArtUrlFromStreamUrl(track.path);
   }
   return {
     trackId: track.id,

@@ -709,6 +709,12 @@ pub extern "C" fn start_broker() {
                     .flatten();
 
                 let mut track: Track = current_track.into();
+                // audio_current_track()->path can be empty or a tmp path for
+                // HTTP stream tracks. Use the playlist entry's URL so the
+                // client-side coverArtUrlFromStreamUrl can derive ND cover art.
+                if track.path.is_empty() && !lookup_path.is_empty() {
+                    track.path = lookup_path.clone();
+                }
 
                 if let Some(metadata) = db_metadata {
                     // When the URL-keyed record has no album_art (it was saved
