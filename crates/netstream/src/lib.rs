@@ -626,13 +626,6 @@ static CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
     reqwest::blocking::Client::builder()
         .use_rustls_tls()
         .connect_timeout(Duration::from_secs(15))
-        // Keep idle TCP connections alive so mobile NAT devices don't time them
-        // out while the prefetch buffer is full and the reader thread is blocked.
-        // Without keepalive the OS socket has zero traffic during buffer-full
-        // pauses; NAT firewalls treat this as an idle connection and close it
-        // after 30–90 s, producing the "many interrupts then plays continuously"
-        // symptom (each interrupt = TCP drop → MAX_RETRIES reconnect cycle).
-        .tcp_keepalive(Duration::from_secs(15))
         .build()
         .expect("failed to build global HTTP client")
 });
