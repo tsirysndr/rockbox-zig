@@ -470,8 +470,7 @@ pub unsafe extern "C" fn pcm_cpal_push(addr: *const u8, size: usize) {
     let mut r = lock.lock().unwrap();
     let mut stall_ms: u32 = 0;
     while r.running && r.buf.len() + size > RING_CAPACITY {
-        let (new_r, timed_out) =
-            cvar.wait_timeout(r, Duration::from_millis(200)).unwrap();
+        let (new_r, timed_out) = cvar.wait_timeout(r, Duration::from_millis(200)).unwrap();
         r = new_r;
         if timed_out.timed_out() {
             stall_ms += 200;

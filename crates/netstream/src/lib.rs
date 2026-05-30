@@ -367,8 +367,13 @@ impl StreamState {
         }
         let expected = self.content_length.map(|cl| cl.saturating_sub(offset));
         let new_pair = Arc::new((Mutex::new(Prefetch::new()), Condvar::new()));
-        let new_thread =
-            spawn_reader(Arc::clone(&new_pair), self.url.clone(), offset, expected, response);
+        let new_thread = spawn_reader(
+            Arc::clone(&new_pair),
+            self.url.clone(),
+            offset,
+            expected,
+            response,
+        );
         self.pair = new_pair;
         self._thread = Some(new_thread);
     }
@@ -414,11 +419,7 @@ impl StreamState {
             if attempt > 0 {
                 thread::sleep(Duration::from_millis(300 * attempt as u64));
             }
-            match CLIENT
-                .get(&self.url)
-                .header("Range", &range_header)
-                .send()
-            {
+            match CLIENT.get(&self.url).header("Range", &range_header).send() {
                 Ok(resp) if resp.status().as_u16() == 206 => {
                     self.update_content_length_from_content_range(&resp);
                     if self.content_type.is_none() {
