@@ -99,30 +99,34 @@ fn spawn_reader(
             // Network I/O with no lock held.
             match response.read(&mut buf) {
                 Ok(0) => {
-                    // Distinguish genuine EOF from a mid-stream TCP close.
-                    // Android power-save or LTE handover can terminate the TCP
-                    // connection cleanly (FIN), making read() return Ok(0) even
-                    // though not all bytes have arrived. Check bytes_written
-                    // against expected_bytes to detect this.
-                    let bytes_written = {
+                    let (bytes_written, should_stop) = {
                         let (lock, _) = &*pair;
-                        lock.lock().unwrap().bytes_written
+                        let pf = lock.lock().unwrap();
+                        (pf.bytes_written, pf.stop)
                     };
-                    let premature = expected_bytes
-                        .map(|exp| bytes_written < exp)
-                        .unwrap_or(false);
+                    if should_stop {
+                        return;
+                    }
+                    let resume_offset = start_offset + bytes_written;
 
-                    if premature && retries < MAX_RETRIES {
+                    // For known-length streams: premature if fewer bytes than
+                    // expected arrived (Android power-save / LTE handover can
+                    // close the TCP connection cleanly mid-stream via FIN).
+                    // For unknown-length streams (chunked transcodes, live):
+                    // ALWAYS probe — the server's 416 is the only reliable EOF
+                    // signal. A NAT/proxy timing out the TCP connection looks
+                    // identical to genuine EOF at the TCP layer.
+                    let should_probe = match expected_bytes {
+                        Some(exp) => bytes_written < exp,
+                        None => true,
+                    };
+
+                    if should_probe && retries < MAX_RETRIES {
                         retries += 1;
-                        let resume_offset = start_offset + bytes_written;
                         warn!(
-                            "[netstream] premature EOF at {}/{} bytes (attempt {}/{}), \
-                             reconnecting at offset {}",
-                            bytes_written,
-                            expected_bytes.unwrap_or(0),
-                            retries,
-                            MAX_RETRIES,
-                            resume_offset
+                            "[netstream] unexpected Ok(0) at offset {} ({} bytes, \
+                             attempt {}/{}); probing for premature TCP close",
+                            resume_offset, bytes_written, retries, MAX_RETRIES
                         );
                         thread::sleep(Duration::from_millis(200 * retries as u64));
                         {
@@ -132,12 +136,49 @@ fn spawn_reader(
                             }
                         }
                         let range_header = format!("bytes={}-", resume_offset);
-                        match CLIENT.get(&url).header("Range", range_header).send() {
+                        match CLIENT.get(&url).header("Range", &range_header).send() {
                             Ok(resp) if resp.status().as_u16() == 206 => {
+                                warn!(
+                                    "[netstream] premature TCP close confirmed; \
+                                     reconnected at offset {}",
+                                    resume_offset
+                                );
                                 response = resp;
+                                retries = 0; // fresh connection — reset retry budget
+                                continue;
                             }
-                            Ok(_) | Err(_) => {
-                                debug!("[netstream] Range reconnect after premature EOF failed");
+                            Ok(resp) if resp.status().as_u16() == 416 => {
+                                // Range Not Satisfiable — server confirms genuine EOF
+                                debug!(
+                                    "[netstream] Range probe returned 416; \
+                                     genuine EOF at offset {}",
+                                    resume_offset
+                                );
+                                let (lock, cv) = &*pair;
+                                lock.lock().unwrap().eof = true;
+                                cv.notify_all();
+                                return;
+                            }
+                            Ok(resp) => {
+                                // 200 or any other status: server may not support
+                                // Range, or the stream genuinely ended. Treat as EOF.
+                                warn!(
+                                    "[netstream] Range probe returned {}; treating as EOF",
+                                    resp.status()
+                                );
+                                let (lock, cv) = &*pair;
+                                lock.lock().unwrap().eof = true;
+                                cv.notify_all();
+                                return;
+                            }
+                            Err(e) => {
+                                // Network still down; old response is exhausted.
+                                // Continue so the next iteration reads Ok(0) again
+                                // and retries the probe (up to MAX_RETRIES).
+                                warn!(
+                                    "[netstream] Range probe failed (attempt {}): {:?}",
+                                    retries, e
+                                );
                             }
                         }
                         continue;
@@ -494,6 +535,13 @@ static CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
     reqwest::blocking::Client::builder()
         .use_rustls_tls()
         .connect_timeout(Duration::from_secs(15))
+        // Keep idle TCP connections alive so mobile NAT devices don't time them
+        // out while the prefetch buffer is full and the reader thread is blocked.
+        // Without keepalive the OS socket has zero traffic during buffer-full
+        // pauses; NAT firewalls treat this as an idle connection and close it
+        // after 30–90 s, producing the "many interrupts then plays continuously"
+        // symptom (each interrupt = TCP drop → MAX_RETRIES reconnect cycle).
+        .tcp_keepalive(Duration::from_secs(15))
         .build()
         .expect("failed to build global HTTP client")
 });
