@@ -21,6 +21,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __ANDROID__
+#include <sys/resource.h>     /* setpriority() */
+#include <sys/syscall.h>      /* gettid() via SYS_gettid */
+#include <unistd.h>
+#endif
+
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
@@ -57,6 +63,20 @@ static volatile bool   cpal_draining = false;
 static void *cpal_thread(void *arg)
 {
     (void)arg;
+
+#ifdef __ANDROID__
+    /* Nice down to ANDROID_PRIORITY_AUDIO (-16).  Default priority (0) lets
+     * any foreground app preempt this thread; if we don't refill the 512 KB
+     * cpal ring within ~3 s the AAudio callback runs out of PCM and audible
+     * gaps appear.  setpriority on a per-tid target requires SYS_gettid on
+     * bionic — PRIO_PROCESS + tid is the documented Android pattern. */
+    int tid = (int)syscall(SYS_gettid);
+    if (setpriority(PRIO_PROCESS, tid, -16) != 0) {
+        /* Non-fatal: kernel may deny if the audio_app group isn't joined.
+         * Fall back to -8 (URGENT_DISPLAY), which is always permitted. */
+        setpriority(PRIO_PROCESS, tid, -8);
+    }
+#endif
 
     while (!cpal_stop) {
         pthread_mutex_lock(&cpal_mtx);

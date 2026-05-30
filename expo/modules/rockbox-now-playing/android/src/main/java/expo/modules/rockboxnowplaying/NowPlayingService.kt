@@ -10,8 +10,10 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -87,6 +89,16 @@ class NowPlayingService : Service() {
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   private val artLoadMutex = Mutex()
 
+  /** PARTIAL_WAKE_LOCK: keeps the CPU running while the screen is off so the
+   *  firmware writer thread (cpal_thread) and the netstream prefetch thread
+   *  aren't paused by Android Doze.  Without it, HTTP streams stutter or stop
+   *  the moment the screen locks. */
+  private var wakeLock: PowerManager.WakeLock? = null
+  /** WIFI_MODE_FULL_HIGH_PERF: prevents the WiFi radio from entering low-power
+   *  state while we're actively pulling bytes from a remote server.  Audio
+   *  focus / FGS does not cover WiFi power management. */
+  private var wifiLock: WifiManager.WifiLock? = null
+
   /** Cache last-applied state so partial updates (setPlayback) can re-emit
    *  the metadata without the JS side resending it. */
   private var currentTrackId: String? = null
@@ -123,6 +135,7 @@ class NowPlayingService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
+    acquireWakeLocks()
     /* Daemon now boots from RockboxRpcModule.OnCreate (app start) instead
      * of here (first-playback). Keep bootEmbeddedDaemon() as a no-op-ish
      * fallback that just logs the daemon state — useful for debugging. */
@@ -192,7 +205,42 @@ class NowPlayingService : Service() {
       @Suppress("DEPRECATION")
       stopForeground(true)
     }
+    releaseWakeLocks()
     super.onDestroy()
+  }
+
+  private fun acquireWakeLocks() {
+    try {
+      val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+      wakeLock = pm.newWakeLock(
+        PowerManager.PARTIAL_WAKE_LOCK,
+        "RockboxNowPlaying:Playback",
+      ).apply {
+        setReferenceCounted(false)
+        acquire()
+      }
+    } catch (t: Throwable) {
+      Log.w(TAG, "PARTIAL_WAKE_LOCK acquire failed: ${t.message}")
+    }
+    try {
+      val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+      wifiLock = wm.createWifiLock(
+        WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+        "RockboxNowPlaying:WifiStream",
+      ).apply {
+        setReferenceCounted(false)
+        acquire()
+      }
+    } catch (t: Throwable) {
+      Log.w(TAG, "WifiLock acquire failed: ${t.message}")
+    }
+  }
+
+  private fun releaseWakeLocks() {
+    try { wakeLock?.takeIf { it.isHeld }?.release() } catch (_: Throwable) {}
+    try { wifiLock?.takeIf { it.isHeld }?.release() } catch (_: Throwable) {}
+    wakeLock = null
+    wifiLock = null
   }
 
   /**
