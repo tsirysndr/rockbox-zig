@@ -74,8 +74,11 @@ static void *cpal_thread(void *arg)
         /* Push current chunk into cpal ring (blocks on back-pressure). */
         pcm_cpal_push(data, size);
 
-        /* Exit if an explicit stop was requested from outside the thread. */
-        if (cpal_stop) break;
+        /* Exit if an explicit stop was requested from outside the thread,
+         * OR if the ring stopped draining (stream error / audio focus loss).
+         * In the latter case pcm_cpal_push returned immediately without
+         * writing to the ring; continuing would drain pcmbuf uselessly. */
+        if (cpal_stop || !pcm_cpal_is_running()) break;
 
         /* Set drain flag before calling the completion callback.  If pcmbuf
          * is empty (HTTP stall) pcm_play_dma_complete_callback will call
