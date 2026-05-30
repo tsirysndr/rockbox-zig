@@ -26,8 +26,9 @@
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
+use std::time::Duration;
 
 // Serialises concurrent open_stream() calls: the background pre-warm thread
 // and any foreground caller both take this lock before touching the ALSA/
@@ -71,6 +72,12 @@ unsafe impl Sync for StreamHolder {}
 
 static STREAM: OnceLock<Mutex<Option<StreamHolder>>> = OnceLock::new();
 static CURRENT_RATE: OnceLock<Mutex<u32>> = OnceLock::new();
+
+// Set by the cpal error callback when AAudio reports a device error or audio
+// focus loss. pcm_cpal_start checks this flag and forces the stream to reopen.
+// Using SeqCst so the error-callback write is visible to the firmware thread
+// immediately without relying on acquire/release pairing with a lock.
+static STREAM_ERROR: AtomicBool = AtomicBool::new(false);
 
 // State for the linear-interpolation resampler, shared with the cpal callback.
 struct ResamplerState {
@@ -285,6 +292,24 @@ fn open_stream(rate: u32) {
 
     // Build an f32 stream (by far the most common on macOS/CoreAudio).
     // If the device truly wants i16 and exact rate matches, use i16 directly.
+    // Error callback: called by cpal when AAudio reports a device error or
+    // audio-focus loss. Set the error flag and stop the ring so that
+    // pcm_cpal_push() unblocks and the firmware DMA thread can exit cleanly.
+    // pcm_cpal_start() will reopen the stream on the next play request.
+    let on_err = |err: cpal::StreamError| {
+        tracing::error!("pcm-cpal stream error: {err}");
+        STREAM_ERROR.store(true, Ordering::SeqCst);
+        // Drop the stream — can't call open_stream here (wrong thread context
+        // on CoreAudio / AAudio), but clearing it ensures ensure_stream()
+        // reopens next time.
+        *stream_cell().lock().unwrap() = None;
+        // Unblock pcm_cpal_push so the firmware DMA thread can exit.
+        let (lock, cvar) = ring();
+        let mut r = lock.lock().unwrap();
+        r.running = false;
+        cvar.notify_all();
+    };
+
     let stream_result = if fmt == cpal::SampleFormat::I16 && out_rate == rate && channels == 2 {
         device.build_output_stream(
             &config,
@@ -324,7 +349,7 @@ fn open_stream(rate: u32) {
                     cvar.notify_all();
                 }
             },
-            |err| tracing::error!("pcm-cpal stream error: {err}"),
+            on_err,
             None,
         )
     } else {
@@ -352,7 +377,15 @@ fn open_stream(rate: u32) {
                     }
                 }
             },
-            |err| tracing::error!("pcm-cpal stream error: {err}"),
+            |err: cpal::StreamError| {
+                tracing::error!("pcm-cpal stream error (f32): {err}");
+                STREAM_ERROR.store(true, Ordering::SeqCst);
+                *stream_cell().lock().unwrap() = None;
+                let (lock, cvar) = ring();
+                let mut r = lock.lock().unwrap();
+                r.running = false;
+                cvar.notify_all();
+            },
             None,
         )
     };
@@ -424,6 +457,10 @@ pub extern "C" fn pcm_cpal_set_sample_rate(rate_hz: u32) {
 /// Blocks (condvar wait) when the ring buffer is too full to accept the
 /// chunk, providing back-pressure so the firmware thread paces itself.
 ///
+/// Uses a 200 ms polling timeout so that if the cpal callback stops draining
+/// (audio-focus loss, stream error, device disconnect), this call eventually
+/// gives up and lets the firmware DMA thread exit rather than deadlocking.
+///
 /// # Safety
 /// `addr` must be valid for `size` bytes for the duration of this call.
 #[no_mangle]
@@ -431,8 +468,25 @@ pub unsafe extern "C" fn pcm_cpal_push(addr: *const u8, size: usize) {
     let data = std::slice::from_raw_parts(addr, size);
     let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();
+    let mut stall_ms: u32 = 0;
     while r.running && r.buf.len() + size > RING_CAPACITY {
-        r = cvar.wait(r).unwrap();
+        let (new_r, timed_out) =
+            cvar.wait_timeout(r, Duration::from_millis(200)).unwrap();
+        r = new_r;
+        if timed_out.timed_out() {
+            stall_ms += 200;
+            // Ring not draining: either stream error or device gone.
+            // After 3 s give up so the firmware DMA thread can exit.
+            if stall_ms >= 3000 {
+                tracing::warn!(
+                    "pcm-cpal: ring not draining for 3 s, \
+                     aborting push (stream error? audio focus lost?)"
+                );
+                r.running = false;
+                cvar.notify_all();
+                return;
+            }
+        }
     }
     if !r.running {
         return;
@@ -451,10 +505,19 @@ pub extern "C" fn pcm_cpal_set_volume(vol_l: i32, vol_r: i32) {
 
 #[no_mangle]
 pub extern "C" fn pcm_cpal_start() {
+    let rate = *current_rate().lock().unwrap();
+
+    // If the cpal error callback fired (audio-focus loss, device disconnect,
+    // AAudio invalidation), the stream is already set to None by the callback.
+    // Clear the flag and let ensure_stream() reopen it below.
+    if STREAM_ERROR.swap(false, Ordering::SeqCst) {
+        tracing::info!("pcm-cpal: reopening stream after error");
+        // stream_cell is already None (cleared by error callback)
+    }
+
     // Fast path: background pre-warm finished → lock acquired instantly, is_none()
     // = false, returns immediately.  Slow path: pre-warm still running → blocks on
     // OPEN_STREAM_MTX until it finishes, then sees the stream is ready.
-    let rate = *current_rate().lock().unwrap();
     ensure_stream(rate);
     // Reset resampler so the tail samples of the previous track don't bleed
     // into the interpolation at the start of the new one.
