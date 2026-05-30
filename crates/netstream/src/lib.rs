@@ -410,6 +410,26 @@ impl StreamState {
         pf.content_length
     }
 
+    /// Return the stream's Content-Type, waiting up to `timeout` for the
+    /// background open thread to complete if it hasn't yet.
+    fn wait_content_type(&self, timeout: Duration) -> Option<String> {
+        let (lock, cv) = &*self.pair;
+        let mut pf = lock.lock().unwrap();
+        let deadline = std::time::Instant::now() + timeout;
+        while !pf.open_done {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return None;
+            }
+            let (new_pf, _) = cv.wait_timeout(pf, remaining).unwrap();
+            pf = new_pf;
+        }
+        if pf.error || pf.stop {
+            return None;
+        }
+        pf.content_type.clone()
+    }
+
     /// Read up to `n` bytes from the prefetch buffer into `dst`.
     /// Returns bytes copied (may be less than n), 0 on EOF, or -1 on error/timeout.
     unsafe fn read_into(&mut self, dst: *mut u8, n: usize) -> i64 {
@@ -626,6 +646,9 @@ static CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
     reqwest::blocking::Client::builder()
         .use_rustls_tls()
         .connect_timeout(Duration::from_secs(15))
+        // Keep TCP alive every 15 s so NAT tables don't expire during the
+        // ~42 s window it takes to drain the 16 MB prefetch buffer on LTE.
+        .tcp_keepalive(Duration::from_secs(15))
         .build()
         .expect("failed to build global HTTP client")
 });
@@ -819,6 +842,10 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
 }
 
 /// Return the total content length of stream `h`, or -1 if unknown.
+///
+/// Blocks until the background open thread has completed the HTTP handshake
+/// (up to 15 s) so that `stream_filesize_fd` in streamfd.c never sees the
+/// 0x7FFFFFFF sentinel that would overflow the buffering ring.
 #[no_mangle]
 pub extern "C" fn rb_net_len(h: i32) -> i64 {
     let handle_arc = {
@@ -829,14 +856,10 @@ pub extern "C" fn rb_net_len(h: i32) -> i64 {
         }
     };
     let state = handle_arc.lock().unwrap();
-    let (lock, _) = &*state.pair;
-    let pf = lock.lock().unwrap();
-    // Return -1 if the background open hasn't completed yet (caller may retry).
-    let len = if pf.open_done {
-        pf.content_length.map(|l| l as i64).unwrap_or(-1)
-    } else {
-        -1
-    };
+    let len = state
+        .wait_content_length(Duration::from_secs(15))
+        .map(|l| l as i64)
+        .unwrap_or(-1);
     debug!("[netstream] rb_net_len: h={} -> {}", h, len);
     len
 }
@@ -856,12 +879,7 @@ pub unsafe extern "C" fn rb_net_content_type(h: i32, dst: *mut c_char, n: libc::
         }
     };
     let state = handle_arc.lock().unwrap();
-    let content_type = {
-        let (lock, _) = &*state.pair;
-        let pf = lock.lock().unwrap();
-        pf.content_type.clone()
-    };
-    let content_type = match content_type {
+    let content_type = match state.wait_content_type(Duration::from_secs(15)) {
         Some(ct) => ct,
         None => return -1,
     };
