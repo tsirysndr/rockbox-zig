@@ -40,6 +40,7 @@ export const GET_GLOBAL_SETTINGS = gql`
         type
         preamp
       }
+      cmafHttpPort
     }
   }
 `;

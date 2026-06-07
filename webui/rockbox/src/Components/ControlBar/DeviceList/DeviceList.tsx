@@ -33,6 +33,8 @@ const iconColors: Record<string, string> = {
   chromecast:   "#28cbfc",
   "UPnP/DLNA":  "#ff00c3",
   dlna:         "#ff00c3",
+  cmaf:         "#a0e040",
+  CMAF:         "#a0e040",
 };
 
 const bgColors: Record<string, string> = {
@@ -48,30 +50,34 @@ const bgColors: Record<string, string> = {
   chromecast:   "rgba(40, 203, 252, 0.08)",
   "UPnP/DLNA":  "rgba(255, 0, 195, 0.06)",
   dlna:         "rgba(255, 0, 195, 0.06)",
+  cmaf:         "rgba(160, 224, 64, 0.10)",
+  CMAF:         "rgba(160, 224, 64, 0.10)",
 };
 
 const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
-  const c = iconColors[icon ?? ""] ?? "var(--theme-text)";
+  // Some device.app values arrive in mixed case ("CMAF", "AirPlay",
+  // "Chromecast", "Snapcast", "UPnP/DLNA"); others lowercase ("builtin",
+  // "fifo", "squeezelite", "cmaf"). Pick the icon off the lowercase form so
+  // the same render branch handles every spelling.
+  const key = (icon ?? "").toLowerCase();
+  const c = iconColors[icon ?? ""] ?? iconColors[key] ?? "var(--theme-text)";
   return (
     <div
       className="h-10 w-10 rounded-full flex items-center justify-center bg-[var(--theme-cover)]"
       style={color ? { backgroundColor: color } : undefined}
     >
-      {icon === "builtin"     && <HardDrive size={18} color={c} />}
-      {icon === "fifo"        && <Radio     size={18} color={c} />}
-      {icon === "squeezelite" && <Cast      size={18} color={c} />}
-      {(icon === "snapcast" || icon === "Snapcast") && (
-        <Radio size={18} color={c} />
-      )}
-      {icon === "xbmc"        && <Kodi      size={18} color={c} />}
-      {(icon === "AirPlay" || icon === "airplay") && (
-        <Airplayaudio size={18} color={c} />
-      )}
-      {(icon === "Chromecast" || icon === "chromecast") && (
-        <Chromecast size={18} color={c} />
-      )}
-      {(icon === "UPnP/DLNA" || icon === "dlna") && (
+      {key === "builtin"     && <HardDrive size={18} color={c} />}
+      {key === "fifo"        && <Radio     size={18} color={c} />}
+      {key === "squeezelite" && <Cast      size={18} color={c} />}
+      {key === "snapcast"    && <Radio     size={18} color={c} />}
+      {key === "xbmc"        && <Kodi      size={18} color={c} />}
+      {key === "airplay"     && <Airplayaudio size={18} color={c} />}
+      {key === "chromecast"  && <Chromecast   size={18} color={c} />}
+      {(key === "upnp/dlna" || key === "dlna" || key === "upnp") && (
         <Speaker size={18} color={c} />
+      )}
+      {(key === "cmaf" || key === "hls" || key === "dash") && (
+        <Radio size={18} color={c} />
       )}
     </div>
   );

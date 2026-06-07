@@ -126,6 +126,30 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             pcm::switch_sink(pcm::PCM_SINK_CPAL);
             tracing::info!("audio output: cpal (system default device)");
         }
+        Some("cmaf") | Some("hls") | Some("dash") => {
+            let http_port = settings.cmaf_http_port.unwrap_or(7882);
+            let bitrate = settings.cmaf_bitrate.unwrap_or(128_000);
+            pcm::cmaf_set_http_port(http_port);
+            pcm::cmaf_set_bitrate(bitrate);
+            pcm::cmaf_set_segment_dir(settings.cmaf_segment_dir.as_deref());
+            pcm::switch_sink(pcm::PCM_SINK_CMAF);
+            // Bind the HLS / DASH HTTP server *now*, before any track plays,
+            // so http://host:port/hls/master.m3u8 is reachable as soon as
+            // the daemon finishes booting with `audio_output = "cmaf"`.
+            // Idempotent — safe to call on every settings reload.
+            pcm::cmaf_start();
+            tracing::info!(
+                "audio output: cmaf (HLS at http://localhost:{http_port}/hls/master.m3u8, \
+                 DASH at http://localhost:{http_port}/dash/manifest.mpd, \
+                 AAC-LC {} kbps{})",
+                bitrate / 1000,
+                settings
+                    .cmaf_segment_dir
+                    .as_deref()
+                    .map(|d| format!(", mirroring to {d}"))
+                    .unwrap_or_default()
+            );
+        }
         Some("builtin") | None => {
             tracing::info!("audio output: builtin");
         }

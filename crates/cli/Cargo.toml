@@ -12,6 +12,8 @@ rockbox-airplay = {path = "../airplay"}
 rockbox-slim = {path = "../slim", features = ["ffi"]}
 rockbox-upnp = {path = "../upnp", features = ["ffi"]}
 rockbox-chromecast = {path = "../chromecast", features = ["ffi"]}
+rockbox-cmaf = {path = "../cmaf", features = ["ffi"]}
+rockbox-hls = {path = "../hls", features = ["ffi"]}
 clap = "4.5.16"
 owo-colors = "4.1.0"
 reqwest = { workspace = true, features = ["rustls-tls-native-roots", "json"] }

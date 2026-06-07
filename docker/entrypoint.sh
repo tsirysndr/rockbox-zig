@@ -1,23 +1,16 @@
 #!/bin/bash
 set -e
 
-# rockboxd creates the FIFO itself via pcm_fifo_set_path(), but it must start
-# before snapserver — if snapserver opens the pipe first it sees immediate EOF.
+# Default audio output is CMAF (HLS + DASH) — the web UI's <audio> tag attaches
+# to the HLS stream automatically, so no external client is needed.
+#
+# Snapcast (snapserver) is still started in the background so users who switch
+# `audio_output = "fifo"` in settings.toml can immediately stream to snapclient
+# without rebuilding the image. When the active sink is CMAF, snapserver runs
+# idle and consumes effectively no resources.
 
 rockboxd &
 ROCKBOX_PID=$!
-
-# Wait until rockboxd has created and opened the FIFO (holds a writer fd so
-# snapserver never sees EOF between tracks).
-i=0
-while [ ! -p /tmp/rockbox.fifo ]; do
-  i=$((i + 1))
-  if [ $i -ge 30 ]; then
-    echo "error: /tmp/rockbox.fifo not created after 30 s — rockboxd may have failed" >&2
-    exit 1
-  fi
-  sleep 1
-done
 
 snapserver &
 SNAP_PID=$!

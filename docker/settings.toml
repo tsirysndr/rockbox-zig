@@ -1,5 +1,6 @@
 music_dir    = "/root/Music"
-audio_output = "fifo"         # pipe PCM to snapserver via named FIFO
+audio_output = "cmaf"          # CMAF (HLS + DASH) — plays directly in the browser
+cmaf_http_port = 7882
 fifo_path    = "/tmp/rockbox.fifo"
 playlist_shuffle = false
 repeat_mode = 1

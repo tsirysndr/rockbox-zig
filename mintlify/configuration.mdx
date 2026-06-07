@@ -23,7 +23,7 @@ audio_output = "builtin"
 | Key            | Type   | Default       | Description                                  |
 |----------------|--------|---------------|----------------------------------------------|
 | `music_dir`    | string | —             | Absolute path to your music library          |
-| `audio_output` | string | `"builtin"`   | One of: `builtin`, `fifo`, `airplay`, `squeezelite`, `chromecast`, `snapcast_tcp`, `upnp` |
+| `audio_output` | string | `"builtin"`   | One of: `builtin`, `cmaf` (alias `hls`, `dash`), `fifo`, `airplay`, `squeezelite`, `chromecast`, `snapcast_tcp`, `upnp` |
 | `player_name`  | string | `""`          | Name advertised to MPD clients and UI        |
 
 ## Output sinks
@@ -32,6 +32,7 @@ Each sink has its own configuration block. See the dedicated pages:
 
 <CardGroup cols={2}>
   <Card title="Built-in (CPAL)" icon="speaker" href="/audio-output/built-in">Default. No setup.</Card>
+  <Card title="HLS + DASH (CMAF)" icon="globe" href="/audio-output/hls">Plays in any browser.</Card>
   <Card title="Snapcast" icon="network-wired" href="/audio-output/snapcast">FIFO or direct TCP.</Card>
   <Card title="AirPlay" icon="apple" href="/audio-output/airplay">Single or multi-room RAOP.</Card>
   <Card title="Squeezelite" icon="boxes-stacked" href="/audio-output/squeezelite">Slim Protocol multi-room.</Card>

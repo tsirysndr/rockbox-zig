@@ -13,6 +13,7 @@ pub fn device_icon(device: &DeviceItem) -> Icons {
         "chromecast" => Icons::Chromecast,
         "airplay" => Icons::Airplay,
         "snapcast" | "squeezelite" => Icons::Speaker,
+        "cmaf" | "hls" | "dash" => Icons::Broadcast,
         _ => {
             if device.is_current_device {
                 Icons::Device

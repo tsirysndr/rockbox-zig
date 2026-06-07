@@ -180,6 +180,16 @@ async fn run_http_server() -> Result<(), Error> {
                         ..Default::default()
                     })
                 }
+                "cmaf" | "hls" | "dash" => Some(Device {
+                    id: "cmaf".to_string(),
+                    name: "HLS / DASH Stream".to_string(),
+                    host: "localhost".to_string(),
+                    ip: "127.0.0.1".to_string(),
+                    port: s.cmaf_http_port.unwrap_or(7882),
+                    service: "cmaf".to_string(),
+                    app: "CMAF".to_string(),
+                    ..Default::default()
+                }),
                 "snapcast_tcp" => {
                     let host = s.snapcast_tcp_host.clone().unwrap_or_default();
                     Some(Device {

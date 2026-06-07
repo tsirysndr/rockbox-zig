@@ -98,6 +98,8 @@ EXPOSE 6061
 EXPOSE 6062
 EXPOSE 6063
 EXPOSE 6600
+# CMAF (HLS + DASH) — default audio output, played directly in the browser
+EXPOSE 7882
 # snapserver: client protocol, HTTP stream, HTTP JSON API
 EXPOSE 1704
 EXPOSE 1705

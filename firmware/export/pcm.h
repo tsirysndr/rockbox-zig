@@ -66,6 +66,15 @@ enum pcm_sink_ids pcm_current_sink(void);
 const struct pcm_sink_caps* pcm_sink_caps(enum pcm_sink_ids sink);
 bool pcm_switch_sink(enum pcm_sink_ids sink);
 
+/* External PCM injection — pushes S16LE PCM straight into the currently
+ * active sink's `ops.play` callback, bypassing pcmbuf entirely. Used by
+ * standalone Rust players (HLS / DASH client) that decode in their own
+ * thread and want their audio to route through whatever PCM sink the user
+ * has configured (cpal, AirPlay, Snapcast, CMAF, …) without participating
+ * in Rockbox's main playback pipeline. */
+void pcm_external_write(const void *addr, size_t size);
+void pcm_external_set_freq(unsigned int rate);
+
 /* shortcut for plugins */
 const struct pcm_sink_caps* pcm_current_sink_caps(void);
 

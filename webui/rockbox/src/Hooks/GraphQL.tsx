@@ -721,6 +721,7 @@ export type UserSettings = {
   carAdapterMode: Scalars['Boolean']['output'];
   carAdapterModeDelay: Scalars['Int']['output'];
   channelConfig: Scalars['Int']['output'];
+  cmafHttpPort?: Maybe<Scalars['Int']['output']>;
   colorsFile: Scalars['String']['output'];
   compressorSettings: CompressorSettings;
   constrainNextFolder: Scalars['Boolean']['output'];
@@ -1250,7 +1251,7 @@ export type SaveSettingsMutation = { __typename?: 'Mutation', saveSettings: bool
 export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: number, surroundMix: number, surroundMethod2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqPrecut: number, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number }, crossfeed: number, crossfeedDirectGain: number, crossfeedCrossGain: number, crossfeedHfAttenuation: number, crossfeedHfCutoff: number, afrEnabled: number, pbe: number, pbePrecut: number } };
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: number, surroundMix: number, surroundMethod2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqPrecut: number, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number }, crossfeed: number, crossfeedDirectGain: number, crossfeedCrossGain: number, crossfeedHfAttenuation: number, crossfeedHfCutoff: number, afrEnabled: number, pbe: number, pbePrecut: number, cmafHttpPort?: number | null } };
 
 export type PlaySmartPlaylistMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -2827,6 +2828,7 @@ export const GetGlobalSettingsDocument = new TypedDocumentString(`
     afrEnabled
     pbe
     pbePrecut
+    cmafHttpPort
   }
 }
     `);

@@ -48,26 +48,34 @@ about five minutes.
     ```sh
     docker run -v $HOME/Music:/root/Music \
       -p 6062:6062 \
-      -p 1704:1704 \
-      -p 1705:1705 \
-      -p 1780:1780 \
+      -p 7882:7882 \
       tsiry/rockbox
     ```
 
-    In a second terminal, connect a [Snapcast](https://github.com/badaix/snapcast) client for audio output:
+    Open the web UI at [http://localhost:6062](http://localhost:6062) and start
+    playing — no config file, no external client. The page attaches to the
+    HLS stream on port `7882` automatically and audio plays directly in the
+    browser.
+
+    Prefer the terminal? Any HLS-capable player works:
 
     ```sh
-    snapclient tcp://localhost
+    ffplay http://localhost:7882/hls/master.m3u8
     ```
 
-    Then open the web UI at [http://localhost:6062](http://localhost:6062) and
-    start playing — no config file needed.
-
     <Note>
-      Ports `1704` and `1705` are the Snapcast client and control ports.
-      Port `1780` is the Snapcast HTTP management interface.
       Port `6062` serves the web UI and GraphQL API.
+      Port `7882` serves the HLS playlist (`/hls/master.m3u8`) and DASH manifest
+      (`/dash/manifest.mpd`) — both are produced from the same in-memory CMAF
+      (fMP4 + AAC-LC) ring buffer.
     </Note>
+
+    <Tip>
+      The image also ships `snapserver` for users who prefer Snapcast multi-room.
+      Set `audio_output = "fifo"` in `~/.config/rockbox.org/settings.toml` and
+      add `-p 1704:1704 -p 1705:1705 -p 1780:1780` to the `docker run` command,
+      then connect with `snapclient tcp://localhost`.
+    </Tip>
   </Tab>
 </Tabs>
 

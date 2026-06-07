@@ -11,9 +11,16 @@ use std::{
 };
 
 /// Returns the always-present virtual output devices (built-in SDL,
-/// Snapcast/FIFO, and Squeezelite).  Squeezelite clients discovered via Slim
-/// Protocol HELO are listed separately alongside this entry.
+/// Snapcast/FIFO, Squeezelite, and CMAF).  Squeezelite clients discovered via
+/// Slim Protocol HELO are listed separately alongside this entry.
+///
+/// Per-sink ports are sourced from `settings.toml` so the device list
+/// reflects whatever the user has configured (falling back to the same
+/// defaults each Rust sink crate ships with).
 pub fn virtual_devices() -> Vec<Device> {
+    let settings = rockbox_settings::read_settings().unwrap_or_default();
+    let slim_port = settings.squeezelite_port.unwrap_or(3483);
+    let cmaf_port = settings.cmaf_http_port.unwrap_or(7882);
     vec![
         Device {
             id: "builtin".to_string(),
@@ -44,9 +51,21 @@ pub fn virtual_devices() -> Vec<Device> {
             name: "Squeezelite".to_string(),
             host: "localhost".to_string(),
             ip: "127.0.0.1".to_string(),
-            port: 3483,
+            port: slim_port,
             service: "squeezelite".to_string(),
             app: "squeezelite".to_string(),
+            is_cast_device: false,
+            is_source_device: false,
+            ..Default::default()
+        },
+        Device {
+            id: "cmaf".to_string(),
+            name: "HLS / DASH Stream".to_string(),
+            host: "localhost".to_string(),
+            ip: "127.0.0.1".to_string(),
+            port: cmaf_port,
+            service: "cmaf".to_string(),
+            app: "CMAF".to_string(),
             is_cast_device: false,
             is_source_device: false,
             ..Default::default()

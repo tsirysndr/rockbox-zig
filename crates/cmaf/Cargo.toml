@@ -1,0 +1,20 @@
+[package]
+edition = "2021"
+name = "rockbox-cmaf"
+version = "0.1.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+default = []
+# Gated so other consumers can depend on this crate's types/helpers without
+# linking the C ABI (avoids duplicate-symbol errors when more than one crate
+# brings rockbox-cmaf into the same staticlib).
+ffi = []
+
+[dependencies]
+axum = { version = "0.7", default-features = false, features = ["http1", "tokio"] }
+fdk-aac = "0.7"
+tokio = { workspace = true }
+tracing = { workspace = true }

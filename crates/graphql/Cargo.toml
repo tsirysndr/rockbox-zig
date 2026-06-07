@@ -27,6 +27,7 @@ rockbox-plex = {path = "../plex"}
 rockbox-upnp = {path = "../upnp"}
 rockbox-playlists = {path = "../playlists"}
 rockbox-rocksky = {path = "../rocksky"}
+rockbox-settings = {path = "../settings"}
 rockbox-typesense = {path = "../typesense"}
 rockbox-fts5 = {path = "../fts5", optional = true}
 rockbox-sys = {path = "../sys"}

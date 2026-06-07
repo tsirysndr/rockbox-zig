@@ -15,6 +15,9 @@ private func deviceSymbol(_ device: DeviceInfo) -> String {
     case "airplay":      return "airplayvideo"
     case "chromecast":   return "tv.and.mediabox"
     case "upnp":         return "network"
+    case "cmaf",
+         "hls",
+         "dash":         return "dot.radiowaves.up.forward"
     default:             return "hifispeaker"
     }
 }
@@ -29,6 +32,9 @@ private func deviceColor(_ device: DeviceInfo) -> Color {
     case "airplay":      return Color(hex: "fe09a3")
     case "chromecast":   return Color(hex: "28cbfc")
     case "upnp":         return Color(hex: "fe09a3")
+    case "cmaf",
+         "hls",
+         "dash":         return Color(hex: "a0e040")
     default:             return .secondary
     }
 }

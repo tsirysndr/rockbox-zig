@@ -7,9 +7,13 @@ use owo_colors::OwoColorize;
 use rockbox_airplay::_link_airplay as _;
 #[allow(unused_imports)]
 use rockbox_chromecast::_link_chromecast as _;
+#[allow(unused_imports)]
+use rockbox_cmaf::_link_cmaf as _;
 #[cfg(feature = "cpal-sink")]
 #[allow(unused_imports)]
 use rockbox_cpal_sink::_link_cpal_sink as _;
+#[allow(unused_imports)]
+use rockbox_hls::_link_hls as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 #[cfg(not(feature = "fts5"))]

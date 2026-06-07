@@ -18,6 +18,8 @@ reqwest = { version = "0.12.5", features = [
   "json",
 ], default-features = false }
 rockbox-graphql = { path = "../graphql" }
+rockbox-hls = { path = "../hls" }
+tracing = { workspace = true }
 rockbox-jellyfin = { path = "../jellyfin" }
 rockbox-kodi = { path = "../kodi" }
 rockbox-navidrome = { path = "../navidrome" }

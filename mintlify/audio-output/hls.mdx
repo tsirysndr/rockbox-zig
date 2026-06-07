@@ -1,0 +1,114 @@
+---
+title: "HLS + MPEG-DASH (CMAF)"
+description: "Live AAC-LC stream in fragmented MP4 — plays directly in any browser."
+icon: 'globe'
+---
+
+The CMAF sink encodes live audio as AAC-LC in a fragmented MP4 container and
+serves it as both **HLS** and **MPEG-DASH** from the same in-memory segment
+ring buffer. Any HLS- or DASH-capable client can play the stream — including
+every modern browser — without installing extra software.
+
+This is the default audio output for the [Docker image](/quickstart): the web
+UI's `<audio>` element attaches to the HLS stream automatically as soon as the
+active output is set to `cmaf` / `hls` / `dash`.
+
+```toml
+music_dir       = "/path/to/Music"
+audio_output    = "cmaf"          # also accepts "hls" or "dash"
+cmaf_http_port  = 7882            # optional, default 7882
+cmaf_bitrate    = 128000          # optional, AAC-LC bitrate in bps
+```
+
+## Endpoints
+
+Once `rockboxd` is running with `audio_output = "cmaf"`, three endpoints are
+served on `cmaf_http_port` (default `7882`):
+
+| Path                   | Content                                                 |
+| ---------------------- | ------------------------------------------------------- |
+| `/hls/master.m3u8`     | HLS master playlist (one variant — AAC-LC 128 kbps)     |
+| `/hls/audio.m3u8`      | HLS media playlist (sliding window of recent segments)  |
+| `/dash/manifest.mpd`   | MPEG-DASH manifest (live profile, same segments)        |
+| `/init.mp4`            | fMP4 initialisation segment                             |
+| `/seg/{n}.m4s`         | fMP4 media segments (~2 s each)                         |
+
+## Play from anywhere
+
+```sh
+# Browser — open the web UI; <audio> attaches automatically.
+open http://localhost:6062
+
+# CLI players
+ffplay http://localhost:7882/hls/master.m3u8
+vlc    http://localhost:7882/hls/master.m3u8
+mpv    http://localhost:7882/hls/master.m3u8
+
+# Or stream the DASH manifest
+ffplay http://localhost:7882/dash/manifest.mpd
+```
+
+## How it works
+
+```
+Rockbox PCM (S16LE / 44.1 kHz / stereo)
+  → fdk-aac (AAC-LC, 1024-sample frames)
+    → fMP4 segmenter (86 frames ≈ 2 s per segment)
+      → SegmentStore (sliding ring, last ~6 segments in memory)
+        → HTTP server (/init.mp4, /seg/{n}.m4s, /hls/*.m3u8, /dash/manifest.mpd)
+```
+
+- A 2-second sliding window of segments is retained; clients always join at the
+  live edge.
+- Between tracks the encoder emits silence segments at wall-clock cadence so
+  clients don't see an empty playlist (which `hls.js` would treat as a fatal
+  `levelEmptyError`).
+- The bitrate is clamped to **32 000 – 320 000 bps**. Outside that range it is
+  silently clamped to the nearest endpoint.
+
+## Mirror to disk for an external HTTP server
+
+To serve the same artefacts from nginx, Caddy, or a CDN origin, point the sink
+at a directory:
+
+```toml
+audio_output     = "cmaf"
+cmaf_segment_dir = "/var/www/rockbox-cmaf"
+```
+
+`init.mp4`, `seg/N.m4s`, `hls/master.m3u8`, `hls/audio.m3u8`, and
+`dash/manifest.mpd` are all written there alongside the in-memory ring. The
+in-memory ring is always authoritative; disk I/O is best-effort and never
+blocks encoding.
+
+Example nginx vhost:
+
+```nginx
+server {
+    listen 80;
+    location / {
+        root /var/www/rockbox-cmaf;
+        add_header Cache-Control "no-cache";
+        add_header Access-Control-Allow-Origin "*";
+    }
+}
+```
+
+## Licensing note
+
+`libfdk-aac` ships under the *Software License for The Fraunhofer FDK AAC Codec
+Library for Android* — open source but **not GPL-compatible**. Redistributing
+a binary that combines this sink with the GPLv2 Rockbox firmware is a license
+conflict for redistribution. Personal / non-distributed use is the intended
+scope.
+
+## Switching to another sink
+
+Edit `audio_output` in `settings.toml` and restart, or call:
+
+```graphql
+mutation { connectDevice(id: "<device-id>") }
+```
+
+…or pick another output from the web UI's device picker. See
+[Audio output › Overview](/audio-output/overview).
