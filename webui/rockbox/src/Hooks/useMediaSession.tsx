@@ -8,6 +8,15 @@
 // When the user switches to a non-HLS device (built-in / FIFO / AirPlay / …)
 // the browser isn't producing audio locally, so we tear the session down.
 //
+// Spurious-seek guard: some browsers (Android Chrome lock screen, iOS
+// Safari Control Center) fire a `seekto(0)` event around the play action
+// when the bound <audio> element has `preload="none"` and the current
+// buffered range starts at 0. Rockbox's GraphQL `seek` mutation is
+// server-side implemented as `play(elapsed, offset)` — a seek to 0
+// restarts the current track. We therefore drop *any* seek from the OS UI
+// that targets the first ~1.5 s of the track. Users who genuinely want to
+// restart can use the on-screen scrubber or the "previous track" button.
+//
 // Time units: `nowPlaying.duration` / `.progress` are in milliseconds (matches
 // useTimeFormat); Media Session uses seconds — we convert both ways.
 
@@ -28,6 +37,12 @@ type Args = {
 } & MediaSessionCallbacks;
 
 const SEEK_STEP_SECONDS = 10;
+
+// Hard floor for seeks coming from the OS media UI: any target below this
+// is treated as a browser-injected spurious event and dropped, because the
+// underlying Rockbox `seek` mutation calls `play(elapsed, offset)` which
+// restarts the track from elapsed=0. See the file header.
+const MIN_OS_SEEK_MS = 1500;
 
 const isMediaSessionSupported = () =>
   typeof navigator !== "undefined" && "mediaSession" in navigator;
@@ -61,9 +76,8 @@ export const useMediaSession = ({
   const { attached } = useHlsAudio();
 
   // Refs let the action handlers stay bound for the lifetime of the hook
-  // while still reading the latest state/callbacks. Without this we would
-  // rebind every render (cheap but noisy) and risk capturing stale closures.
-  const nowPlayingRef = useRef<CurrentTrack | undefined>(nowPlaying);
+  // while still calling the latest callbacks. Without this we would rebind
+  // every render (cheap but noisy) and risk capturing stale closures.
   const callbacksRef = useRef<MediaSessionCallbacks>({
     onPlay,
     onPause,
@@ -71,14 +85,15 @@ export const useMediaSession = ({
     onPrevious,
     onSeek,
   });
-
-  useEffect(() => {
-    nowPlayingRef.current = nowPlaying;
-  }, [nowPlaying]);
+  const nowPlayingRef = useRef<CurrentTrack | undefined>(nowPlaying);
 
   useEffect(() => {
     callbacksRef.current = { onPlay, onPause, onNext, onPrevious, onSeek };
   }, [onPlay, onPause, onNext, onPrevious, onSeek]);
+
+  useEffect(() => {
+    nowPlayingRef.current = nowPlaying;
+  }, [nowPlaying]);
 
   // Install action handlers when HLS becomes active, tear them down when it
   // doesn't. Browsers only surface the system notification while there is an
@@ -92,6 +107,15 @@ export const useMediaSession = ({
       }
       return;
     }
+
+    // Common seek dispatcher: drops anything below MIN_OS_SEEK_MS so a
+    // spurious `seekto(0)` (which the OS sometimes fires around the play
+    // action) can never reach Rockbox's `seek` mutation = `play(0, 0)` =
+    // restart from start.
+    const osSeek = (targetMs: number) => {
+      if (!isFinite(targetMs) || targetMs < MIN_OS_SEEK_MS) return;
+      callbacksRef.current.onSeek(targetMs);
+    };
 
     setHandler("play", () => {
       void callbacksRef.current.onPlay();
@@ -110,14 +134,14 @@ export const useMediaSession = ({
     });
     setHandler("seekto", (details) => {
       if (details.seekTime == null) return;
-      callbacksRef.current.onSeek(Math.floor(details.seekTime * 1000));
+      osSeek(Math.floor(details.seekTime * 1000));
     });
     setHandler("seekbackward", (details) => {
       const stepMs = Math.floor(
         (details.seekOffset ?? SEEK_STEP_SECONDS) * 1000,
       );
       const current = nowPlayingRef.current?.progress ?? 0;
-      callbacksRef.current.onSeek(Math.max(0, current - stepMs));
+      osSeek(current - stepMs);
     });
     setHandler("seekforward", (details) => {
       const stepMs = Math.floor(
@@ -126,9 +150,7 @@ export const useMediaSession = ({
       const current = nowPlayingRef.current?.progress ?? 0;
       const duration = nowPlayingRef.current?.duration ?? 0;
       const target = current + stepMs;
-      callbacksRef.current.onSeek(
-        duration > 0 ? Math.min(duration, target) : target,
-      );
+      osSeek(duration > 0 ? Math.min(duration, target) : target);
     });
 
     return () => {
