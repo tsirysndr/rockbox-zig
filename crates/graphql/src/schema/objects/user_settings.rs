@@ -260,6 +260,10 @@ pub struct UserSettings {
 
     pub governor: i32,
     pub stereosw_mode: i32,
+
+    // Rust-side sink configuration — populated by the resolver from
+    // settings.toml because the C firmware UserSettings struct doesn't carry it.
+    pub cmaf_http_port: Option<i32>,
 }
 
 #[Object]
@@ -1055,6 +1059,13 @@ impl UserSettings {
     async fn stereosw_mode(&self) -> i32 {
         self.stereosw_mode
     }
+
+    /// HTTP port of the rockboxd CMAF sink (HLS + DASH manifests + fMP4
+    /// segments). `null` when settings.toml does not pin a port — clients
+    /// should fall back to the default 7882.
+    async fn cmaf_http_port(&self) -> Option<i32> {
+        self.cmaf_http_port
+    }
 }
 
 impl From<rb::types::user_settings::UserSettings> for UserSettings {
@@ -1262,6 +1273,8 @@ impl From<rb::types::user_settings::UserSettings> for UserSettings {
             afr_enabled: settings.afr_enabled,
             governor: settings.governor,
             stereosw_mode: settings.stereosw_mode,
+            // Rust-side fields are filled in by the resolver, not the C firmware.
+            cmaf_http_port: None,
         }
     }
 }

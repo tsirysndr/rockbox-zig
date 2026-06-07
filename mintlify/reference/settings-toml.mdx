@@ -12,7 +12,7 @@ Keys not listed here are ignored.
 | Key            | Type    | Default     | Description                                      |
 |----------------|---------|-------------|--------------------------------------------------|
 | `music_dir`    | string  | —           | Absolute path to your music library              |
-| `audio_output` | string  | `"builtin"` | `builtin` / `fifo` / `airplay` / `squeezelite` / `chromecast` / `snapcast_tcp` / `upnp` |
+| `audio_output` | string  | `"builtin"` | `builtin` / `cmaf` (alias `hls`, `dash`) / `fifo` / `airplay` / `squeezelite` / `chromecast` / `snapcast_tcp` / `upnp` |
 | `player_name`  | string  | `""`        | Name advertised to MPD clients and the UI        |
 
 ## Subsonic / Navidrome API server
@@ -22,6 +22,17 @@ Keys not listed here are ignored.
 | `subsonic_username`   | string | `admin`  | Username clients must authenticate with                |
 | `subsonic_password`   | string | —        | Password; server is **disabled** when this is empty    |
 | `subsonic_port`       | int    | `4533`   | TCP port the Subsonic API listens on                   |
+
+## CMAF (HLS + DASH) sink
+
+| Key                | Type   | Default  | Description                                                                 |
+|--------------------|--------|----------|-----------------------------------------------------------------------------|
+| `cmaf_http_port`   | int    | `7882`   | HTTP port the HLS playlist + DASH manifest + fMP4 segments are served on    |
+| `cmaf_bitrate`     | int    | `128000` | AAC-LC bitrate in bits/sec (clamped to 32 000 – 320 000)                    |
+| `cmaf_segment_dir` | string | —        | Optional directory to mirror `init.mp4`, `seg/N.m4s`, and the HLS/DASH manifests to (for serving from an external HTTP server / CDN) |
+
+The aliases `audio_output = "hls"` and `audio_output = "dash"` are also accepted
+and produce the same in-memory CMAF stream.
 
 ## FIFO / pipe sink
 

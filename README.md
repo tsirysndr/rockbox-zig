@@ -30,6 +30,7 @@ and Squeezelite.
 
 ### Audio output
 - [x] Built-in [CPAL](https://github.com/RustAudio/cpal) audio
+- [x] [HLS](https://developer.apple.com/streaming/) + [MPEG-DASH](https://dashif.org) (CMAF / fMP4) — plays directly in any browser, no extra client needed
 - [x] [AirPlay](https://en.wikipedia.org/wiki/AirPlay) (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
 - [x] [Snapcast](https://github.com/snapcast/snapcast) — synchronised multi-room via snapserver (FIFO/pipe **and** direct TCP with mDNS auto-discovery)
 - [x] [Squeezelite](https://github.com/ralph-irving/squeezelite) (Slim Protocol + HTTP broadcast) — synchronised multi-room
@@ -70,7 +71,35 @@ and Squeezelite.
 
 ### 🐳 Docker
 
-The fastest way to get started — no install, no config file needed:
+The fastest way to get started — no install, no config file, no external client needed.
+The default `audio_output` is **CMAF (HLS + DASH)**, so audio plays straight in
+your browser:
+
+```sh
+docker run -v $HOME/Music:/root/Music \
+  -p 6062:6062 \
+  -p 7882:7882 \
+  tsiry/rockbox
+```
+
+Open the web UI at [http://localhost:6062](http://localhost:6062) and start
+playing — the page attaches to the HLS stream on port `7882` automatically.
+
+Prefer the terminal? Any HLS-capable player can consume the stream directly:
+
+```sh
+ffplay http://localhost:7882/hls/master.m3u8
+# or: vlc http://localhost:7882/hls/master.m3u8
+# or: mpv  http://localhost:7882/hls/master.m3u8
+```
+
+<details>
+<summary>Want Snapcast multi-room instead of HLS?</summary>
+
+The image still ships a `snapserver` so you can opt into the FIFO/Snapcast path
+without rebuilding. Expose its ports and edit
+`~/.config/rockbox.org/settings.toml` inside the container to set
+`audio_output = "fifo"`:
 
 ```sh
 docker run -v $HOME/Music:/root/Music \
@@ -81,13 +110,13 @@ docker run -v $HOME/Music:/root/Music \
   tsiry/rockbox
 ```
 
-In a second terminal, connect a [Snapcast](https://github.com/snapcast/snapcast) client for audio output:
+Then connect a [Snapcast](https://github.com/snapcast/snapcast) client:
 
 ```sh
 snapclient tcp://localhost
 ```
 
-Open the web UI at [http://localhost:6062](http://localhost:6062) and start playing!
+</details>
 
 ---
 
@@ -209,6 +238,7 @@ rockbox
 | HTTP REST API                        | 6063         | HTTP            |
 | MPD server                           | 6600         | MPD protocol    |
 | Subsonic / Navidrome API             | 4533         | HTTP            |
+| CMAF (HLS + DASH)                    | 7882         | HTTP            |
 | Slim Protocol (squeezelite)          | 3483         | TCP             |
 | HTTP PCM stream (squeezelite)        | 9999         | HTTP            |
 | Chromecast WAV stream                | 7881         | HTTP            |
@@ -232,6 +262,42 @@ audio_output = "builtin"
 ```
 
 Uses [CPAL](https://github.com/RustAudio/cpal) — plays through the OS default device. No extra setup needed.
+
+### HLS + MPEG-DASH (CMAF)
+
+```toml
+music_dir      = "/path/to/Music"
+audio_output   = "cmaf"           # also accepts "hls" or "dash"
+cmaf_http_port = 7882             # optional, default 7882
+cmaf_bitrate   = 128000           # optional, AAC-LC bitrate in bps
+```
+
+Encodes live audio as AAC-LC in fragmented MP4 (CMAF) and serves it as both
+HLS and MPEG-DASH from the same in-memory ring buffer. Any HLS-capable client
+can play the stream — including every modern browser — with no extra software:
+
+```
+http://<host>:7882/hls/master.m3u8     # HLS
+http://<host>:7882/dash/manifest.mpd   # MPEG-DASH
+```
+
+This is the default for the Docker image: the web UI's `<audio>` element
+attaches to the HLS stream automatically as soon as the active output is set
+to `cmaf` / `hls` / `dash`. Try it from the terminal too:
+
+```sh
+ffplay http://localhost:7882/hls/master.m3u8
+vlc    http://localhost:7882/hls/master.m3u8
+mpv    http://localhost:7882/hls/master.m3u8
+```
+
+A 2-second sliding window of segments is kept in memory; clients always join at
+the live edge. Optionally mirror segments + manifests to disk for an external
+HTTP server (nginx, Caddy, a CDN origin) by adding:
+
+```toml
+cmaf_segment_dir = "/var/www/rockbox-cmaf"
+```
 
 ### Snapcast
 

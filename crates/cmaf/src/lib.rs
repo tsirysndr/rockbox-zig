@@ -28,7 +28,7 @@ use std::collections::VecDeque;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 // Called from rockbox-cli to force this crate's symbols into librockbox_cli.a.
 #[doc(hidden)]
@@ -63,6 +63,11 @@ pub(crate) struct PcmIntake {
 struct PcmIntakeInner {
     buf: VecDeque<u8>,
     closed: bool,
+    /// Wall-clock instant of the last *real* PCM push from the C side. The
+    /// silence pacer reads this to decide whether to inject filler. Silence
+    /// pushes do NOT update it, so the pacer's own pushes don't keep us
+    /// stuck in "active" mode forever.
+    last_real_push: Instant,
 }
 
 impl PcmIntake {
@@ -71,6 +76,7 @@ impl PcmIntake {
             inner: Mutex::new(PcmIntakeInner {
                 buf: VecDeque::with_capacity(64 * 1024),
                 closed: false,
+                last_real_push: Instant::now(),
             }),
             cv: Condvar::new(),
         }
@@ -82,7 +88,30 @@ impl PcmIntake {
             return;
         }
         g.buf.extend(data.iter().copied());
+        g.last_real_push = Instant::now();
         self.cv.notify_all();
+    }
+
+    /// Filler-only push from the silence pacer. Behaves identically to
+    /// `push` for the encoder consumer side, but doesn't touch the
+    /// `last_real_push` timestamp — keeping the broadcaster's true idle
+    /// duration observable to the pacer thread itself.
+    pub(crate) fn push_silence(&self, data: &[u8]) {
+        let mut g = self.inner.lock().unwrap();
+        if g.closed {
+            return;
+        }
+        g.buf.extend(data.iter().copied());
+        self.cv.notify_all();
+    }
+
+    /// Snapshot used by the silence pacer to decide whether to inject filler.
+    /// Returns `(time since last real push, current buffer length in bytes)`.
+    /// Pacer only injects when broadcaster is idle AND the buffer is empty,
+    /// so the next real-audio chunk slots in cleanly.
+    pub(crate) fn idle_and_buf_len(&self) -> (Duration, usize) {
+        let g = self.inner.lock().unwrap();
+        (Instant::now().duration_since(g.last_real_push), g.buf.len())
     }
 
     /// Pull at least `min` bytes (or until closed). Returns None when the
@@ -109,6 +138,7 @@ impl PcmIntake {
         let mut g = self.inner.lock().unwrap();
         g.buf.clear();
         g.closed = false;
+        g.last_real_push = Instant::now();
     }
 
     fn close(&self) {

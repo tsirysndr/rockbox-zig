@@ -8,6 +8,7 @@ import CurrentTrack from "./CurrentTrack";
 import RightMenu from "./RightMenu";
 import Pause from "../Icons/Pause";
 import { CurrentTrack as NowPlaying } from "../../Types/track";
+import HlsVolumeControl from "../HlsPlayer/HlsVolumeControl";
 
 export type ControlBarProps = {
   nowPlaying?: NowPlaying;
@@ -97,6 +98,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
         onUnlike={props.onUnlike}
         onSeek={props.onSeek}
       />
+      <HlsVolumeControl />
       <RightMenu />
     </div>
   );

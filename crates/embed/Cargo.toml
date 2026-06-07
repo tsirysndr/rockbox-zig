@@ -26,6 +26,7 @@ daemon = [
     "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
     "dep:rockbox-upnp",       "rockbox-upnp/ffi",
     "dep:rockbox-cmaf",       "rockbox-cmaf/ffi",
+    "dep:rockbox-hls",        "rockbox-hls/ffi",
     "dep:rockbox-cpal-sink",
     "rockbox-server/fts5",
 ]
@@ -55,6 +56,7 @@ rockbox-slim       = { path = "../slim",       optional = true }
 rockbox-chromecast = { path = "../chromecast", optional = true }
 rockbox-upnp       = { path = "../upnp",       optional = true }
 rockbox-cmaf       = { path = "../cmaf",       optional = true }
+rockbox-hls        = { path = "../hls",        optional = true }
 rockbox-cpal-sink  = { path = "../cpal-sink",  optional = true }
 
 [build-dependencies]

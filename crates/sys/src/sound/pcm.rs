@@ -154,6 +154,19 @@ pub fn cmaf_set_bitrate(bps: u32) {
     unsafe { crate::pcm_cmaf_set_bitrate(bps) }
 }
 
+/// Start the CMAF HTTP server and encoder pipeline eagerly, before any
+/// audio actually plays. Idempotent — safe to call repeatedly.
+///
+/// Without this the HTTP server only binds on the first `sink_dma_start`
+/// (which happens on the first track), so HLS clients that try to open
+/// `http://host:7882/hls/master.m3u8` immediately after the user picks the
+/// CMAF device get connection-refused. Call this at sink-select time
+/// (settings load + device-picker connect) and the endpoint is reachable
+/// as soon as the device is active.
+pub fn cmaf_start() {
+    unsafe { crate::pcm_cmaf_start() };
+}
+
 /// Set (or clear via `None`) the directory the CMAF sink mirrors segments
 /// and manifests into. None = in-memory only.
 pub fn cmaf_set_segment_dir(dir: Option<&str>) {

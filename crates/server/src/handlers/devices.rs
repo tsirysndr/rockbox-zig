@@ -117,6 +117,10 @@ pub async fn connect(state: web::Data<AppState>, path: web::Path<String>) -> Han
             pcm::cmaf_set_bitrate(bitrate);
             pcm::cmaf_set_segment_dir(settings.cmaf_segment_dir.as_deref());
             pcm::switch_sink(pcm::PCM_SINK_CMAF);
+            // Bind the HLS / DASH HTTP server immediately so the WebUI's
+            // automatic connect succeeds without waiting for the user to
+            // start playing a track. Idempotent.
+            pcm::cmaf_start();
             *GLOBAL_MUTEX.lock().unwrap() = 0;
         }
         other => {

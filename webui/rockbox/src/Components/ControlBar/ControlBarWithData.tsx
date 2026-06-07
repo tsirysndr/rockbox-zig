@@ -23,6 +23,7 @@ import {
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
 import { useSettings } from "../../Hooks/useSettings";
+import { hlsAudio } from "../../lib/hls-audio";
 import { CurrentTrack } from "../../Types/track";
 import { likesState } from "../Likes/LikesState";
 import { settingsState } from "../Settings/SettingsState";
@@ -183,6 +184,11 @@ const ControlBarWithData: FC = () => {
   }, [data, isLoading, playback]);
 
   const onPlay = async () => {
+    // Local HLS resume runs first so the user hears playback immediately
+    // (zero-latency UX). The GraphQL resume mutation below tells the
+    // upstream Rockbox to do the same on its side, but we don't gate on it.
+    hlsAudio.resume();
+
     setControlBarState((state) => ({
       ...state,
       nowPlaying: {
@@ -224,6 +230,12 @@ const ControlBarWithData: FC = () => {
   };
 
   const onPause = () => {
+    // Instant local mute first — silence the browser HLS player. The
+    // GraphQL pause mutation follows and tells the upstream Rockbox to
+    // actually pause its playlist. Both happen unconditionally; whichever
+    // sink is active will be the one that matters.
+    hlsAudio.pause();
+
     setControlBarState((state) => ({
       ...state,
       nowPlaying: {

@@ -19,7 +19,14 @@ impl SettingsQuery {
             .await?
             .json::<rb::types::user_settings::UserSettings>()
             .await?;
-        Ok(settings.into())
+        let mut result: UserSettings = settings.into();
+        // Merge in Rust-side sink config from settings.toml. These fields
+        // live outside the C firmware UserSettings struct, so they aren't
+        // returned by the /settings REST endpoint above.
+        if let Ok(s) = rockbox_settings::read_settings() {
+            result.cmaf_http_port = s.cmaf_http_port.map(|p| p as i32);
+        }
+        Ok(result)
     }
 }
 

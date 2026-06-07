@@ -16,6 +16,7 @@ import GenreDetailsPage from "./Containers/GenreDetails";
 import BottomTabs from "./Components/BottomTabs/BottomTabs";
 import MiniPlayer from "./Components/MiniPlayer/MiniPlayer";
 import MobilePlayer from "./Components/MobilePlayer/MobilePlayer";
+import HlsAutoConnect from "./Components/HlsPlayer/HlsAutoConnect";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
       <MiniPlayer />
       <BottomTabs />
       <MobilePlayer />
+      <HlsAutoConnect />
     </BrowserRouter>
   );
 }

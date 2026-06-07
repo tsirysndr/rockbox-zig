@@ -23,6 +23,22 @@ impl Playback {
     }
 }
 
+/// Open a gRPC PlaybackServiceClient against the broadcaster of the
+/// currently-playing HLS/DASH stream. Returns `None` when no HLS session
+/// is active, in which case the caller should fall through to its local
+/// (Rockbox playback engine) code path.
+async fn remote_playback_client(
+) -> Option<playback_service_client::PlaybackServiceClient<tonic::transport::Channel>> {
+    let base = rockbox_hls::player_remote_api_base()?;
+    match playback_service_client::PlaybackServiceClient::connect(base.clone()).await {
+        Ok(c) => Some(c),
+        Err(e) => {
+            tracing::warn!("hls remote control: connect {base} failed: {e}");
+            None
+        }
+    }
+}
+
 #[tonic::async_trait]
 impl PlaybackService for Playback {
     async fn play(
@@ -44,6 +60,13 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<PauseRequest>,
     ) -> Result<tonic::Response<PauseResponse>, tonic::Status> {
+        // HLS/DASH pause is a local sink-side action — it just stops pushing
+        // PCM. The broadcaster keeps streaming and the consumer's segment
+        // buffer fills up; resume picks up at the live edge again.
+        if rockbox_hls::player_is_active() {
+            rockbox_hls::player_pause();
+            return Ok(tonic::Response::new(PauseResponse::default()));
+        }
         self.client
             .put(&format!("{}/player/pause", rockbox_url()))
             .send()
@@ -56,6 +79,17 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<PlayOrPauseRequest>,
     ) -> Result<tonic::Response<PlayOrPauseResponse>, tonic::Status> {
+        // HLS/DASH session: toggle local sink-side pause based on the
+        // standalone player's own state.
+        if rockbox_hls::player_is_active() {
+            let s = rockbox_hls::player_status_json();
+            if s.contains("\"state\":\"paused\"") {
+                rockbox_hls::player_resume();
+            } else {
+                rockbox_hls::player_pause();
+            }
+            return Ok(tonic::Response::new(PlayOrPauseResponse::default()));
+        }
         let client = reqwest::Client::new();
         let response = client
             .get(&format!("{}/player/status", rockbox_url()))
@@ -113,6 +147,10 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<ResumeRequest>,
     ) -> Result<tonic::Response<ResumeResponse>, tonic::Status> {
+        if rockbox_hls::player_is_active() {
+            rockbox_hls::player_resume();
+            return Ok(tonic::Response::new(ResumeResponse::default()));
+        }
         self.client
             .put(&format!("{}/player/resume", rockbox_url()))
             .send()
@@ -125,6 +163,12 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<NextRequest>,
     ) -> Result<tonic::Response<NextResponse>, tonic::Status> {
+        // HLS/DASH: forward to the *broadcaster's* PlaybackService over gRPC.
+        // The broadcaster advances its own playlist, its CMAF output reflects
+        // the new track, and the consumer's segment refresher picks it up.
+        if let Some(mut client) = remote_playback_client().await {
+            return client.next(NextRequest::default()).await;
+        }
         self.client
             .put(&format!("{}/player/next", rockbox_url()))
             .send()
@@ -137,6 +181,9 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<PreviousRequest>,
     ) -> Result<tonic::Response<PreviousResponse>, tonic::Status> {
+        if let Some(mut client) = remote_playback_client().await {
+            return client.previous(PreviousRequest::default()).await;
+        }
         self.client
             .put(&format!("{}/player/previous", rockbox_url()))
             .send()
@@ -151,6 +198,13 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<FastForwardRewindResponse>, tonic::Status> {
         let params = request.into_inner();
         let newtime = params.new_time;
+        // The consumer can't seek a sliding HLS window — only the
+        // broadcaster can move its playhead. Forward over gRPC.
+        if let Some(mut client) = remote_playback_client().await {
+            return client
+                .fast_forward_rewind(FastForwardRewindRequest { new_time: newtime })
+                .await;
+        }
         tokio::task::spawn_blocking(move || {
             rb::with_kernel_lock(|| rb::playback::ff_rewind(newtime));
         })
@@ -163,6 +217,9 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<StatusRequest>,
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
+        if let Some(mut client) = remote_playback_client().await {
+            return client.status(StatusRequest::default()).await;
+        }
         let response = self
             .client
             .get(&format!("{}/player/status", rockbox_url()))
@@ -181,6 +238,12 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<CurrentTrackRequest>,
     ) -> Result<tonic::Response<CurrentTrackResponse>, tonic::Status> {
+        // HLS/DASH: ask the broadcaster directly. The local library DB has
+        // no record of the broadcaster's track, so we skip the local
+        // metadata enrichment and pass the response straight through.
+        if let Some(mut client) = remote_playback_client().await {
+            return client.current_track(CurrentTrackRequest::default()).await;
+        }
         let track = self
             .client
             .get(&format!("{}/player/current-track", rockbox_url()))
@@ -217,6 +280,9 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<NextTrackRequest>,
     ) -> Result<tonic::Response<NextTrackResponse>, tonic::Status> {
+        if let Some(mut client) = remote_playback_client().await {
+            return client.next_track(NextTrackRequest::default()).await;
+        }
         let track = self
             .client
             .get(&format!("{}/player/next-track", rockbox_url()))
@@ -262,6 +328,13 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<HardStopRequest>,
     ) -> Result<tonic::Response<HardStopResponse>, tonic::Status> {
+        // Local: tear down the HLS/DASH player if one is active, so the
+        // consumer stops decoding and pushing PCM. Don't propagate to the
+        // broadcaster — other consumers may still be listening.
+        let was_hls = rockbox_hls::player_stop();
+        if was_hls {
+            return Ok(tonic::Response::new(HardStopResponse::default()));
+        }
         tokio::task::spawn_blocking(move || {
             rb::with_kernel_lock(|| rb::playback::hard_stop());
         })
@@ -580,6 +653,19 @@ impl PlaybackService for Playback {
         let raw = request.path.replace("file://", "");
         let raw = raw.trim();
         let path = raw.split('#').next().unwrap_or(raw).to_string();
+
+        // HLS / DASH URLs bypass Rockbox's playback engine entirely and run
+        // through the standalone player in `crates/hls/`.  The decoded PCM
+        // goes straight into whatever PCM sink the user has configured
+        // (cpal / AirPlay / Snapcast / CMAF / …), so this composes cleanly
+        // with the rest of the audio-output graph.
+        if rockbox_hls::is_hls_or_dash_url(&path).is_some() {
+            if let Err(e) = rockbox_hls::player_play(&path) {
+                return Err(tonic::Status::invalid_argument(e));
+            }
+            return Ok(tonic::Response::new(PlayTrackResponse::default()));
+        }
+
         let tracks = vec![path.clone()];
 
         let body = serde_json::json!({

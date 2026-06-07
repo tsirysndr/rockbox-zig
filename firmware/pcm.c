@@ -325,6 +325,40 @@ const struct pcm_sink_caps* pcm_current_sink_caps(void)
     return pcm_sink_caps(pcm_current_sink());
 }
 
+/* External PCM injection from a standalone Rust player (HLS/DASH client).
+ * Pushes PCM straight into the active sink's `ops.play()` so the audio
+ * goes wherever audio_output= points (cpal, AirPlay, Snapcast, CMAF, ...)
+ * without involving pcmbuf or Rockbox's playback engine.
+ *
+ * No locking or DMA-state bookkeeping — the caller decides framing and
+ * paces in real time. Concurrent main-pipeline playback may interleave,
+ * which is fine for the typical use case where one or the other is active. */
+void pcm_external_write(const void *addr, size_t size)
+{
+    struct pcm_sink* sink = sinks[cur_sink];
+    if (sink && sink->ops.play) {
+        sink->ops.play(addr, size);
+    }
+}
+
+void pcm_external_set_freq(unsigned int rate)
+{
+    struct pcm_sink* sink = sinks[cur_sink];
+    if (!sink || !sink->ops.set_freq) {
+        return;
+    }
+    /* Map a raw Hz value to the closest matching `hw_freq_sampr[]` index
+     * so the underlying sink (cpal, AirPlay, ...) can reconfigure its
+     * output rate. Falls back to default_freq when no exact match. */
+    for (uint16_t i = 0; i < sink->caps.num_samprs; i++) {
+        if (sink->caps.samprs[i] == rate) {
+            sink->ops.set_freq(i);
+            return;
+        }
+    }
+    sink->ops.set_freq(sink->caps.default_freq);
+}
+
 bool pcm_switch_sink(enum pcm_sink_ids sink)
 {
     logf("pcm_switch_sink %d to %d", cur_sink, sink);
