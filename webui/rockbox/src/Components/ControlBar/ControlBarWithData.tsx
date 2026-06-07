@@ -20,6 +20,7 @@ import {
   useSeekMutation,
   useUnlikeTrackMutation,
 } from "../../Hooks/GraphQL";
+import { useMediaSession } from "../../Hooks/useMediaSession";
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
 import { useSettings } from "../../Hooks/useSettings";
@@ -312,6 +313,15 @@ const ControlBarWithData: FC = () => {
     });
     await refetchSettings();
   };
+
+  useMediaSession({
+    nowPlaying,
+    onPlay,
+    onPause,
+    onNext: () => next({}),
+    onPrevious: () => previous({}),
+    onSeek,
+  });
 
   return (
     <ControlBar
