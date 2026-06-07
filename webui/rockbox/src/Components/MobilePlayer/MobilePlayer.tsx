@@ -1,5 +1,5 @@
 import { FC, useRef, useState } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { controlBarState } from "../ControlBar/ControlBarState";
 import { mobilePlayerState } from "./MobilePlayerState";
 import { likesState } from "../Likes/LikesState";
@@ -42,10 +42,10 @@ const BluetoothIcon: FC<{ color: string }> = ({ color }) => (
 );
 
 const MobilePlayer: FC = () => {
-  const [{ isOpen }, setMobilePlayer] = useRecoilState(mobilePlayerState);
-  const [{ nowPlaying }] = useRecoilState(controlBarState);
-  const [likes, setLikes] = useRecoilState(likesState);
-  const [settings] = useRecoilState(settingsState);
+  const [{ isOpen }, setMobilePlayer] = useAtom(mobilePlayerState);
+  const [{ nowPlaying }] = useAtom(controlBarState);
+  const [likes, setLikes] = useAtom(likesState);
+  const [settings] = useAtom(settingsState);
   const { formatTime } = useTimeFormat();
   const progressRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<Sheet>(null);

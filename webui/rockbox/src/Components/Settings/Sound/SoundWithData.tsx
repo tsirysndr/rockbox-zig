@@ -1,11 +1,11 @@
 import { FC } from "react";
 import Sound from "./Sound";
 import { settingsState } from "../SettingsState";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { useSaveSettingsMutation } from "../../../Hooks/GraphQL";
 
 const SoundWithData: FC = () => {
-  const [settings, setSettings] = useRecoilState(settingsState);
+  const [settings, setSettings] = useAtom(settingsState);
   const { mutate: saveSettings } = useSaveSettingsMutation();
 
   return (

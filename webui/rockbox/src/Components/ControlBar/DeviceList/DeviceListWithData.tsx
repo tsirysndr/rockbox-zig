@@ -6,7 +6,7 @@ import {
   useGetDeviceQuery,
   useGetDevicesQuery,
 } from "../../../Hooks/GraphQL";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { deviceState } from "./DeviceState";
 import { controlBarState } from "../ControlBarState";
 
@@ -15,8 +15,8 @@ export type DeviceListWithDataProps = {
 };
 
 const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
-  const [, setControlBarState] = useRecoilState(controlBarState);
-  const [device] = useRecoilState(deviceState);
+  const [, setControlBarState] = useAtom(controlBarState);
+  const [device] = useAtom(deviceState);
   const { data: currentDevice, refetch: refetchCurrentDevice } = useGetDeviceQuery({ id: "current" });
   const { data, isLoading, refetch: refetchDevices } = useGetDevicesQuery();
   const { mutateAsync: connectAsync } = useConnectToDeviceMutation();

@@ -1,11 +1,11 @@
 import { FC } from "react";
 import Crossfeed from "./Crossfeed";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { settingsState } from "../../SettingsState";
 import { useSaveSettingsMutation } from "../../../../Hooks/GraphQL";
 
 const CrossfeedWithData: FC = () => {
-  const [settings] = useRecoilState(settingsState);
+  const [settings] = useAtom(settingsState);
   const { mutate: saveSettings } = useSaveSettingsMutation();
 
   return (

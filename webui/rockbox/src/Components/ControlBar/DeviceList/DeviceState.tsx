@@ -1,11 +1,8 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { Device } from "./DeviceList";
 
 export const deviceState = atom<{
   currentDevice: Device | null;
 }>({
-  key: "deviceState",
-  default: {
-    currentDevice: null,
-  },
+  currentDevice: null,
 });

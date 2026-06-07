@@ -6,7 +6,7 @@ import {
   usePlayAlbumMutation,
   useUnlikeAlbumMutation,
 } from "../../Hooks/GraphQL";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { likesState } from "../Likes/LikesState";
 
 export type AlbumWithDataProps = {
@@ -14,7 +14,7 @@ export type AlbumWithDataProps = {
 };
 
 const AlbumWithData: FC<AlbumWithDataProps> = ({ album }) => {
-  const [likes, setLikes] = useRecoilState(likesState);
+  const [likes, setLikes] = useAtom(likesState);
   const { mutate: playAlbum } = usePlayAlbumMutation();
   const { mutate: likeAlbum } = useLikeAlbumMutation();
   const { mutate: unlikeAlbum } = useUnlikeAlbumMutation();

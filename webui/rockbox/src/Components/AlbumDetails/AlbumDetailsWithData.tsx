@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useGetAlbumQuery, usePlayAlbumMutation } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
@@ -8,7 +8,7 @@ import { settingsState } from "../Settings/SettingsState";
 import AlbumDetails from "./AlbumDetails";
 
 const AlbumDetailsWithData: FC = () => {
-  const { enableBlur } = useRecoilValue(settingsState);
+  const { enableBlur } = useAtomValue(settingsState);
   const [volumes, setVolumes] = useState<Track[][]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();

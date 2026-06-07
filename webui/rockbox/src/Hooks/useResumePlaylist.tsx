@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { controlBarState } from "../Components/ControlBar/ControlBarState";
 import {
   useGetCurrentPlaylistQuery,
@@ -10,7 +10,7 @@ import {
 } from "./GraphQL";
 
 export const useResumePlaylist = () => {
-  const [{ nowPlaying, resumeIndex }, setControlBarState] = useRecoilState(
+  const [{ nowPlaying, resumeIndex }, setControlBarState] = useAtom(
     controlBarState,
   );
   const { data: globalStatusData } = useGetGlobalStatusQuery();

@@ -1,5 +1,5 @@
 import { FC, useEffect } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import {
   useGetLikedTracksQuery,
   usePlayLikedTracksMutation,
@@ -10,10 +10,10 @@ import Likes from "./Likes";
 import { likedTracks, likesState } from "./LikesState";
 
 const LikesWithData: FC = () => {
-  const filter = useRecoilValue(filterState);
-  const [likes, setLikes] = useRecoilState(likesState);
+  const filter = useAtomValue(filterState);
+  const [likes, setLikes] = useAtom(likesState);
   const { data, isLoading } = useGetLikedTracksQuery();
-  const [tracks, setTracks] = useRecoilState(likedTracks);
+  const [tracks, setTracks] = useAtom(likedTracks);
   const { mutate: playLikedTracks } = usePlayLikedTracksMutation();
   const { formatTime } = useTimeFormat();
 

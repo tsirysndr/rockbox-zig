@@ -11,7 +11,7 @@ import {
   PLAYLIST_INSERT_LAST,
   PLAYLIST_INSERT_SHUFFLED,
 } from "../../Types/playlist";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { likesState } from "../Likes/LikesState";
 
 export type ContextMenuWithDataProps = {
@@ -20,7 +20,7 @@ export type ContextMenuWithDataProps = {
 };
 
 const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
-  const [likes, setLikes] = useRecoilState(likesState);
+  const [likes, setLikes] = useAtom(likesState);
   const { refetch } = useGetLikedTracksQuery();
   const { mutate: insertTracks } = useInsertTracksMutation();
   const { mutateAsync: likeTrackAsync } = useLikeTrackMutation();

@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useGetAlbumsQuery } from "../../Hooks/GraphQL";
 import { filterState } from "../Filter/FilterState";
 import Albums from "./Albums";
 
 const AlbumsWithData: FC = () => {
-  const filter = useRecoilValue(filterState);
+  const filter = useAtomValue(filterState);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [albums, setAlbums] = useState<any[]>([]);
   const { data, isLoading } = useGetAlbumsQuery();

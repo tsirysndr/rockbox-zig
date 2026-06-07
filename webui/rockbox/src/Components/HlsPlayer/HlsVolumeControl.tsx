@@ -6,7 +6,7 @@
 // would have no effect, so we hide it to avoid confusion.
 
 import { FC } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import {
   VolumeHigh,
   VolumeMute,
@@ -23,7 +23,7 @@ function isCmafDevice(type?: string | null): boolean {
 }
 
 const HlsVolumeControl: FC = () => {
-  const { currentDevice } = useRecoilValue(deviceState);
+  const { currentDevice } = useAtomValue(deviceState);
   const { attached, volume, muted } = useHlsAudio();
 
   if (!currentDevice || !isCmafDevice(currentDevice.type) || !attached) {

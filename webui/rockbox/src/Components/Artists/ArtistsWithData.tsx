@@ -1,11 +1,11 @@
 import { FC, useMemo } from "react";
 import Artists from "./Artists";
 import { useGetArtistsQuery } from "../../Hooks/GraphQL";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { filterState } from "../Filter/FilterState";
 
 const ArtistsWithData: FC = () => {
-  const filter = useRecoilValue(filterState);
+  const filter = useAtomValue(filterState);
   const { data, isLoading } = useGetArtistsQuery();
   const artists = useMemo(() => {
     if (filter.term.length > 0 && filter.results) {

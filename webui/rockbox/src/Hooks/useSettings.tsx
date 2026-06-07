@@ -1,4 +1,4 @@
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { settingsState } from "../Components/Settings/SettingsState";
 import { useGetGlobalSettingsQuery } from "./GraphQL";
 import { useEffect } from "react";
@@ -21,7 +21,7 @@ const EQ_BAND_PRESETS = [
 ] as const;
 
 export const useSettings = () => {
-  const [, setSettings] = useRecoilState(settingsState);
+  const [, setSettings] = useAtom(settingsState);
   const { data, isLoading } = useGetGlobalSettingsQuery();
 
   useEffect(() => {

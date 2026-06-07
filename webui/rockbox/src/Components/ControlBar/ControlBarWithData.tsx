@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { FC, useEffect } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import {
   useCurrentlyPlayingSongSubscription,
   useGetCurrentTrackQuery,
@@ -34,8 +34,8 @@ import { deviceState } from "./DeviceList/DeviceState";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
-    useRecoilState(controlBarState);
-  const [, setDeviceState] = useRecoilState(deviceState);
+    useAtom(controlBarState);
+  const [, setDeviceState] = useAtom(deviceState);
 
   // Preload device list and current device on mount so the popup shows
   // instantly without a loading delay.
@@ -75,9 +75,9 @@ const ControlBarWithData: FC = () => {
   const { mutate: seek } = useSeekMutation();
   const { mutateAsync: saveSettingsAsync } = useSaveSettingsMutation();
   const { refetch: refetchSettings } = useGetGlobalSettingsQuery();
-  const [settings] = useRecoilState(settingsState);
+  const [settings] = useAtom(settingsState);
 
-  const [likes, setLikes] = useRecoilState(likesState);
+  const [likes, setLikes] = useAtom(likesState);
   const { data: likedTracksData, isLoading: likedTracksLoading } =
     useGetLikedTracksQuery();
   const { data: likedAlbumsData, isLoading: likedAlbumsLoading } =

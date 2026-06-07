@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { CurrentTrack, Track } from "../../Types/track";
 
 export const controlBarState = atom<{
@@ -8,12 +8,9 @@ export const controlBarState = atom<{
   nextTracks?: Track[];
   resumeIndex: number;
 }>({
-  key: "controlBarState",
-  default: {
-    nowPlaying: undefined,
-    locked: false,
-    previousTracks: [],
-    nextTracks: [],
-    resumeIndex: -1,
-  },
+  nowPlaying: undefined,
+  locked: false,
+  previousTracks: [],
+  nextTracks: [],
+  resumeIndex: -1,
 });

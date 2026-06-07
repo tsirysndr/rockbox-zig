@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { usePlayAllTracksMutation, useTracksQuery } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
@@ -7,7 +7,7 @@ import { filterState } from "../Filter/FilterState";
 import Tracks from "./Tracks";
 
 const TracksWithData: FC = () => {
-  const filter = useRecoilValue(filterState);
+  const filter = useAtomValue(filterState);
   const { data, isLoading } = useTracksQuery();
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();

@@ -6,12 +6,12 @@ import {
   SearchQueryVariables,
 } from "../../Hooks/GraphQL";
 import { fetchData } from "../../lib/graphql-client";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { filterState } from "./FilterState";
 import _ from "lodash";
 
 const FilterWithData: FC<{ placeholder?: string }> = (props) => {
-  const [, setFilterState] = useRecoilState(filterState);
+  const [, setFilterState] = useAtom(filterState);
 
   const onSearch = async (term: string) => {
     setFilterState((state) => ({ ...state, term }));

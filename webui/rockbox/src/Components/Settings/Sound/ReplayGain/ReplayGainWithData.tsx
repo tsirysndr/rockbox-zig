@@ -1,11 +1,11 @@
 import { FC } from "react";
 import ReplayGain from "./ReplayGain";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { settingsState } from "../../SettingsState";
 import { useSaveSettingsMutation } from "../../../../Hooks/GraphQL";
 
 const ReplayGainWithData: FC = () => {
-  const [settings] = useRecoilState(settingsState);
+  const [settings] = useAtom(settingsState);
   const { mutate: saveSettings } = useSaveSettingsMutation();
 
   return (

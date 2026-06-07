@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 import MainView from "./MainView";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { controlBarState } from "../ControlBar/ControlBarState";
 import { settingsState } from "../Settings/SettingsState";
 
@@ -9,8 +9,8 @@ export type MainWithDataProps = {
 };
 
 const MainWithData: FC<MainWithDataProps> = ({ children }) => {
-  const { nowPlaying } = useRecoilValue(controlBarState);
-  const { enableBlur } = useRecoilValue(settingsState);
+  const { nowPlaying } = useAtomValue(controlBarState);
+  const { enableBlur } = useAtomValue(settingsState);
   return (
     <MainView cover={enableBlur ? nowPlaying?.cover : undefined}>
       {children}

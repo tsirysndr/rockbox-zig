@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { controlBarState } from "../Components/ControlBar/ControlBarState";
 import { deviceState } from "../Components/ControlBar/DeviceList/DeviceState";
 import {
@@ -9,8 +9,8 @@ import {
 } from "./GraphQL";
 
 export const usePlayQueue = () => {
-  const { currentDevice } = useRecoilValue(deviceState);
-  const { resumeIndex } = useRecoilValue(controlBarState);
+  const { currentDevice } = useAtomValue(deviceState);
+  const { resumeIndex } = useAtomValue(controlBarState);
   const { data: playlistSubscription } = usePlaylistChangedSubscription();
   const { data } = useGetCurrentPlaylistQuery();
 

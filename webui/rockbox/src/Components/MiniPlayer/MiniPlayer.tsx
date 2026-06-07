@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { controlBarState } from "../ControlBar/ControlBarState";
 import { mobilePlayerState } from "../MobilePlayer/MobilePlayerState";
 import Play from "../Icons/Play";
@@ -13,8 +13,8 @@ import {
 } from "../../Hooks/GraphQL";
 
 const MiniPlayer: FC = () => {
-  const [{ nowPlaying }] = useRecoilState(controlBarState);
-  const [, setMobilePlayer] = useRecoilState(mobilePlayerState);
+  const [{ nowPlaying }] = useAtom(controlBarState);
+  const [, setMobilePlayer] = useAtom(mobilePlayerState);
   const { mutate: pause } = usePauseMutation();
   const { mutate: resume } = useResumeMutation();
   const { mutate: next } = useNextMutation();

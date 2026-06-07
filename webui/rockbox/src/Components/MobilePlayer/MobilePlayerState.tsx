@@ -1,6 +1,3 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 
-export const mobilePlayerState = atom<{ isOpen: boolean }>({
-  key: "mobilePlayerState",
-  default: { isOpen: false },
-});
+export const mobilePlayerState = atom<{ isOpen: boolean }>({ isOpen: false });

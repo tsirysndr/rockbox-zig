@@ -1,6 +1,6 @@
 import { FC } from "react";
 import Playback from "./Playback";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { settingsState } from "../SettingsState";
 import {
   useGetGlobalSettingsQuery,
@@ -9,7 +9,7 @@ import {
 
 const PlaybackWithData: FC = () => {
   const { refetch: refetchSettings } = useGetGlobalSettingsQuery();
-  const [settings] = useRecoilState(settingsState);
+  const [settings] = useAtom(settingsState);
   const { mutate: saveSettings, mutateAsync: saveSettingsAsync } = useSaveSettingsMutation();
 
   const onShuffleChange = async (playlistShuffle: boolean) => {

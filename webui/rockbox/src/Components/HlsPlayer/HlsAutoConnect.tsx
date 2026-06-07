@@ -10,7 +10,7 @@
 // rockboxd default) when the setting is null.
 
 import { FC, useEffect } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 import { useGetGlobalSettingsQuery } from "../../Hooks/GraphQL";
 import { hlsAudio } from "../../lib/hls-audio";
@@ -25,7 +25,7 @@ function isCmafDevice(type?: string | null): boolean {
 }
 
 const HlsAutoConnect: FC = () => {
-  const { currentDevice } = useRecoilValue(deviceState);
+  const { currentDevice } = useAtomValue(deviceState);
   const { data: settingsData } = useGetGlobalSettingsQuery();
   const cmafPort =
     settingsData?.globalSettings?.cmafHttpPort ?? DEFAULT_CMAF_HTTP_PORT;

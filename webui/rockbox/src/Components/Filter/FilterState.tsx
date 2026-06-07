@@ -1,13 +1,10 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { SearchResults } from "../../Hooks/GraphQL";
 
 export const filterState = atom<{
   term: string;
   results?: SearchResults;
 }>({
-  key: "filterState",
-  default: {
-    term: "",
-    results: undefined,
-  },
+  term: "",
+  results: undefined,
 });
