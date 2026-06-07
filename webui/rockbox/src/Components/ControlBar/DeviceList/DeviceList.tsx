@@ -3,7 +3,7 @@ import { FC } from "react";
 import { Laptop } from "@styled-icons/ionicons-outline";
 import { Kodi, Airplayaudio, Chromecast } from "@styled-icons/simple-icons";
 import { Speaker } from "@styled-icons/remix-fill";
-import { Radio, HardDrive, Cast } from "@styled-icons/feather";
+import { Radio, HardDrive, Cast, Rss } from "@styled-icons/feather";
 
 export type Device = {
   id: string;
@@ -33,6 +33,8 @@ const iconColors: Record<string, string> = {
   chromecast:   "#28cbfc",
   "UPnP/DLNA":  "#ff00c3",
   dlna:         "#ff00c3",
+  cmaf:         "#a0e040",
+  CMAF:         "#a0e040",
 };
 
 const bgColors: Record<string, string> = {
@@ -48,6 +50,8 @@ const bgColors: Record<string, string> = {
   chromecast:   "rgba(40, 203, 252, 0.08)",
   "UPnP/DLNA":  "rgba(255, 0, 195, 0.06)",
   dlna:         "rgba(255, 0, 195, 0.06)",
+  cmaf:         "rgba(160, 224, 64, 0.10)",
+  CMAF:         "rgba(160, 224, 64, 0.10)",
 };
 
 const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
@@ -72,6 +76,9 @@ const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
       )}
       {(icon === "UPnP/DLNA" || icon === "dlna") && (
         <Speaker size={18} color={c} />
+      )}
+      {(icon === "cmaf" || icon === "CMAF") && (
+        <Rss size={18} color={c} />
       )}
     </div>
   );

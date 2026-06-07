@@ -190,6 +190,7 @@ pub enum Icons {
     Navidrome,
     Kodi,
     Bluetooth,
+    Broadcast,
 }
 
 impl IconNamed for Icons {
@@ -238,6 +239,7 @@ impl IconNamed for Icons {
             Icons::Navidrome => "icons/navidrome.svg",
             Icons::Kodi => "icons/kodi.svg",
             Icons::Bluetooth => "icons/bluetooth.svg",
+            Icons::Broadcast => "icons/broadcast.svg",
         }
         .into()
     }

@@ -1,5 +1,6 @@
 import {
   IconBluetooth,
+  IconBroadcast,
   IconCast,
   IconCheck,
   IconDeviceMobile,
@@ -42,6 +43,9 @@ const DEVICE_ICON: Record<string, DeviceIconSpec> = {
   upnp: { kind: "tabler", component: IconMusic },
   bluetooth: { kind: "tabler", component: IconBluetooth },
   builtin: { kind: "tabler", component: IconDeviceMobile },
+  cmaf: { kind: "tabler", component: IconBroadcast },
+  hls: { kind: "tabler", component: IconBroadcast },
+  dash: { kind: "tabler", component: IconBroadcast },
 };
 
 const DEFAULT_ICON: DeviceIconSpec = {

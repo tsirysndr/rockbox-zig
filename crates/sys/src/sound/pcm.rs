@@ -12,6 +12,9 @@ pub const PCM_SINK_SNAPCAST_TCP: i32 = 6;
 // PCM_SINK_AAUDIO = 7 on Android cdylib builds
 // PCM_SINK_CPAL   = 7 on headless macOS/Linux builds
 pub const PCM_SINK_CPAL: i32 = 7;
+/// CMAF (HLS + DASH) AAC-LC output. Pinned to 8 in `firmware/export/pcm_sink.h`
+/// so it never collides with the conditional slot 7 (CPAL / WEBAPI).
+pub const PCM_SINK_CMAF: i32 = 8;
 
 pub fn apply_settings() {
     unsafe {
@@ -141,4 +144,25 @@ pub fn tcp_set_host(host: &str) {
 
 pub fn tcp_set_port(port: u16) {
     unsafe { crate::pcm_tcp_set_port(port) }
+}
+
+pub fn cmaf_set_http_port(port: u16) {
+    unsafe { crate::pcm_cmaf_set_http_port(port) }
+}
+
+pub fn cmaf_set_bitrate(bps: u32) {
+    unsafe { crate::pcm_cmaf_set_bitrate(bps) }
+}
+
+/// Set (or clear via `None`) the directory the CMAF sink mirrors segments
+/// and manifests into. None = in-memory only.
+pub fn cmaf_set_segment_dir(dir: Option<&str>) {
+    match dir {
+        Some(d) if !d.is_empty() => {
+            let cd = CString::new(d).expect("dir must not contain null bytes");
+            unsafe { crate::pcm_cmaf_set_segment_dir(cd.as_ptr()) }
+            std::mem::forget(cd);
+        }
+        _ => unsafe { crate::pcm_cmaf_set_segment_dir(std::ptr::null()) },
+    }
 }

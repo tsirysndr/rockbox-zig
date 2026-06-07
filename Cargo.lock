@@ -1061,6 +1061,8 @@ dependencies = [
  "http 1.1.0",
  "http-body 1.0.1",
  "http-body-util",
+ "hyper 1.4.1",
+ "hyper-util",
  "itoa",
  "matchit",
  "memchr",
@@ -1070,6 +1072,7 @@ dependencies = [
  "rustversion",
  "serde",
  "sync_wrapper 1.0.1",
+ "tokio",
  "tower 0.4.13",
  "tower-layer",
  "tower-service",
@@ -4641,6 +4644,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f9bfee30e4dedf0ab8b422f03af778d9612b63f502710fc500a334ebe2de645"
 dependencies = [
  "simd-adler32",
+]
+
+[[package]]
+name = "fdk-aac"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30947372907d8433fe9645d3076f7f4681c3d7336c5eb7840a3c3347bcd619cf"
+dependencies = [
+ "fdk-aac-sys",
+]
+
+[[package]]
+name = "fdk-aac-sys"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24516d2611506d5cb1833555adc75f6baf9fe2706b9c13e6fc33a6b22c51ca83"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -9356,6 +9377,7 @@ dependencies = [
  "reqwest",
  "rockbox-airplay",
  "rockbox-chromecast",
+ "rockbox-cmaf",
  "rockbox-cpal-sink",
  "rockbox-fts5",
  "rockbox-library",
@@ -9369,6 +9391,16 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+]
+
+[[package]]
+name = "rockbox-cmaf"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "fdk-aac",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -9405,6 +9437,7 @@ dependencies = [
  "reqwest",
  "rockbox-airplay",
  "rockbox-chromecast",
+ "rockbox-cmaf",
  "rockbox-cpal-sink",
  "rockbox-discovery",
  "rockbox-library",

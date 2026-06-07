@@ -743,6 +743,15 @@ pub struct NewGlobalSettings {
     pub subsonic_password: Option<String>,
     /// Port for the Subsonic-compatible API server (default: 4533).
     pub subsonic_port: Option<u16>,
+    /// HTTP port for the CMAF sink (HLS + DASH manifests + fMP4 segments). Default: 7882.
+    pub cmaf_http_port: Option<u16>,
+    /// AAC-LC bitrate for the CMAF sink, in bits/sec. Default: 128000.
+    pub cmaf_bitrate: Option<u32>,
+    /// Optional directory the CMAF sink mirrors `init.mp4`, `seg/N.m4s`,
+    /// and the HLS/DASH manifests into. When absent, segments stay in
+    /// memory only. Useful for serving the same artefacts from an external
+    /// HTTP server (nginx, Caddy, a CDN origin).
+    pub cmaf_segment_dir: Option<String>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -810,6 +819,9 @@ impl From<UserSettings> for NewGlobalSettings {
             subsonic_username: None,
             subsonic_password: None,
             subsonic_port: None,
+            cmaf_http_port: None,
+            cmaf_bitrate: None,
+            cmaf_segment_dir: None,
         }
     }
 }

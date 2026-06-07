@@ -983,6 +983,9 @@ pub mod api {
                     subsonic_username: None,
                     subsonic_password: None,
                     subsonic_port: None,
+                    cmaf_http_port: None,
+                    cmaf_bitrate: None,
+                    cmaf_segment_dir: None,
                 }
             }
         }

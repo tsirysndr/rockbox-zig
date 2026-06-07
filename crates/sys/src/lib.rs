@@ -1161,6 +1161,9 @@ extern "C" {
     fn pcm_chromecast_teardown();
     fn pcm_tcp_set_host(host: *const c_char);
     fn pcm_tcp_set_port(port: c_ushort);
+    fn pcm_cmaf_set_http_port(port: c_ushort);
+    fn pcm_cmaf_set_bitrate(bps: c_uint);
+    fn pcm_cmaf_set_segment_dir(path: *const c_char);
     fn beep_play(frequency: c_uint, duration: c_uint, amplitude: c_uint);
     fn dsp_set_crossfeed_type(r#type: c_int);
     fn dsp_set_crossfeed_direct_gain(gain: c_int);

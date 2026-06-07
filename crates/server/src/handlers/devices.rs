@@ -107,6 +107,18 @@ pub async fn connect(state: web::Data<AppState>, path: web::Path<String>) -> Han
             pcm::switch_sink(pcm::PCM_SINK_SNAPCAST_TCP);
             *GLOBAL_MUTEX.lock().unwrap() = 0;
         }
+        "cmaf" => {
+            let http_port = settings.cmaf_http_port.unwrap_or(7882);
+            let bitrate = settings.cmaf_bitrate.unwrap_or(128_000);
+            settings.audio_output = Some("cmaf".to_string());
+            settings.cmaf_http_port = Some(http_port);
+            settings.cmaf_bitrate = Some(bitrate);
+            pcm::cmaf_set_http_port(http_port);
+            pcm::cmaf_set_bitrate(bitrate);
+            pcm::cmaf_set_segment_dir(settings.cmaf_segment_dir.as_deref());
+            pcm::switch_sink(pcm::PCM_SINK_CMAF);
+            *GLOBAL_MUTEX.lock().unwrap() = 0;
+        }
         other => {
             tracing::warn!("connect: unknown device service {:?}", other);
             return Ok(HttpResponse::BadRequest().finish());
@@ -193,7 +205,7 @@ fn devices_match(a: &rockbox_types::device::Device, b: &rockbox_types::device::D
         return false;
     }
     match a.service.as_str() {
-        "builtin" | "fifo" | "squeezelite" => true,
+        "builtin" | "fifo" | "squeezelite" | "cmaf" => true,
         _ => !a.ip.is_empty() && a.ip == b.ip,
     }
 }

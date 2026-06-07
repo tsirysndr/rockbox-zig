@@ -554,6 +554,7 @@ target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
+target/hosted/pcm-cmaf.c
 #endif /* !(CONFIG_PLATFORM & PLATFORM_WASM) */
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL

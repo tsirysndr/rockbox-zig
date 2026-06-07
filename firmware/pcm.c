@@ -97,6 +97,9 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_UPNP]         = &upnp_pcm_sink,
     [PCM_SINK_CHROMECAST]   = &chromecast_pcm_sink,
     [PCM_SINK_SNAPCAST_TCP] = &tcp_pcm_sink,
+#if !(CONFIG_PLATFORM & PLATFORM_WASM)
+    [PCM_SINK_CMAF]         = &cmaf_pcm_sink,
+#endif
 #if defined(CODECS_STATIC)
     [PCM_SINK_CPAL]         = &cpal_pcm_sink,      /* also addressable by name */
 #endif

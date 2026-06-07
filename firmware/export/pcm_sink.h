@@ -67,6 +67,12 @@ enum pcm_sink_ids {
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
 #endif
+#if !(CONFIG_PLATFORM & PLATFORM_WASM)
+    /* Pinned to value 8 so it doesn't shift around when CPAL/WEBAPI are
+     * conditionally compiled in.  Slot 7 stays NULL on regular host builds
+     * (firmware/pcm.c skips NULL entries via `if (!sink) continue;`). */
+    PCM_SINK_CMAF = 8,  /* CMAF (HLS + DASH) AAC-LC output */
+#endif
 #endif
 #ifdef USB_ENABLE_IAP
     PCM_SINK_IAP,
@@ -103,6 +109,13 @@ void pcm_chromecast_set_device_port(uint16_t port);
 extern struct pcm_sink tcp_pcm_sink;
 void pcm_tcp_set_host(const char *host);
 void pcm_tcp_set_port(uint16_t port);
+
+#if !(CONFIG_PLATFORM & PLATFORM_WASM)
+/* CMAF (HLS + DASH) sink — AAC-LC encodes PCM and serves fMP4 segments + manifests */
+extern struct pcm_sink cmaf_pcm_sink;
+void pcm_cmaf_set_http_port(uint16_t port);
+void pcm_cmaf_set_bitrate(uint32_t bps);
+#endif
 
 #if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
 /* cpal sink — BUILTIN on the Android cdylib and headless macOS/Linux builds. */
