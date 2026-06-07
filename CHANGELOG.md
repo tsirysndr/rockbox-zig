@@ -4,10 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2026.05.28]
+## [2026.06.07]
 
 ### Added
-- `netstream`: background prefetch thread per HTTP stream — a dedicated thread fills a 2 MB `VecDeque` buffer from the network so `rb_net_read` drains in sub-µs without ever blocking on TCP; forward seeks within the prefetch window consume buffered bytes without issuing a new `Range` request; backward or large (>2 MB) forward seeks issue a `Range` request and replace the reader thread atomically
+- CMAF (HLS + DASH) PCM sink — new `rockbox-cmaf` crate encodes PCM to AAC-LC (fdk-aac) and serves HLS + DASH manifests with fMP4 segments over HTTP; enabled via `audio_output = "cmaf"` (or `"hls"` / `"dash"`) plus `cmaf_http_port`, `cmaf_bitrate`, and optional `cmaf_segment_dir` for mirroring artefacts to disk for an external origin (nginx, Caddy, CDN); registered as `PCM_SINK_CMAF = 8` in `firmware/pcm.c`; surfaced as a virtual device selectable via `/connect/cmaf` with broadcast icons in the GPUI, Expo, web, and macOS device pickers
+- Standalone HLS/DASH player — new `crates/hls` decodes `.m3u8` / `.mpd` URLs and pushes PCM straight into the active sink via new `pcm_external_write` / `pcm_external_set_freq` firmware hooks (no pcmbuf, no codec dispatcher) so the same audio-output graph (cpal, AirPlay, Snapcast, CMAF, …) reroutes a Rockbox-internal HLS broadcast to any sink the user picks; `PlayTrack` / pause / resume / next / previous / seek / `hardStop` in `crates/rpc` detect an active HLS session and dispatch locally or forward to the broadcaster over gRPC so peers stay in sync
+- Web UI: `HlsAutoConnect` attaches an `<audio>` element to `/hls/master.m3u8` whenever the active device type is `cmaf` / `hls` / `dash`, and `HlsVolumeControl` adds a local browser volume slider; Docker default `audio_output` flipped to `cmaf` and port `7882` exposed; new Mintlify page documents the sink; GraphQL `globalSettings.cmafHttpPort` added
+
+### Fixed
+- CMAF sink: encoder now bootstraps with a full `SEGMENT_WINDOW` of silence so `hls.js` / `dash.js` don't fatal on a fresh manifest; a dedicated silence-pacer thread keeps the manifest live between tracks without ever mixing into real-audio chunks; `pcm_cmaf_start()` is now called eagerly from `load_settings` / device connect so the HTTP endpoint binds before the first track plays
+- Android HTTP streaming smoothness — `cpal_thread` priority boosted (`setpriority(PRIO_PROCESS, tid, -19)`) and `NowPlayingService` now acquires `PARTIAL_WAKE_LOCK` + `WifiLock` while the daemon is running, eliminating the doze-induced stutters on Wi-Fi remote streams
+- `netstream`: `rb_net_len` and `rb_net_content_type` now wait for `open_done` before reading stream state, so callers see the real length / MIME instead of `-1` / empty when the HTTP open is still in flight
+- `netstream`: removed TCP keepalive from the global `reqwest` client — keepalive probes were tripping middleware and aborting long Range reads on some CDNs
+- `netstream`: non-blocking `rb_net_open()` returns a handle immediately while the connect happens in a worker; combined with TCP keepalive on the per-stream client (kept) and an EOF probe for servers that omit `Content-Length`, this unblocks both the audio thread and the UI on slow first-byte servers
+- `netstream`: detect and reconnect on premature TCP EOF mid-stream — the prefetch thread now restarts the underlying request from the last known offset instead of declaring the stream dead, fixing mid-track cutoffs on lossy mobile connections
+- `netstream`: seek `Range` requests now retry on transient errors; huge forward skips on servers that ignore `Range` fast-fail instead of redownloading the whole prefix
+- `netstream`: 30 s hard timeout removed from `read_into` — the prefetch thread's own retry budget now governs how long a read can wait, so a brief stall no longer kills the stream
+- `pcm-cpal`: DMA thread exits immediately on stream error instead of draining `pcmbuf`, so the next track / device switch can re-arm the sink without waiting for a stale flush
+- `cpal` sink: recover from stream errors and break the push deadlock — error callback now signals the writer so `pcm_cpal_push` returns instead of spinning on a dead stream
+- Android: larger prefetch buffer (16 MB) + more retries make HTTP streams resilient to Wi-Fi / cellular handoffs
+- Navidrome HTTP track artwork — stream URL is now propagated as the track `path` and the bridge derives the cover-art URL from it, so artwork appears in the miniplayer, full-screen player, and queue without an extra round-trip
+
+### Changed
+- Default Docker `audio_output` flipped to `cmaf`; port 7882 added to the exposed ports list so HLS / DASH playback works out of the box from a container
 
 ### Fixed
 - HTTP streaming: removed reqwest total-request timeout (only `connect_timeout` 15 s remains) — the previous 30 s deadline killed large remote files mid-stream; `read_as_file()` reverted to a retry-loop that fills the full requested buffer
