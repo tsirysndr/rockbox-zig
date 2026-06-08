@@ -65,8 +65,15 @@ macro_rules! check_and_load_player {
             .await?;
         let player = response.json::<Device>().await?;
 
-        // connected to a player
-        if !player.host.is_empty() && player.port != 0 {
+        // Only route through /player/load for cast-style external players
+        // (e.g. Chromecast). Local PCM sinks (CMAF/HLS/DASH, FIFO, builtin,
+        // squeezelite) advertise host="localhost" and a non-zero port for the
+        // sink's own HTTP server — they must NOT take this branch, because
+        // /player/load needs `state.player` to be Some, which only the cast
+        // path ever populates. Taking it for a non-cast sink silently 404s
+        // and exits before the playlist is built — see `is_cast_device` in
+        // rpc/src/lib.rs for the matching check.
+        if player.is_cast_device {
             let client = reqwest::Client::new();
             let body = serde_json::json!({
                 "tracks": $tracks,
