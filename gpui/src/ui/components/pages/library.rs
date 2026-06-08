@@ -16,7 +16,7 @@ use crate::ui::components::{
     AddToPlaylistMenuState, AlbumContextMenu, AlbumContextMenuState, BackSection,
     CreatePlaylistModal, DeletePlaylistModal, DiscoveredServers, EditPlaylistModal,
     FileContextMenuState, GenresState, HoveredAlbumIdx, LibraryContextMenu,
-    LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs, NavidromeServerState,
+    LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs, NavidromeAddModal, NavidromeServerState,
     NdAlbumItem, NdArtistItem, NdContextMenu, NdContextMenuState, NdCurrentCoverArt,
     NdGenreItem, NdLibraryData, NdLikesState, NdPlaylistItem, NdSelectedAlbum, NdSelectedArtist,
     NdSelectedGenre, NdSelectedPlaylist, NdSongItem, NdSongsState, NdStarredIds,
@@ -376,6 +376,7 @@ impl LibraryPage {
         cx.set_global(SelectedPlaylist::default());
         cx.set_global(PlaylistsSidebarCollapsed(false));
         cx.set_global(CreatePlaylistModal::default());
+        cx.set_global(NavidromeAddModal::default());
         cx.set_global(AddToPlaylistMenuState::default());
         cx.set_global(EditPlaylistModal::default());
         cx.set_global(DeletePlaylistModal::default());
@@ -616,14 +617,16 @@ impl LibraryPage {
                             token: token2.clone(),
                             salt: salt2.clone(),
                         };
-                        let state = cx.global_mut::<NavidromeServerState>();
-                        state.servers.push(new_server);
-                        state.active_id = Some(new_id);
-                        state.connecting = false;
-                        state.connect_error = None;
-                        state.show_add_form = false;
-                        let servers = state.servers.clone();
-                        let active_id = state.active_id.clone();
+                        {
+                            let state = cx.global_mut::<NavidromeServerState>();
+                            state.servers.push(new_server);
+                            state.active_id = Some(new_id);
+                            state.connecting = false;
+                            state.connect_error = None;
+                        }
+                        cx.global_mut::<NavidromeAddModal>().open = false;
+                        let servers = cx.global::<NavidromeServerState>().servers.clone();
+                        let active_id = cx.global::<NavidromeServerState>().active_id.clone();
                         crate::nd_persist::save_servers(
                             &servers,
                             active_id.as_deref(),
@@ -1099,6 +1102,7 @@ impl Render for LibraryPage {
         let server_scanning = cx.global::<DiscoveredServers>().scanning;
         let discovered_servers = cx.global::<DiscoveredServers>().servers.clone();
         let nd_state = cx.global::<NavidromeServerState>().clone();
+        let nd_add_modal = cx.global::<NavidromeAddModal>().clone();
         let nd_data = cx.global::<NdLibraryData>().clone();
         let nd_sel_album = cx.global::<NdSelectedAlbum>().clone();
         let nd_sel_artist = cx.global::<NdSelectedArtist>().clone();
@@ -7124,9 +7128,6 @@ impl Render for LibraryPage {
                             // ── Navidrome sidebar section ──────────────────
                             .child({
                                 let nd = nd_state.clone();
-                                let nd_url_input = self.nd_url_input.clone();
-                                let nd_user_input = self.nd_user_input.clone();
-                                let nd_pass_input = self.nd_pass_input.clone();
                                 let has_servers = !nd.servers.is_empty();
                                 div()
                                     .w_full()
@@ -7179,8 +7180,7 @@ impl Render for LibraryPage {
                                                     .child("Navidrome"),
                                             )
                                             // "Add server" (+) button always visible
-                                            .child({
-                                                let showing = nd.show_add_form;
+                                            .child(
                                                 div()
                                                     .id("nd_add_btn")
                                                     .cursor_pointer()
@@ -7188,11 +7188,10 @@ impl Render for LibraryPage {
                                                     .hover(|t| t.text_color(theme.library_text))
                                                     .on_click(move |_, _, cx: &mut App| {
                                                         cx.stop_propagation();
-                                                        cx.global_mut::<NavidromeServerState>()
-                                                            .show_add_form = !showing;
+                                                        cx.global_mut::<NavidromeAddModal>().open = true;
                                                     })
                                                     .child(Icon::new(Icons::CirclePlus).size_4())
-                                            }),
+                                            ),
                                     )
                                     // ── Saved server list ────────────────────
                                     .when(has_servers && !nd.sidebar_collapsed, |outer| {
@@ -7295,73 +7294,6 @@ impl Render for LibraryPage {
                                                 )
                                         }).collect::<Vec<_>>())
                                     })
-                                    // ── Add-server form ──────────────────────
-                                    .when(nd.show_add_form, {
-                                        let nd = nd.clone();
-                                        move |t| {
-                                        t.child(
-                                            div()
-                                                .w_full()
-                                                .px_4()
-                                                .pb_3()
-                                                .flex()
-                                                .flex_col()
-                                                .gap_y_2()
-                                                .child(nd_url_input)
-                                                .child(nd_user_input)
-                                                .child(nd_pass_input)
-                                                .when_some(nd.connect_error.clone(), |t, err| {
-                                                    t.child(
-                                                        div()
-                                                            .text_xs()
-                                                            .text_color(gpui::rgb(0xFF4444))
-                                                            .child(err),
-                                                    )
-                                                })
-                                                .child(
-                                                    div()
-                                                        .flex()
-                                                        .gap_x_2()
-                                                        .child(
-                                                            div()
-                                                                .id("nd_cancel_btn")
-                                                                .text_xs()
-                                                                .cursor_pointer()
-                                                                .px_2()
-                                                                .py_1()
-                                                                .rounded_md()
-                                                                .text_color(theme.library_header_text)
-                                                                .hover(|t| t.bg(theme.library_track_bg_hover))
-                                                                .on_click(|_, _, cx: &mut App| {
-                                                                    let s = cx.global_mut::<NavidromeServerState>();
-                                                                    s.show_add_form = false;
-                                                                    s.connect_error = None;
-                                                                })
-                                                                .child("Cancel"),
-                                                        )
-                                                        .child(
-                                                            div()
-                                                                .id("nd_connect_submit")
-                                                                .text_xs()
-                                                                .cursor_pointer()
-                                                                .px_2()
-                                                                .py_1()
-                                                                .rounded_md()
-                                                                .bg(gpui::rgb(0x6F00FF))
-                                                                .text_color(gpui::white())
-                                                                .hover(|t| t.bg(gpui::rgb(0x5900DD)))
-                                                                .on_click(cx.listener(|this, _, _, cx| {
-                                                                    this.spawn_nd_connect(cx);
-                                                                }))
-                                                                .child(if nd.connecting {
-                                                                    "Connecting…"
-                                                                } else {
-                                                                    "Add"
-                                                                }),
-                                                        ),
-                                                ),
-                                        )
-                                    }})
                                     // ── Disconnect button (reset to local) ───
                                     .when(nd.connected(), |t| {
                                         t.child(
@@ -8830,6 +8762,138 @@ impl Render for LibraryPage {
                                             .detach();
                                         })
                                         .child("Delete"),
+                                ),
+                        ),
+                )
+            })
+            // ── Add Navidrome Server Modal ────────────────────────────────────────
+            .when(nd_add_modal.open, |this| {
+                let nd_url_input = self.nd_url_input.clone();
+                let nd_user_input = self.nd_user_input.clone();
+                let nd_pass_input = self.nd_pass_input.clone();
+                let nd = nd_state.clone();
+                this.child(
+                    div()
+                        .id("nd_modal_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .bg(gpui::rgba(0x00000099))
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.global_mut::<NavidromeAddModal>().open = false;
+                            cx.global_mut::<NavidromeServerState>().connect_error = None;
+                        }),
+                )
+                .child(
+                    div()
+                        .id("nd_modal_card")
+                        .absolute()
+                        .top(viewport.height * 0.25)
+                        .left((viewport.width - px(380.0)) / 2.0)
+                        .w(px(380.0))
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_lg()
+                        .p_6()
+                        .flex()
+                        .flex_col()
+                        .gap_y_4()
+                        .on_click(|_, _, cx: &mut App| cx.stop_propagation())
+                        .child(
+                            div()
+                                .text_lg()
+                                .font_weight(FontWeight(700.0))
+                                .text_color(theme.library_text)
+                                .child("Add Navidrome Server"),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Server URL"),
+                                )
+                                .child(nd_url_input),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Username"),
+                                )
+                                .child(nd_user_input),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Password"),
+                                )
+                                .child(nd_pass_input),
+                        )
+                        .when_some(nd.connect_error.clone(), |t, err| {
+                            t.child(
+                                div()
+                                    .text_sm()
+                                    .text_color(gpui::rgb(0xFF4444))
+                                    .child(err),
+                            )
+                        })
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .justify_end()
+                                .gap_x_3()
+                                .child(
+                                    div()
+                                        .id("nd_modal_cancel_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|t| t.text_color(theme.library_text))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            cx.global_mut::<NavidromeAddModal>().open = false;
+                                            cx.global_mut::<NavidromeServerState>().connect_error = None;
+                                        })
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("nd_modal_connect_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .bg(gpui::rgb(0x6F00FF))
+                                        .text_color(gpui::white())
+                                        .hover(|t| t.bg(gpui::rgb(0x5900DD)))
+                                        .on_click(cx.listener(|this, _, _, cx| {
+                                            this.spawn_nd_connect(cx);
+                                        }))
+                                        .child(if nd.connecting { "Connecting…" } else { "Add" }),
                                 ),
                         ),
                 )

@@ -393,6 +393,12 @@ impl NavidromeServerState {
 impl gpui::Global for NavidromeServerState {}
 
 #[derive(Clone, Default)]
+pub struct NavidromeAddModal {
+    pub open: bool,
+}
+impl gpui::Global for NavidromeAddModal {}
+
+#[derive(Clone, Default)]
 pub struct NdAlbumItem {
     pub id: String,
     pub name: String,

@@ -436,19 +436,26 @@ pub fn restore_playlist(ctx: Context, handle: Handle) -> Result<(), Error> {
                 let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
                 let response = response.into_inner();
                 let mut current_track = ctx.current_track.lock().await;
-                let path = response.tracks[resume_index as usize].path.clone();
+                // The persisted resume_index can outlive the playlist it was
+                // captured against (e.g. user loaded a shorter album after a
+                // previous run with a longer queue). Skip silently rather
+                // than panicking.
+                let Some(resume_track) = response.tracks.get(resume_index as usize) else {
+                    return Ok::<(), Error>(());
+                };
+                let path = resume_track.path.clone();
 
                 let mut track: Track = Track {
                     path: path.clone(),
-                    artist: response.tracks[resume_index as usize].artist.clone(),
-                    album: response.tracks[resume_index as usize].album.clone(),
-                    title: response.tracks[resume_index as usize].title.clone(),
-                    album_artist: response.tracks[resume_index as usize].album_artist.clone(),
+                    artist: resume_track.artist.clone(),
+                    album: resume_track.album.clone(),
+                    title: resume_track.title.clone(),
+                    album_artist: resume_track.album_artist.clone(),
                     elapsed: resume_elapsed as u64,
-                    length: response.tracks[resume_index as usize].length,
-                    tracknum: response.tracks[resume_index as usize].tracknum,
-                    year: response.tracks[resume_index as usize].year,
-                    year_string: response.tracks[resume_index as usize].year_string.clone(),
+                    length: resume_track.length,
+                    tracknum: resume_track.tracknum,
+                    year: resume_track.year,
+                    year_string: resume_track.year_string.clone(),
                     ..Default::default()
                 };
 
