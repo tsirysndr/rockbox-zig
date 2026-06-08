@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.08]
+
+### Fixed
+- GraphQL `playAlbum` / `playArtistTracks` / `playGenreTracks` / `playDirectory` / `playTrack` / `playLikedTracks` / `playAllTracks` were no-ops when the active output was the CMAF (HLS / DASH) sink — the `check_and_load_player!` macro used a `host != "" && port != 0` heuristic to detect external cast players, but CMAF advertises `host="localhost"`, `port=7882` for its own HTTP server, so the macro misrouted the request to `/player/load` (which 404s because `state.player` is only populated for Chromecast) and returned `Ok(0)` before building the playlist; now matches the RPC variant and gates on `is_cast_device` instead, so local PCM sinks (CMAF, FIFO, builtin, squeezelite, AirPlay, UPnP) fall through to the regular playlist-build path
+- MPD `restore_playlist`: bounds-check the persisted `resume_index` against the current playlist length before indexing — a stale resume index from a prior session with a longer queue was panicking the MPD thread with `index out of bounds: the len is 15 but the index is 91` and aborting the daemon
+
 ## [2026.06.07]
 
 ### Added
