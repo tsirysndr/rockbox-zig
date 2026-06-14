@@ -101,8 +101,10 @@ fn raise_fd_limit() {
     unsafe {
         let mut rlim: libc::rlimit = std::mem::zeroed();
         if libc::getrlimit(libc::RLIMIT_NOFILE, &mut rlim) == 0 {
-            // Raise to 4096 or the hard limit, whichever is lower
-            let target = 4096_u64.min(rlim.rlim_max);
+            // Raise to 4096 or the hard limit, whichever is lower.
+            // Cast through libc::rlim_t so this compiles on both 32-bit ARM
+            // (rlim_t = u32) and 64-bit hosts (rlim_t = u64).
+            let target = (4096 as libc::rlim_t).min(rlim.rlim_max);
             if rlim.rlim_cur < target {
                 rlim.rlim_cur = target;
                 libc::setrlimit(libc::RLIMIT_NOFILE, &rlim);

@@ -765,6 +765,41 @@ headlesshostcc () {
     echo "Using host compiler: $CC"
 }
 
+armhfhostcc () {
+    # Cross-compiler for arm-linux-gnueabihf (hard-float ARM, e.g. RPi Zero).
+    # The arm-linux-gnueabihf-gcc toolchain must be on PATH (available inside
+    # the Dockerfile.arm-unknown-linux-gnueabihf cross-compilation container).
+    CC="${CC:-arm-linux-gnueabihf-gcc}"
+    CXX="${CXX:-arm-linux-gnueabihf-g++}"
+    AR="${AR:-arm-linux-gnueabihf-ar}"
+    RANLIB="${RANLIB:-arm-linux-gnueabihf-ranlib}"
+    OC="${OC:-arm-linux-gnueabihf-objcopy}"
+    LD="${LD:-$CC}"
+    CPP="$CC -E"
+    endian="little"
+    host_extra_defines="-D_GNU_SOURCE -D_FORTIFY_SOURCE=0"
+
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result $host_extra_defines"
+    GCCOPTS="$GCCOPTS -fPIC -ffunction-sections -fdata-sections"
+    GCCOPTS="$GCCOPTS -fomit-frame-pointer -fvisibility=hidden"
+
+    SHARED_LDFLAGS=""
+    SHARED_CFLAGS="-fPIC"
+    GLOBAL_LDOPTS=""
+    LDOPTS="-lpthread"
+
+    thread_support="HAVE_POSIX_THREADS"
+    thread_support_comment="/* HAVE_POSIX_THREADS for arm-linux-gnueabihf cross build */"
+    gccchoice=""
+    gcctarget=""
+
+    extradefines="$extradefines -DCODECS_STATIC -DZIG_APP"
+    export CODECS_STATIC=1
+
+    echo "Using cross compiler: $CC"
+}
+
 wasmappcc () {
     # Emscripten toolchain for the WASM browser target.
     # Requires Emscripten SDK to be activated (source emsdk_env.sh).
@@ -1985,6 +2020,7 @@ cat <<EOF
  225) NWZ-E580 series      205) Android cdylib
                            206) Headless host
                            207) WASM app
+                           208) ARM hard-float Linux
  226) NWZ-A10 series       ==AgpTek==
  227) NW-A20 series        240) Rocker           ==AIGO==
  228) NWZ-A860 series                            245) Eros Q / K (hosted)
@@ -3666,6 +3702,38 @@ fi
 
     t_cpu="hosted"
     t_manufacturer="wasm"
+    t_model="host"
+    ;;
+
+   208|armhfhost)
+    application="yes"
+    target_id=128
+    modelname="armhfhost"
+    target="ARMHFHOST"
+    app_type="headless_host"
+    app_set_lcd_size 320 480
+
+    sharedir="/dev/null"
+    bindir="/dev/null"
+    libdir="/dev/null"
+
+    memory=256
+
+    armhfhostcc
+
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+
+    output="static-libs.stamp"
+    bootoutput="static-libs.stamp"
+
+    appextra="recorder:gui:radio"
+    plugins="no"
+
+    t_cpu="hosted"
+    t_manufacturer="headless"
     t_model="host"
     ;;
 

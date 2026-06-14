@@ -225,7 +225,7 @@ struct sound_settings_info
 #include "es9218.h"
 #elif (CONFIG_PLATFORM & PLATFORM_ANDROID)
 #include "android_codec.h"
-#elif ((CONFIG_PLATFORM & (PLATFORM_SDL | PLATFORM_CTRU | PLATFORM_WASM)) | defined(RG_NANO) | defined(HEADLESSHOST))
+#elif ((CONFIG_PLATFORM & (PLATFORM_SDL | PLATFORM_CTRU | PLATFORM_WASM)) | defined(RG_NANO) | defined(HEADLESSHOST) | defined(ARMHFHOST))
 #include "sdl_codec.h"
 #elif defined(DX50)
 #include "codec-dx50.h"

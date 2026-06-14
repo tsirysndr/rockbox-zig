@@ -1,4 +1,4 @@
-use std::ffi::{c_uchar, CStr, CString};
+use std::ffi::{c_long, c_uchar, c_ulong, CStr, CString};
 use std::sync::Mutex;
 
 use crate::{types::mp3_entry::Mp3Entry, ProgressFunc};
@@ -58,12 +58,12 @@ pub fn create_xing_header(
     unsafe {
         crate::create_xing_header(
             fd,
-            startpos,
-            filesize,
+            startpos as c_long,
+            filesize as c_long,
             buf,
-            num_frames,
-            rec_time,
-            header_template,
+            num_frames as c_ulong,
+            rec_time as c_ulong,
+            header_template as c_ulong,
             progressfunc,
             generate_toc,
             tempbuf,

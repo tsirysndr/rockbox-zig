@@ -1,5 +1,6 @@
 use crate::types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry};
 use std::collections::HashMap;
+use std::ffi::c_long;
 use std::sync::{Mutex, OnceLock};
 
 struct MetadataOverride {
@@ -55,7 +56,7 @@ pub fn pause() {
 
 pub fn play(elapsed: i64, offset: i64) {
     unsafe {
-        crate::audio_play(elapsed, offset);
+        crate::audio_play(elapsed as c_long, offset as c_long);
     }
 }
 

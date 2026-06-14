@@ -1,4 +1,5 @@
 use crate::types::{system_status::SystemStatus, RockboxVersion};
+use std::ffi::c_long;
 
 pub fn get_rockbox_version() -> RockboxVersion {
     let version = unsafe {
@@ -28,12 +29,12 @@ pub fn r#yield() {
 }
 
 pub fn current_tick() -> i64 {
-    unsafe { crate::current_tick }
+    unsafe { crate::current_tick as i64 }
 }
 
 pub fn default_event_handler(event: i64) {
     unsafe {
-        crate::default_event_handler(event);
+        crate::default_event_handler(event as c_long);
     }
 }
 

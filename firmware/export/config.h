@@ -589,6 +589,8 @@ Lyre prototype 1 */
 #include "config/headlesshost.h"
 #elif defined(WASMAPP)
 #include "config/wasmapp.h"
+#elif defined(ARMHFHOST)
+#include "config/armhfhost.h"
 #else
 #error "unknown hardware platform!"
 #endif

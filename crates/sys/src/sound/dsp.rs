@@ -1,4 +1,5 @@
 use crate::{DspBuffer, DspConfig, EqBandSetting};
+use std::ffi::c_long;
 
 pub fn set_crossfeed_type(r#type: i32) {
     unsafe { crate::dsp_set_crossfeed_type(r#type) }
@@ -9,7 +10,13 @@ pub fn set_crossfeed_direct_gain(gain: i32) {
 }
 
 pub fn set_crossfeed_cross_params(lf_gain: i64, hf_gain: i64, cutoff: i64) {
-    unsafe { crate::dsp_set_crossfeed_cross_params(lf_gain, hf_gain, cutoff) }
+    unsafe {
+        crate::dsp_set_crossfeed_cross_params(
+            lf_gain as c_long,
+            hf_gain as c_long,
+            cutoff as c_long,
+        )
+    }
 }
 
 pub fn eq_enable(enable: bool) {
@@ -61,7 +68,7 @@ pub fn timestretch_available() -> bool {
 }
 
 pub fn configure(dsp: *mut DspConfig, setting: u32, value: i64) -> i64 {
-    unsafe { crate::dsp_configure(dsp, setting, value) }
+    unsafe { crate::dsp_configure(dsp, setting, value as c_long) as i64 }
 }
 
 pub fn get_config(dsp_id: i32) -> DspConfig {

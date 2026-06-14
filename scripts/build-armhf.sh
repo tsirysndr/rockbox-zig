@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# Cross-compiles rockboxd for arm-unknown-linux-gnueabihf (ARM hard-float Linux).
+#
+# What this does:
+#   1. Builds the Docker image from Dockerfile.arm-unknown-linux-gnueabihf.
+#   2. Inside Docker: configures build-armhf/ (target 208) and builds all
+#      firmware .a files with the arm-linux-gnueabihf-gcc cross-compiler.
+#   3. Inside Docker: extracts per-codec .o files and namespaces ogg_* symbols
+#      in libopus.a (same as build-headless.sh steps 2.5 and 2.6).
+#   4. On the host: builds Rust crates with `cross` (fts5 + cpal-sink features,
+#      no typesense subprocess).
+#   5. On the host: links everything with Zig targeting arm-linux-gnueabihf.
+#
+# Usage:
+#   bash scripts/build-armhf.sh
+#
+# Prerequisites:
+#   - Docker (for the arm-linux-gnueabihf cross-toolchain)
+#   - cross  (cargo install cross)
+#   - zig    (0.16.0)
+#
+# Output:
+#   zig/zig-out/bin/rockboxd  (ARM hard-float ELF binary)
+
+set -euo pipefail
+
+ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOTDIR"
+
+DOCKER_IMAGE="rockbox-zig-armhf"
+BUILD_DIR="build-armhf"
+RUST_TARGET="arm-unknown-linux-gnueabihf"
+
+echo "==> Step 1: Build Docker image ($DOCKER_IMAGE)"
+docker build --platform linux/amd64 -t "$DOCKER_IMAGE" -f Dockerfile.arm-unknown-linux-gnueabihf .
+
+echo "==> Step 2: Configure and build firmware for ARM inside Docker"
+docker run --rm --platform linux/amd64 \
+    -v "$ROOTDIR:/src" \
+    -w /src \
+    "$DOCKER_IMAGE" \
+    bash -c "
+        set -euo pipefail
+
+        NCPU=\"\$(nproc 2>/dev/null || echo 4)\"
+
+        # Build Linux x86_64 host tools into /tmp/hosttools/ so the macOS
+        # Mach-O binaries in the volume-mounted tools/ are never executed.
+        HOSTTOOLS=/tmp/hosttools
+        if [ ! -d \"\$HOSTTOOLS\" ]; then
+            mkdir -p \"\$HOSTTOOLS\"
+            # Symlink everything from tools/ so make dependency checks on
+            # .c/.h/.make files still work relative to TOOLSDIR.
+            for f in /src/tools/*; do
+                ln -sf \"\$f\" \"\$HOSTTOOLS/\$(basename \"\$f\")\"
+            done
+            # Compile/replace the binaries with Linux-native versions.
+            printf '#define APPLICATION_NAME \"bmp2rb\"\n' > /tmp/appname.h
+            gcc -O2 -include /tmp/appname.h /src/tools/bmp2rb.c -o \"\$HOSTTOOLS/bmp2rb\"
+            gcc -O2 /src/tools/convbdf.c -o \"\$HOSTTOOLS/convbdf\"
+            gcc -O2 /src/tools/rdf2binary.c -o \"\$HOSTTOOLS/rdf2binary\"
+            gcc -O2 /src/tools/codepages.c /src/tools/codepage_tables.c -o \"\$HOSTTOOLS/codepages\"
+            gcc -O2 /src/tools/scramble.c /src/tools/iriver.c /src/tools/mi4.c \
+                /src/tools/gigabeat.c /src/tools/gigabeats.c /src/tools/telechips.c \
+                /src/tools/iaudio_bl_flash.c /src/tools/creative.c \
+                /src/tools/hmac-sha1.c /src/tools/rkw.c \
+                -o \"\$HOSTTOOLS/scramble\"
+            gcc -O2 /src/tools/mkboot.c -o \"\$HOSTTOOLS/mkboot\"
+            echo '    Host tools compiled for Linux x86_64'
+        fi
+
+        # Reconfigure if autoconf.h is missing or was generated for the wrong target.
+        mkdir -p $BUILD_DIR
+        if ! grep -q 'ARMHFHOST' $BUILD_DIR/autoconf.h 2>/dev/null; then
+            (cd $BUILD_DIR && printf '208\nN\n' | ../tools/configure)
+        else
+            echo '    $BUILD_DIR already configured for ARMHFHOST, skipping configure'
+        fi
+
+        # Patch BMP2RB_MONO/NATIVE in the Makefile to use the Linux bmp2rb.
+        sed -i \"s|/src/tools/bmp2rb|\$HOSTTOOLS/bmp2rb|g\" $BUILD_DIR/Makefile
+
+        # Pre-create output dirs that ar rcs requires before the parallel build
+        # creates them via object-file compilation.
+        mkdir -p $BUILD_DIR/lib $BUILD_DIR/firmware $BUILD_DIR/apps
+
+        (cd $BUILD_DIR && make -j\"\$NCPU\" TOOLSDIR=\"\$HOSTTOOLS\" lib)
+
+        echo '==> Step 2.1: Build libcodec.a'
+        LIBCODEC=\"/src/$BUILD_DIR/lib/rbcodec/codecs/libcodec.a\"
+        if [ ! -f \"\$LIBCODEC\" ]; then
+            (cd $BUILD_DIR && make -j\"\$NCPU\" TOOLSDIR=\"\$HOSTTOOLS\" \"\$LIBCODEC\")
+        fi
+
+        echo '==> Step 2.5: Extract per-codec .o files for direct Zig linking'
+        CODEC_DIR=\"/src/$BUILD_DIR/lib/rbcodec/codecs\"
+        OBJECTS_DIR=\"\$CODEC_DIR/codec-objects\"
+        mkdir -p \"\$OBJECTS_DIR\"
+        for name in a52 a52_rm aac aac_bsf adx aiff alac ape \
+                    atrac3_oma atrac3_rm au cook flac mod mpa mpc \
+                    opus raac shorten smaf speex tta vorbis vox \
+                    wav wav64 wavpack wma wmapro; do
+            obj_dir=\"\$OBJECTS_DIR/\$name\"
+            rm -rf \"\$obj_dir\" && mkdir -p \"\$obj_dir\"
+            (cd \"\$obj_dir\" && ar x \"\$CODEC_DIR/\$name.a\")
+        done
+        echo '    Done — codec objects extracted'
+
+        echo '==> Step 2.6: Namespace ogg_* symbols in libopus.a'
+        LIBOPUS_A=\"\$CODEC_DIR/libopus.a\"
+        OPUS_O=\"\$OBJECTS_DIR/opus/opus.o\"
+        OGG_SYMS=(
+            ogg_packet_clear
+            ogg_page_bos ogg_page_checksum_set ogg_page_continued ogg_page_eos
+            ogg_page_granulepos ogg_page_packets ogg_page_pageno ogg_page_serialno
+            ogg_page_version
+            ogg_stream_check ogg_stream_clear ogg_stream_destroy ogg_stream_eos
+            ogg_stream_flush ogg_stream_flush_fill ogg_stream_init ogg_stream_iovecin
+            ogg_stream_packetin ogg_stream_packetout ogg_stream_packetpeek
+            ogg_stream_pagein ogg_stream_pageout ogg_stream_pageout_fill
+            ogg_stream_reset ogg_stream_reset_serialno
+            ogg_sync_buffer ogg_sync_check ogg_sync_clear ogg_sync_destroy
+            ogg_sync_init ogg_sync_pageout ogg_sync_pageseek ogg_sync_reset
+            ogg_sync_wrote
+        )
+        REDEFINE_ARGS=()
+        for sym in \"\${OGG_SYMS[@]}\"; do
+            REDEFINE_ARGS+=(--redefine-sym \"\${sym}=libopus_\${sym}\")
+        done
+        TMP_LIBOPUS=\"\$(mktemp -d)\"
+        (cd \"\$TMP_LIBOPUS\" && ar x \"\$LIBOPUS_A\")
+        for obj in \"\$TMP_LIBOPUS\"/*.o; do
+            [ -f \"\$obj\" ] && arm-linux-gnueabihf-objcopy \"\${REDEFINE_ARGS[@]}\" \"\$obj\" 2>/dev/null || true
+        done
+        rm -f \"\$LIBOPUS_A\"
+        ar rcs \"\$LIBOPUS_A\" \"\$TMP_LIBOPUS\"/*.o
+        rm -rf \"\$TMP_LIBOPUS\"
+        [ -f \"\$OPUS_O\" ] && arm-linux-gnueabihf-objcopy \"\${REDEFINE_ARGS[@]}\" \"\$OPUS_O\" 2>/dev/null || true
+        echo \"    Done — ogg_* symbols namespaced in libopus.a + opus.o\"
+
+        echo '==> Step 2.7: Copy ARM sysroot libraries for Zig cross-linker'
+        SYSLIBS=/src/$BUILD_DIR/syslibs
+        mkdir -p \"\$SYSLIBS\"
+        ARMLIB=/usr/lib/arm-linux-gnueabihf
+        # Copy the unversioned .so linker stub (not the .a static archive) so
+        # Zig uses dynamic linking and avoids transitive static deps.
+        # Use cp -L to dereference symlinks — the -dev packages install
+        # libXXX.so as a symlink into /lib/arm-linux-gnueabihf/ which would be
+        # a broken symlink on the host if copied with -P.
+        for lib in dbus-1 asound unwind; do
+            so=\"\$ARMLIB/lib\${lib}.so\"
+            if [ -L \"\$so\" ] || [ -f \"\$so\" ]; then
+                cp -L \"\$so\" \"\$SYSLIBS/lib\${lib}.so\" 2>/dev/null || true
+            fi
+        done
+        echo \"    Copied: \$(ls \$SYSLIBS)\"
+    "
+
+echo "==> Step 3: Build Rust crates with cross (fts5 + cpal-sink, no typesense subprocess)"
+cross build --release \
+    --target "$RUST_TARGET" \
+    --features fts5,cpal-sink \
+    -p rockbox-cli
+cross build --release \
+    --target "$RUST_TARGET" \
+    --features fts5 \
+    -p rockbox-server
+
+echo "==> Step 4: Link rockboxd with Zig for arm-linux-gnueabihf"
+(cd zig && zig build \
+    -Dtarget=arm-linux-gnueabihf \
+    -Dcpu=arm1176jzf_s \
+    -Dheadless=true \
+    -Dfw-dir=../build-armhf \
+    -Drust-triple="$RUST_TARGET" \
+    -Dsyslibs-dir=../build-armhf/syslibs \
+    -Doptimize=ReleaseFast)
+
+echo ""
+echo "Build complete: zig/zig-out/bin/rockboxd (ARM hard-float)"

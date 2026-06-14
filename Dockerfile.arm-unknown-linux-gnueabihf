@@ -1,0 +1,38 @@
+FROM --platform=linux/amd64 ghcr.io/cross-rs/arm-unknown-linux-gnueabihf:main
+
+# armhf system libs the cross-compiled binary links against.
+RUN dpkg --add-architecture armhf && \
+    rm -f /etc/apt/preferences.d/all-packages && \
+    apt-get update && \
+    apt-get --assume-yes install --no-install-recommends \
+        curl \
+        unzip \
+        zip \
+        cmake \
+        perl \
+        ca-certificates \
+        gcc-arm-linux-gnueabihf \
+        g++-arm-linux-gnueabihf \
+        binutils-arm-linux-gnueabihf \
+        libasound2-dev:armhf \
+        libdbus-1-dev:armhf \
+        libunwind-dev:armhf && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install a modern protoc — the cross base image's distro package ships
+# protoc 3.6 which predates proto3 `optional` and doesn't recognise the
+# --experimental_allow_proto3_optional flag we set in build.rs. protoc runs
+# on the build host (x86_64), not the armhf target.
+ARG PROTOC_VERSION=25.1
+RUN curl -fsSL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" -o /tmp/protoc.zip && \
+    unzip -q /tmp/protoc.zip -d /usr/local && \
+    rm /tmp/protoc.zip && \
+    chmod +x /usr/local/bin/protoc && \
+    protoc --version
+
+ENV PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig \
+    PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig \
+    PKG_CONFIG_SYSROOT_DIR=/ \
+    PKG_CONFIG_ALLOW_CROSS=1
+
+ENV CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_RUSTFLAGS="-C link-arg=-Wl,-rpath-link=/usr/lib/arm-linux-gnueabihf"

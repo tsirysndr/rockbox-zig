@@ -42,6 +42,27 @@ pub fn build(b: *std.Build) void {
     //   cd build-headless && make lib
     //   cargo build --release --features cpal-sink -p rockbox-cli
     const headless = b.option(bool, "headless", "Build headless target (no SDL, cpal PCM)") orelse false;
+    // -Dfw-dir=../build-armhf: override the firmware build directory.
+    // Defaults to build-headless (headless=true) or build-lib (headless=false).
+    const fw_dir_opt = b.option([]const u8, "fw-dir", "Firmware build directory override (e.g. ../build-armhf)") orelse "";
+    // -Drust-triple=arm-unknown-linux-gnueabihf: Rust target triple used to
+    // locate cross-compiled Rust libraries under target/<triple>/release/.
+    // Defaults to target/release/ (native build).
+    const rust_triple_opt = b.option([]const u8, "rust-triple", "Rust target triple for cross-compiled lib paths (e.g. arm-unknown-linux-gnueabihf)") orelse "";
+    // -Dsyslibs-dir=../build-armhf/syslibs: directory containing ARM sysroot
+    // .so/.a files (dbus-1, asound, unwind) extracted from the cross toolchain.
+    // Required when Zig cross-links for a target whose system libs aren't in
+    // the host's default library search paths.
+    const syslibs_dir = b.option([]const u8, "syslibs-dir", "Directory with cross-target system .so/.a files (e.g. ../build-armhf/syslibs)") orelse "";
+
+    const fw_dir = if (fw_dir_opt.len > 0) fw_dir_opt
+                   else if (headless) "../build-headless"
+                   else "../build-lib";
+    const rust_lib_dir = if (rust_triple_opt.len > 0)
+        b.fmt("../target/{s}/release", .{rust_triple_opt})
+    else
+        "../target/release";
+
     // It's also possible to define more custom flags to toggle optional features
     // of this build script using `b.option()`. All defined flags (including
     // target and optimize options) will be listed when running `zig build --help`
@@ -110,8 +131,11 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.root_module.addLibraryPath(.{
-        .cwd_relative = "../target/release",
+        .cwd_relative = rust_lib_dir,
     });
+    if (syslibs_dir.len > 0) {
+        exe.root_module.addLibraryPath(.{ .cwd_relative = syslibs_dir });
+    }
 
     if (target.result.os.tag == .macos) {
         // Homebrew path differs by architecture: /opt/homebrew on aarch64, /usr/local on x86_64
@@ -155,8 +179,6 @@ pub fn build(b: *std.Build) void {
 
     // NetBSD: cpal uses OSS which is built into the kernel — no extra link flags needed.
 
-    const fw_dir = if (headless) "../build-headless" else "../build-lib";
-
     const librockbox = b.path(b.pathJoin(&.{ fw_dir, "librockbox.a" }));
     const libfirmware = b.path(b.pathJoin(&.{ fw_dir, "firmware/libfirmware.a" }));
     const libfixedpoint = b.path(b.pathJoin(&.{ fw_dir, "lib/libfixedpoint.a" }));
@@ -164,8 +186,8 @@ pub fn build(b: *std.Build) void {
     const libskin_parser = b.path(b.pathJoin(&.{ fw_dir, "lib/libskin_parser.a" }));
     const libtlsf = b.path(b.pathJoin(&.{ fw_dir, "lib/libtlsf.a" }));
     const libutf8proc = b.path(b.pathJoin(&.{ fw_dir, "lib/libutf8proc.a" }));
-    const librockbox_cli = b.path("../target/release/librockbox_cli.a");
-    const librockbox_server = b.path("../target/release/librockbox_server.a");
+    const librockbox_cli = b.path(b.pathJoin(&.{ rust_lib_dir, "librockbox_cli.a" }));
+    const librockbox_server = b.path(b.pathJoin(&.{ rust_lib_dir, "librockbox_server.a" }));
 
     exe.root_module.addObjectFile(librockbox);
     exe.root_module.addObjectFile(libfirmware);

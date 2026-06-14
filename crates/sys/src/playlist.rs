@@ -1,6 +1,6 @@
 use crate::types::{playlist_info::PlaylistInfo, playlist_track_info::PlaylistTrackInfo};
 use std::{
-    ffi::{c_int, CString},
+    ffi::{c_int, c_ulong, CString},
     ptr,
 };
 
@@ -35,7 +35,7 @@ pub fn resume() -> i32 {
 }
 
 pub fn resume_track(start_index: i32, crc: u32, elapsed: u64, offset: u64) {
-    unsafe { crate::playlist_resume_track(start_index, crc, elapsed, offset) }
+    unsafe { crate::playlist_resume_track(start_index, crc, elapsed as c_ulong, offset as c_ulong) }
 }
 
 pub fn set_modified(playlist: *mut crate::PlaylistInfo, modified: bool) {
@@ -43,7 +43,7 @@ pub fn set_modified(playlist: *mut crate::PlaylistInfo, modified: bool) {
 }
 
 pub fn start(start_index: i32, elapsed: u64, offset: u64) {
-    unsafe { crate::playlist_start(start_index, elapsed, offset) }
+    unsafe { crate::playlist_start(start_index, elapsed as c_ulong, offset as c_ulong) }
 }
 
 pub fn sync(playlist: *mut crate::PlaylistInfo) {

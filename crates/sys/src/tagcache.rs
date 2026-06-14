@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_void};
+use std::ffi::{c_char, c_long, c_void};
 
 use crate::{ActionCb, Mp3Entry, TagcacheSearch, TagcacheStat};
 
@@ -8,7 +8,7 @@ pub fn search(tcs: *mut TagcacheSearch, tag: i32) -> bool {
 }
 
 pub fn search_set_uniqbuf(tcs: *mut TagcacheSearch, buffer: *mut c_void, length: i64) {
-    unsafe { crate::tagcache_search_set_uniqbuf(tcs, buffer, length) }
+    unsafe { crate::tagcache_search_set_uniqbuf(tcs, buffer, length as c_long) }
 }
 
 pub fn search_add_filter(tcs: *mut TagcacheSearch, tag: i32, seek: i32) -> bool {
@@ -17,12 +17,12 @@ pub fn search_add_filter(tcs: *mut TagcacheSearch, tag: i32, seek: i32) -> bool 
 }
 
 pub fn get_next(tcs: *mut TagcacheSearch, buf: *mut c_char, size: i64) -> bool {
-    let ret = unsafe { crate::tagcache_get_next(tcs, buf, size) };
+    let ret = unsafe { crate::tagcache_get_next(tcs, buf, size as c_long) };
     ret != 0
 }
 
 pub fn get_numeric(tcs: *mut TagcacheSearch, tag: i32) -> i64 {
-    unsafe { crate::tagcache_get_numeric(tcs, tag) }
+    unsafe { crate::tagcache_get_numeric(tcs, tag) as i64 }
 }
 
 pub fn get_stat() -> TagcacheStat {
