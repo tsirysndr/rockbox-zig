@@ -153,7 +153,17 @@ docker run --rm --platform linux/amd64 \
                 cp -L \"\$so\" \"\$SYSLIBS/lib\${lib}.so\" 2>/dev/null || true
             fi
         done
-        echo \"    Copied: \$(ls \$SYSLIBS)\"
+        # Ubuntu armhf .so files carry Tag_CPU_arch = v7 in .ARM.attributes.
+        # LLD takes the MAX arch across all inputs, so one ARMv7 input makes
+        # LLD emit __ARMv7ABSLongThunk__ (movw/movt) which SIGILL on ARMv6.
+        # Strip .ARM.attributes so LLD falls back to ARMv4/5-style thunks
+        # (ldr pc, =addr) that are valid on ARMv6 and all later cores.
+        for lib in dbus-1 asound unwind; do
+            so=\"\$SYSLIBS/lib\${lib}.so\"
+            [ -f \"\$so\" ] && arm-linux-gnueabihf-objcopy \
+                --remove-section=.ARM.attributes \"\$so\" 2>/dev/null || true
+        done
+        echo \"    Copied + stripped .ARM.attributes: \$(ls \$SYSLIBS)\"
     "
 
 echo "==> Step 3: Build Rust crates with cross (fts5 + cpal-sink, no typesense subprocess)"
@@ -167,6 +177,8 @@ cross build --release \
     -p rockbox-server
 
 echo "==> Step 4: Link rockboxd with Zig for arm-linux-gnueabihf"
+# Clear Zig's build cache so it re-links even when input timestamps are unchanged.
+rm -rf zig/.zig-cache zig/zig-out
 (cd zig && zig build \
     -Dtarget=arm-linux-gnueabihf \
     -Dcpu=arm1176jzf_s \
@@ -175,6 +187,14 @@ echo "==> Step 4: Link rockboxd with Zig for arm-linux-gnueabihf"
     -Drust-triple="$RUST_TARGET" \
     -Dsyslibs-dir=../build-armhf/syslibs \
     -Doptimize=ReleaseFast)
+
+echo "==> Diagnostic: check ARM CPU arch attribute in final binary"
+docker run --rm --platform linux/amd64 \
+    -v "$ROOTDIR:/src" \
+    "$DOCKER_IMAGE" \
+    bash -c "arm-linux-gnueabihf-readelf -A /src/zig/zig-out/bin/rockboxd 2>/dev/null \
+        | grep -E 'Tag_CPU_arch|File Attributes|Section Attributes' | head -20 \
+        || echo '(readelf not found or no .ARM.attributes section)'"
 
 echo ""
 echo "Build complete: zig/zig-out/bin/rockboxd (ARM hard-float)"

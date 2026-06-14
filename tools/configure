@@ -783,6 +783,13 @@ armhfhostcc () {
     GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result $host_extra_defines"
     GCCOPTS="$GCCOPTS -fPIC -ffunction-sections -fdata-sections"
     GCCOPTS="$GCCOPTS -fomit-frame-pointer -fvisibility=hidden"
+    # arm-linux-gnueabihf-gcc from Ubuntu/Debian defaults to -march=armv7-a,
+    # which tags the output objects as ARMv7. LLD then generates ARMv7 Thumb-2
+    # thunks (movw/movt) that cause SIGILL on ARMv6 hardware (arm1176jzf-s).
+    # Pin to ARMv6 + ARM mode. -marm is required: -march=armv6 activates
+    # Thumb-1 by default in this toolchain, but Thumb-1 does not support the
+    # hard-float VFP ABI (-mfloat-abi=hard), causing a compile-time error.
+    GCCOPTS="$GCCOPTS -march=armv6 -marm -mfpu=vfp -mfloat-abi=hard"
 
     SHARED_LDFLAGS=""
     SHARED_CFLAGS="-fPIC"

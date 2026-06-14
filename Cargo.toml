@@ -305,5 +305,12 @@ opentelemetry_sdk = "0.27.0"
 # behave identically (ring is also fine on macOS/Linux).
 [patch.crates-io]
 hyper-rustls = { path = "vendor/hyper-rustls" }
+# Patched to guard snd_pcm_status_get_htstamp / get_trigger_htstamp /
+# get_audio_htstamp against a null PLT entry. On ARM devices where libasound
+# ships these as static inline functions (not exported symbols), the PLT entry
+# resolves to 0x00000000 at runtime, causing SIGSEGV in cpal's ALSA backend.
+# The null-guard returns a zeroed timespec, which cpal interprets as "no
+# hardware timestamp" and falls back to Instant::now() — correct behaviour.
+alsa = { path = "patches/alsa" }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

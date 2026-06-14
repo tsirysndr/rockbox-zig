@@ -35,4 +35,7 @@ ENV PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig \
     PKG_CONFIG_SYSROOT_DIR=/ \
     PKG_CONFIG_ALLOW_CROSS=1
 
-ENV CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_RUSTFLAGS="-C link-arg=-Wl,-rpath-link=/usr/lib/arm-linux-gnueabihf"
+# -C target-cpu=arm1176jzf-s pins Rust codegen to ARMv6ZK so objects are
+# tagged ARMv6 in ELF flags. Without this, LLD may generate ARMv7 Thumb-2
+# thunks (movw/movt) that SIGILL on ARMv6 hardware.
+ENV CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_RUSTFLAGS="-C target-cpu=arm1176jzf-s -C link-arg=-Wl,-rpath-link=/usr/lib/arm-linux-gnueabihf"
