@@ -438,6 +438,7 @@ impl StreamState {
         }
         let (lock, cv) = &*self.pair;
         let mut pf = lock.lock().unwrap();
+
         loop {
             if !pf.data.is_empty() {
                 break;

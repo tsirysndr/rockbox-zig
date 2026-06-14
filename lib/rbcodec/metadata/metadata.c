@@ -428,8 +428,13 @@ unsigned int probe_file_format(const char *filename)
 static unsigned int probe_content_type_format(int fd)
 {
     char content_type[64];
-    if (stream_content_type(fd, content_type, sizeof(content_type)) < 0)
+    ssize_t ct_len = stream_content_type(fd, content_type, sizeof(content_type));
+    if (ct_len < 0) {
+        fprintf(stderr, "[metadata] probe_content_type: fd=%d stream_content_type returned %zd "
+                "(no Content-Type header or HTTP error)\n", fd, ct_len);
         return AFMT_UNKNOWN;
+    }
+    fprintf(stderr, "[metadata] probe_content_type: fd=%d got \"%s\"\n", fd, content_type);
 
     if (!strcasecmp(content_type, "audio/mpeg") ||
         !strcasecmp(content_type, "audio/mp3") ||
@@ -444,7 +449,9 @@ static unsigned int probe_content_type_format(int fd)
         return AFMT_MP4_AAC;
 
     if (!strcasecmp(content_type, "audio/aac") ||
-        !strcasecmp(content_type, "audio/aacp"))
+        !strcasecmp(content_type, "audio/aacp") ||
+        !strcasecmp(content_type, "audio/x-aac") ||
+        !strcasecmp(content_type, "audio/vnd.dlna.adts"))
         return AFMT_AAC_BSF;
 
     if (!strcasecmp(content_type, "audio/ogg") ||
@@ -467,6 +474,8 @@ static unsigned int probe_content_type_format(int fd)
         !strcasecmp(content_type, "audio/asf"))
         return AFMT_WMA;
 
+    fprintf(stderr, "[metadata] probe_content_type: fd=%d unrecognized type \"%s\"\n",
+            fd, content_type);
     return AFMT_UNKNOWN;
 }
 #endif

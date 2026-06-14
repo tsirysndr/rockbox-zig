@@ -64,9 +64,6 @@ enum pcm_sink_ids {
 #if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_CPAL,      /* cpal output — BUILTIN on Android cdylib and headless host */
 #endif
-#if defined(ARMHFHOST)
-    PCM_SINK_ALSA = 9,  /* direct libasound sink for arm-linux-gnueabihf */
-#endif
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
 #endif
@@ -75,6 +72,11 @@ enum pcm_sink_ids {
      * conditionally compiled in.  Slot 7 stays NULL on regular host builds
      * (firmware/pcm.c skips NULL entries via `if (!sink) continue;`). */
     PCM_SINK_CMAF = 8,  /* CMAF (HLS + DASH) AAC-LC output */
+#endif
+/* Pinned to 9 — must come after CMAF = 8 so PCM_SINK_NUM resolves to 10
+ * and sinks[9] is within the array bounds. */
+#if defined(ARMHFHOST)
+    PCM_SINK_ALSA = 9,  /* direct libasound sink for arm-linux-gnueabihf */
 #endif
 #endif
 #ifdef USB_ENABLE_IAP
