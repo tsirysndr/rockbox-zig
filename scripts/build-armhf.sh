@@ -60,6 +60,14 @@ docker run --rm --platform linux/amd64 \
             gcc -O2 /src/tools/convbdf.c -o \"\$HOSTTOOLS/convbdf\"
             gcc -O2 /src/tools/rdf2binary.c -o \"\$HOSTTOOLS/rdf2binary\"
             gcc -O2 /src/tools/codepages.c /src/tools/codepage_tables.c -o \"\$HOSTTOOLS/codepages\"
+            # iaudio_bl_flash.c is generated from iaudio_bl_flash.bmp by bmp2rb.
+            # It exists on local machines (generated once and cached) but is not
+            # tracked in git, so CI starts with a fresh checkout that lacks it.
+            # Generate it now using the bmp2rb we just compiled.
+            if [ ! -f /src/tools/iaudio_bl_flash.c ]; then
+                (cd /src/tools && \"\$HOSTTOOLS/bmp2rb\" -f 7 -h . iaudio_bl_flash.bmp \
+                    > iaudio_bl_flash.c)
+            fi
             gcc -O2 /src/tools/scramble.c /src/tools/iriver.c /src/tools/mi4.c \
                 /src/tools/gigabeat.c /src/tools/gigabeats.c /src/tools/telechips.c \
                 /src/tools/iaudio_bl_flash.c /src/tools/creative.c \
