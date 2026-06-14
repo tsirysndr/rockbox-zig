@@ -51,8 +51,7 @@ impl ErasedSenders {
     }
 }
 
-static SUBSCRIBERS: Lazy<Mutex<HashMap<TypeId, ErasedSenders>>> =
-    Lazy::new(Default::default);
+static SUBSCRIBERS: Lazy<Mutex<HashMap<TypeId, ErasedSenders>>> = Lazy::new(Default::default);
 
 struct BrokerStream<T: Sync + Send + Clone + 'static>(usize, UnboundedReceiver<T>);
 
