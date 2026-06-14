@@ -3,45 +3,55 @@
 // available on macOS or WASM. pcm-alsa.c is only compiled for ARMHFHOST.
 //
 // Uses snd_pcm_writei (RWInterleaved access) — exactly what `aplay` does.
-// This avoids cpal's ALSA backend entirely and the problematic
-// snd_pcm_status_get_htstamp / mmap code paths that crash on some ARM builds.
+// Avoids cpal's ALSA backend and the snd_pcm_status_get_htstamp / mmap paths
+// that crash on some ARM libasound builds.
 //
 // Architecture mirrors crates/cpal-sink: a ring buffer + condvar carries PCM
-// data from the Rockbox firmware DMA thread; a dedicated OS thread owns the
-// ALSA PCM handle and drains the ring via snd_pcm_writei. ALSA stalls cannot
-// wedge the firmware thread beyond the ring's backpressure timeout.
+// from the Rockbox firmware DMA thread to a dedicated OS thread that owns the
+// ALSA PCM handle and drains it via snd_pcm_writei.
 //
 // C side: firmware/target/hosted/headless/pcm-alsa.c
 
-// Force-linkage sentinel: always present so cli/src/lib.rs can reference it
-// unconditionally on any host (the #[cfg(feature = "alsa-sink")] guard is
-// sufficient; we don't need a separate #[cfg(target_os)] there).
+/// Force-linkage sentinel. Always present so crates/cli can reference it
+/// with #[cfg(feature = "alsa-sink")] without needing a cfg(target_os) guard.
 pub fn _link_alsa_sink() {}
 
-#[cfg(target_os = "linux")]
-mod linux {
+// ── Linux-only implementation ─────────────────────────────────────────────────
 
+#[cfg(target_os = "linux")]
 use alsa::pcm::{Access, Format, HwParams, PCM};
+#[cfg(target_os = "linux")]
 use alsa::{Direction, ValueOr};
+#[cfg(target_os = "linux")]
 use std::collections::VecDeque;
+#[cfg(target_os = "linux")]
 use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(target_os = "linux")]
 use std::sync::{Condvar, Mutex, OnceLock};
+#[cfg(target_os = "linux")]
 use std::thread::JoinHandle;
+#[cfg(target_os = "linux")]
 use std::time::Duration;
 
+#[cfg(target_os = "linux")]
 const RING_CAPACITY: usize = 512 * 1024; // 512 KB ≈ 3 s at 44.1 kHz stereo S16LE
+#[cfg(target_os = "linux")]
 const PERIOD_FRAMES: alsa::pcm::Frames = 1024; // ~23 ms @ 44.1 kHz
+#[cfg(target_os = "linux")]
 const BUFFER_FRAMES: alsa::pcm::Frames = 8192; // ~185 ms
 
 // ── Ring buffer ───────────────────────────────────────────────────────────────
 
+#[cfg(target_os = "linux")]
 struct Ring {
     buf: VecDeque<u8>,
     running: bool,
 }
 
+#[cfg(target_os = "linux")]
 static RING: OnceLock<(Mutex<Ring>, Condvar)> = OnceLock::new();
 
+#[cfg(target_os = "linux")]
 fn ring() -> &'static (Mutex<Ring>, Condvar) {
     RING.get_or_init(|| {
         (
@@ -56,20 +66,26 @@ fn ring() -> &'static (Mutex<Ring>, Condvar) {
 
 // ── Writer thread state ───────────────────────────────────────────────────────
 
+#[cfg(target_os = "linux")]
 static WRITER_RUNNING: AtomicBool = AtomicBool::new(false);
+#[cfg(target_os = "linux")]
 static CURRENT_RATE: OnceLock<Mutex<u32>> = OnceLock::new();
+#[cfg(target_os = "linux")]
 static WRITER_HANDLE: OnceLock<Mutex<Option<JoinHandle<()>>>> = OnceLock::new();
 
+#[cfg(target_os = "linux")]
 fn current_rate() -> &'static Mutex<u32> {
     CURRENT_RATE.get_or_init(|| Mutex::new(44100))
 }
 
+#[cfg(target_os = "linux")]
 fn writer_handle() -> &'static Mutex<Option<JoinHandle<()>>> {
     WRITER_HANDLE.get_or_init(|| Mutex::new(None))
 }
 
 // ── ALSA helpers ──────────────────────────────────────────────────────────────
 
+#[cfg(target_os = "linux")]
 fn open_pcm(rate: u32) -> Option<PCM> {
     let pcm = match PCM::new("default", Direction::Playback, false) {
         Ok(p) => p,
@@ -111,13 +127,13 @@ fn open_pcm(rate: u32) -> Option<PCM> {
 
 // ── Writer thread ─────────────────────────────────────────────────────────────
 
+#[cfg(target_os = "linux")]
 fn run_writer(initial_rate: u32) {
     let mut pcm: Option<PCM> = None;
     let mut rate = initial_rate;
     tracing::info!("pcm-alsa: writer thread started");
 
     loop {
-        // Wait for data or stop signal.
         let chunk: Vec<u8> = {
             let (lock, cvar) = ring();
             let mut r = lock.lock().unwrap();
@@ -135,17 +151,15 @@ fn run_writer(initial_rate: u32) {
                 }
                 r = cvar.wait(r).unwrap();
             }
-            // Drain up to 4× period frames per iteration.
             let n = r.buf.len().min(PERIOD_FRAMES as usize * 4 * 4);
             r.buf.drain(..n).collect()
         };
-        ring().1.notify_all(); // signal producer that ring space freed
+        ring().1.notify_all();
 
         if chunk.is_empty() {
             continue;
         }
 
-        // Lazily open or reopen ALSA when sample rate changed.
         let new_rate = *current_rate().lock().unwrap();
         if new_rate != rate || pcm.is_none() {
             if let Some(old) = pcm.take() {
@@ -169,10 +183,9 @@ fn run_writer(initial_rate: u32) {
             }
         };
 
-        // Reinterpret raw S16LE bytes as i16 for snd_pcm_writei.
         let samples_i16 =
             unsafe { std::slice::from_raw_parts(chunk.as_ptr() as *const i16, chunk.len() / 2) };
-        let frames_total = samples_i16.len() / 2; // stereo: 2 samples per frame
+        let frames_total = samples_i16.len() / 2;
         let mut offset = 0usize;
         while offset < frames_total {
             match io.writei(&samples_i16[offset * 2..]) {
@@ -190,6 +203,7 @@ fn run_writer(initial_rate: u32) {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn start_writer() {
     let rate = *current_rate().lock().unwrap();
     let mut guard = writer_handle().lock().unwrap();
@@ -205,21 +219,9 @@ fn start_writer() {
     );
 }
 
-fn stop_writer_join() {
-    {
-        let (lock, cvar) = ring();
-        let mut r = lock.lock().unwrap();
-        r.running = false;
-        cvar.notify_all();
-    }
-    if let Some(h) = writer_handle().lock().unwrap().take() {
-        let _ = h.join();
-    }
-    WRITER_RUNNING.store(false, Ordering::Relaxed);
-}
-
 // ── C ABI — called from firmware/target/hosted/headless/pcm-alsa.c ───────────
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_init() {
     let _ = ring();
@@ -227,21 +229,19 @@ pub extern "C" fn pcm_alsa_init() {
     let _ = writer_handle();
 }
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
-pub extern "C" fn pcm_alsa_postinit() {
-    // No-op: we open ALSA lazily on first write to avoid blocking firmware boot.
-}
+pub extern "C" fn pcm_alsa_postinit() {}
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_set_sample_rate(rate_hz: u32) {
     *current_rate().lock().unwrap() = rate_hz;
 }
 
-/// Push `size` bytes of S16LE stereo PCM from the firmware DMA thread.
-/// Blocks (condvar) when the ring is too full, providing back-pressure.
-///
 /// # Safety
 /// `addr` must be valid for `size` bytes for the duration of this call.
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub unsafe extern "C" fn pcm_alsa_push(addr: *const u8, size: usize) {
     let data = unsafe { std::slice::from_raw_parts(addr, size) };
@@ -268,6 +268,7 @@ pub unsafe extern "C" fn pcm_alsa_push(addr: *const u8, size: usize) {
     cvar.notify_all();
 }
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_start() {
     {
@@ -279,6 +280,7 @@ pub extern "C" fn pcm_alsa_start() {
     start_writer();
 }
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_stop() {
     let (lock, cvar) = ring();
@@ -287,6 +289,7 @@ pub extern "C" fn pcm_alsa_stop() {
     cvar.notify_all();
 }
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_flush() {
     let (lock, cvar) = ring();
@@ -295,11 +298,8 @@ pub extern "C" fn pcm_alsa_flush() {
     cvar.notify_all();
 }
 
+#[cfg(target_os = "linux")]
 #[no_mangle]
 pub extern "C" fn pcm_alsa_is_running() -> bool {
     ring().0.lock().unwrap().running
 }
-
-/// Force-linkage sentinel — crates/cli pulls this in so alsa-sink symbols
-/// are included in librockbox_cli.a even with --gc-sections.
-pub fn _link_alsa_sink() {}
