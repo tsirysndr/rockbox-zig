@@ -122,24 +122,24 @@ jobs:
       - name: Generate Package Installer
         run: ./packaging/macos/build-pkg.sh
 
-      - name: Build DMG
-        if: matrix.arch == 'aarch64'
-        run: |
-          VERSION="${{ steps.vars.outputs.version }}"
-          ARCH="${{ matrix.arch }}"
-          xcodebuild -scheme Rockbox -configuration Release archive \
-            -archivePath ./build/Rockbox.xcarchive
-          xcodebuild -exportArchive \
-            -archivePath ./build/Rockbox.xcarchive \
-            -exportPath ./build \
-            -exportOptionsPlist ExportOptions.plist
-          mkdir dmg_temp
-          cp -r build/Rockbox.app dmg_temp
-          hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO \
-            Rockbox-${VERSION}-${ARCH}.dmg
-          mv Rockbox-${VERSION}-${ARCH}.dmg ..
-          rm -rf ../build dmg_temp ~/Library/Developer/Xcode/DerivedData
-        working-directory: macos
+      # - name: Build DMG
+      #   if: matrix.arch == 'aarch64'
+      #   run: |
+      #     VERSION="${{ steps.vars.outputs.version }}"
+      #     ARCH="${{ matrix.arch }}"
+      #     xcodebuild -scheme Rockbox -configuration Release archive \
+      #       -archivePath ./build/Rockbox.xcarchive
+      #     xcodebuild -exportArchive \
+      #       -archivePath ./build/Rockbox.xcarchive \
+      #       -exportPath ./build \
+      #       -exportOptionsPlist ExportOptions.plist
+      #     mkdir dmg_temp
+      #     cp -r build/Rockbox.app dmg_temp
+      #     hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO \
+      #       Rockbox-${VERSION}-${ARCH}.dmg
+      #     mv Rockbox-${VERSION}-${ARCH}.dmg ..
+      #     rm -rf ../build dmg_temp ~/Library/Developer/Xcode/DerivedData
+      #   working-directory: macos
 
       - name: Upload to GitHub Release (aarch64)
         if: matrix.arch == 'aarch64'
@@ -149,7 +149,6 @@ jobs:
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz.sha256
             rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.pkg
-            Rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.dmg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
