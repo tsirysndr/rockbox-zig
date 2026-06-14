@@ -420,6 +420,8 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 [[package]]
 name = "alsa"
 version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed7572b7ba83a31e20d1b48970ee402d2e3e0537dcfe0a3ff4d6eb7508617d43"
 dependencies = [
  "alsa-sys",
  "bitflags 2.6.0",
@@ -9483,6 +9485,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-alsa-sink"
+version = "0.1.0"
+dependencies = [
+ "alsa",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-bluetooth"
 version = "0.1.0"
 dependencies = [
@@ -9525,6 +9535,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-airplay",
+ "rockbox-alsa-sink",
  "rockbox-chromecast",
  "rockbox-cmaf",
  "rockbox-cpal-sink",

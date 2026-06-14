@@ -126,6 +126,10 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             pcm::switch_sink(pcm::PCM_SINK_CPAL);
             tracing::info!("audio output: cpal (system default device)");
         }
+        Some("alsa") => {
+            pcm::switch_sink(pcm::PCM_SINK_ALSA);
+            tracing::info!("audio output: alsa (direct libasound, arm-linux-gnueabihf)");
+        }
         Some("cmaf") | Some("hls") | Some("dash") => {
             let http_port = settings.cmaf_http_port.unwrap_or(7882);
             let bitrate = settings.cmaf_bitrate.unwrap_or(128_000);

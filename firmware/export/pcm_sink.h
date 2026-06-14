@@ -64,6 +64,9 @@ enum pcm_sink_ids {
 #if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_CPAL,      /* cpal output — BUILTIN on Android cdylib and headless host */
 #endif
+#if defined(ARMHFHOST)
+    PCM_SINK_ALSA = 9,  /* direct libasound sink for arm-linux-gnueabihf */
+#endif
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     PCM_SINK_WEBAPI,    /* Web Audio API output for the WASM browser build */
 #endif
@@ -117,9 +120,14 @@ void pcm_cmaf_set_http_port(uint16_t port);
 void pcm_cmaf_set_bitrate(uint32_t bps);
 #endif
 
-#if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM)
+#if defined(CODECS_STATIC) && !(CONFIG_PLATFORM & PLATFORM_WASM) && !defined(ARMHFHOST)
 /* cpal sink — BUILTIN on the Android cdylib and headless macOS/Linux builds. */
 extern struct pcm_sink cpal_pcm_sink;
+#endif
+
+#if defined(ARMHFHOST)
+/* direct libasound sink for arm-linux-gnueabihf — bypasses cpal entirely. */
+extern struct pcm_sink alsa_pcm_sink;
 #endif
 
 #if (CONFIG_PLATFORM & PLATFORM_WASM)

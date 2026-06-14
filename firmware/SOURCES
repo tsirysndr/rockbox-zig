@@ -2039,7 +2039,11 @@ target/hosted/android/app/button-application.c
 target/hosted/headless/kernel-headless.c
 target/hosted/filesystem-unix.c
 target/hosted/headless/system-headless.c
+#ifdef ARMHFHOST
+target/hosted/headless/pcm-alsa.c
+#else
 target/hosted/headless/pcm-cpal.c
+#endif
 target/hosted/headless/lc-headless.c
 target/hosted/headless/lcd-noop.c
 target/hosted/headless/button-noop.c

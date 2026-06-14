@@ -22,6 +22,7 @@ rockbox-playlists = {path = "../playlists"}
 rockbox-typesense = {path = "../typesense"}
 rockbox-fts5 = {path = "../fts5", optional = true}
 rockbox-cpal-sink = {path = "../cpal-sink", optional = true}
+rockbox-alsa-sink = {path = "../alsa-sink", optional = true}
 rockbox-settings = {path = "../settings"}
 rockbox-rocksky = {path = "../rocksky"}
 tokio = {version = "1.36.0", features = ["full"]}
@@ -47,3 +48,6 @@ fts5 = ["dep:rockbox-fts5"]
 # Enable the cpal PCM sink for headless macOS/Linux builds (no SDL).
 # Must be passed alongside `zig build -Dheadless=true`.
 cpal-sink = ["dep:rockbox-cpal-sink"]
+# Enable the direct ALSA PCM sink for arm-linux-gnueabihf builds (no cpal).
+# Must be passed alongside `zig build -Dheadless=true -Dfw-dir=../build-armhf`.
+alsa-sink = ["dep:rockbox-alsa-sink"]

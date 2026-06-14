@@ -166,10 +166,10 @@ docker run --rm --platform linux/amd64 \
         echo \"    Copied + stripped .ARM.attributes: \$(ls \$SYSLIBS)\"
     "
 
-echo "==> Step 3: Build Rust crates with cross (fts5 + cpal-sink, no typesense subprocess)"
+echo "==> Step 3: Build Rust crates with cross (fts5 + alsa-sink, no typesense subprocess)"
 cross build --release \
     --target "$RUST_TARGET" \
-    --features fts5,cpal-sink \
+    --features fts5,alsa-sink \
     -p rockbox-cli
 cross build --release \
     --target "$RUST_TARGET" \

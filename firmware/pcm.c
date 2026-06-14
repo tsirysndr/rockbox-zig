@@ -85,6 +85,8 @@ extern struct pcm_sink iap_pcm_sink;
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if (CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_BUILTIN]      = &webapi_pcm_sink,    /* Web Audio API = default on WASM */
+#elif defined(ARMHFHOST)
+    [PCM_SINK_BUILTIN]      = &alsa_pcm_sink,      /* direct ALSA = default on arm-linux-gnueabihf */
 #elif defined(CODECS_STATIC)
     [PCM_SINK_BUILTIN]      = &cpal_pcm_sink,      /* cpal = default on Android cdylib + headless */
 #else
@@ -100,8 +102,11 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
 #if !(CONFIG_PLATFORM & PLATFORM_WASM)
     [PCM_SINK_CMAF]         = &cmaf_pcm_sink,
 #endif
-#if defined(CODECS_STATIC)
+#if defined(CODECS_STATIC) && !defined(ARMHFHOST)
     [PCM_SINK_CPAL]         = &cpal_pcm_sink,      /* also addressable by name */
+#endif
+#if defined(ARMHFHOST)
+    [PCM_SINK_ALSA]         = &alsa_pcm_sink,      /* also addressable by name */
 #endif
 #endif
 #if (CONFIG_PLATFORM & PLATFORM_WASM)

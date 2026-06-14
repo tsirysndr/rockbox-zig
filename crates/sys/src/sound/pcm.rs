@@ -15,6 +15,8 @@ pub const PCM_SINK_CPAL: i32 = 7;
 /// CMAF (HLS + DASH) AAC-LC output. Pinned to 8 in `firmware/export/pcm_sink.h`
 /// so it never collides with the conditional slot 7 (CPAL / WEBAPI).
 pub const PCM_SINK_CMAF: i32 = 8;
+/// Direct libasound sink for arm-linux-gnueabihf. Pinned to 9.
+pub const PCM_SINK_ALSA: i32 = 9;
 
 pub fn apply_settings() {
     unsafe {

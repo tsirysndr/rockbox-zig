@@ -1,0 +1,16 @@
+[package]
+name = "rockbox-alsa-sink"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+tracing = { workspace = true }
+
+# libasound is Linux-only; the C pcm-alsa.c is also compiled only for ARMHFHOST
+# (a Linux target). Gate the dependency so macOS / WASM builds never try to
+# find or link libasound.
+[target.'cfg(target_os = "linux")'.dependencies]
+alsa = "0.9"

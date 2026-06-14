@@ -5,6 +5,9 @@ use clap::Command;
 use owo_colors::OwoColorize;
 #[allow(unused_imports)]
 use rockbox_airplay::_link_airplay as _;
+#[cfg(feature = "alsa-sink")]
+#[allow(unused_imports)]
+use rockbox_alsa_sink::_link_alsa_sink as _;
 #[allow(unused_imports)]
 use rockbox_chromecast::_link_chromecast as _;
 #[allow(unused_imports)]
