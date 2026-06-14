@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.14]
+
+### Added
+- `arm-unknown-linux-gnueabihf` cross-compilation target — new `scripts/build-armhf.sh` builds a native ARMv6 hard-float `rockboxd` binary (e.g. Raspberry Pi Zero) using the `Dockerfile.arm-unknown-linux-gnueabihf` cross-toolchain; Zig links with `-Dtarget=arm-linux-gnueabihf -Dcpu=arm1176jzf_s`; `Cross.toml` wires `cross build` to the same Docker image; firmware configure target `208` (ARMHFHOST) reuses the headless target files with `arm-linux-gnueabihf-gcc` and `-march=armv6 -marm -mfpu=vfp -mfloat-abi=hard`
+- `crates/alsa-sink` — direct libasound PCM sink for ARM Linux; uses `snd_pcm_writei` (RWInterleaved, same as `aplay`), avoiding cpal's ALSA backend and the `snd_pcm_status_get_htstamp` null-PLT-entry crash on older ARM devices; ALSA is opened once in `pcm_alsa_postinit()` and the writer thread lives for the daemon lifetime so resume after a pcmbuf-dry stall is instant (no re-open latency); enabled via `--features fts5,alsa-sink` in the ARM build; registered as `PCM_SINK_ALSA = 9` in `firmware/export/pcm_sink.h`
+- `firmware/target/hosted/headless/pcm-alsa.c` — C PCM sink ops mirroring `pcm-cpal.c` but calling `pcm_alsa_*` entry points
+- `.github/workflows/linux-armhf-build.yml` — CI workflow that builds and uploads the armhf binary to GitHub Releases
+
+### Fixed
+- ARM Linux: `SIGILL` from `__ARMv7ABSLongThunk__` — Ubuntu's `arm-linux-gnueabihf-gcc` defaults to `-march=armv7-a`; added `-march=armv6 -marm` to the configure `armhfhostcc()` function so all C objects are tagged ARMv6; Zig's LLD then uses ARMv6-compatible thunks that work on ARM1176JZF-S
+- ARM Linux: `SIGILL` at startup — LLD derives `HasMovt` from the target triple (`arm-linux-gnueabihf` = conventional ARMv7), generating `movw`/`movt` thunks even when object attributes say ARMv6; fixed by using `ReleaseFast` to produce a compact binary (< 32 MB) that fits within LLD's direct-branch range, eliminating the need for long-range veneers
+- ARM Linux: `SIGSEGV` in `SimpleBroker::subscribe` (`dyn Any` vtable null) — Zig's LLD generates zero vtable entries for `dyn Any + Send` COMDAT groups on ARM 32-bit in `ReleaseFast` mode; replaced `HashMap<TypeId, Box<dyn Any + Send>>` in `crates/graphql/src/simplebroker.rs` with a type-erased `ErasedSenders` struct storing the drop function as a heap pointer written at runtime (not a link-time vtable), so every function pointer is a valid non-zero Thumb address
+- ARM Linux: `SIGSEGV` in `alsa::pcm::Status::get_htstamp` — on ARM devices where libasound ships `snd_pcm_status_get_htstamp` as a static inline (not an exported symbol) the PLT entry resolves to 0x00000000 at runtime, crashing in cpal's ALSA timing probe; fixed by replacing cpal with the direct `alsa-sink` that never calls this function
+- ARM Linux: 32-bit ABI mismatches in `crates/sys` — `c_long`/`c_ulong` are 32-bit on ARM (not 64-bit); added `as c_long` / `as c_ulong` casts in `metadata.rs`, `playback.rs`, `playlist.rs`, `sound/dsp.rs`, `system.rs`, `tagcache.rs`, and `as u64`/`as i64` field casts in `types/mp3_entry.rs`; `crates/cli/src/lib.rs` now uses `libc::rlim_t` instead of `u64` for `rlimit` fields
+- ARM Linux: `audiohw_set_volume` undefined reference to `pcm_cpal_set_volume` — gated the cpal volume call on `!ARMHFHOST` in `audiohw-noop.c`; volume is handled by Rockbox's DSP layer (`HAVE_SW_TONE_CONTROLS`) on ARM
+- ARM Linux: `PCM_SINK_ALSA = 9` array-bounds error in `pcm.c` — enum entry was declared before `PCM_SINK_CMAF = 8`, making `PCM_SINK_NUM = 9` and `sinks[9]` out-of-bounds; moved ALSA entry after CMAF so `PCM_SINK_NUM = 10`
+- `firmware/export/config.h`: added `#elif defined(ARMHFHOST)` → `#include "config/armhfhost.h"` so the ARM hosted build is recognised as a valid platform; added `ARMHFHOST` guard to `audiohw.h` (sdl_codec.h inclusion) and `filesystem-app.c` (`rbhome` pointer declaration)
+- `metadata`: `probe_content_type_format` now logs the exact `Content-Type` string received (or reports that `stream_content_type` returned < 0) to stderr, making HTTP format-detection failures visible; added `audio/x-aac` and `audio/vnd.dlna.adts` to the AAC-BSF MIME mapping
+
 ## [2026.06.08]
 
 ### Fixed
