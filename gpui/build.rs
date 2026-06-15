@@ -19,6 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("cargo:rustc-link-lib=dylib=asound");
             println!("cargo:rustc-link-lib=dylib=unwind");
             println!("cargo:rustc-link-lib=dylib=dbus-1");
+            println!("cargo:rustc-link-lib=dylib=fdk-aac");
         }
         _ => {}
     }
