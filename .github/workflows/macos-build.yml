@@ -119,8 +119,8 @@ jobs:
           shasum -a 256 rockbox_${VERSION}_${ARCH}-darwin.tar.gz \
             > rockbox_${VERSION}_${ARCH}-darwin.tar.gz.sha256
 
-      - name: Generate Package Installer
-        run: ./packaging/macos/build-pkg.sh
+      #- name: Generate Package Installer
+      #  run: ./packaging/macos/build-pkg.sh
 
       # - name: Build DMG
       #   if: matrix.arch == 'aarch64'
@@ -148,7 +148,6 @@ jobs:
           files: |
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz.sha256
-            rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.pkg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -160,7 +159,6 @@ jobs:
           files: |
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz
             rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz.sha256
-            rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.pkg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
