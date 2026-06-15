@@ -1,5 +1,9 @@
 use anyhow::Error;
 
+pub mod login;
+pub mod settings;
+pub mod whoami;
+
 // Force rockbox-airplay and rockbox-slim symbols into librockbox_cli.a
 use clap::Command;
 use owo_colors::OwoColorize;
@@ -158,9 +162,83 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
     "#
         .yellow()
     );
-    let cli = Command::new("rockboxd").version(VERSION).about(&banner);
+    let cli = Command::new("rockboxd")
+        .version(VERSION)
+        .about(&banner)
+        .subcommand(
+            Command::new("settings")
+                .about("Manage Rockbox audio settings synced with Rocksky")
+                .subcommand_required(true)
+                .arg_required_else_help(true)
+                .subcommand(
+                    Command::new("pull")
+                        .about("Pull audio settings from Rocksky and apply them")
+                        .arg(
+                            clap::Arg::new("did")
+                                .long("did")
+                                .value_name("DID_OR_HANDLE")
+                                .help("Fetch another user's settings publicly (no login required)")
+                                .required(false),
+                        ),
+                )
+                .subcommand(Command::new("push").about("Push local audio settings to Rocksky")),
+        )
+        .subcommand(
+            Command::new("login")
+                .about("Login to your Rocksky account")
+                .arg(
+                    clap::Arg::new("handle")
+                        .required(true)
+                        .help("Your Bluesky handle"),
+                ),
+        )
+        .subcommand(Command::new("whoami").about("Show the currently logged-in Rocksky user"));
 
-    cli.get_matches_from(args);
+    let matches = cli.get_matches_from(args);
+
+    // Dispatch CLI-only subcommands and exit the process — do NOT start the server.
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    match matches.subcommand() {
+        Some(("settings", sub_m)) => {
+            let result = match sub_m.subcommand() {
+                Some(("pull", m)) => {
+                    let did = m.get_one::<String>("did").cloned();
+                    rt.block_on(settings::pull(did))
+                }
+                Some(("push", _)) => rt.block_on(settings::push()),
+                _ => unreachable!(),
+            };
+            match result {
+                Ok(_) => std::process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        Some(("login", sub_m)) => {
+            let handle = sub_m.get_one::<String>("handle").unwrap();
+            match rt.block_on(login::login(handle)) {
+                Ok(_) => std::process::exit(0),
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        Some(("whoami", _)) => match rt.block_on(whoami::whoami()) {
+            Ok(_) => std::process::exit(0),
+            Err(e) => {
+                eprintln!("Error: {e}");
+                std::process::exit(1);
+            }
+        },
+        _ => {} // Fall through to starting the Rockbox server
+    }
 
     // Install shutdown handler before spawning typesense-server so the PID is
     // always available when the handler fires.
