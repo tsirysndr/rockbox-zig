@@ -101,6 +101,7 @@ fn crossfade_mode_from_int(v: i64) -> &'static str {
         2 => "shuffle",
         3 => "albumChange",
         4 => "trackChange",
+        5 => "always",
         _ => "disabled",
     }
 }
@@ -112,6 +113,7 @@ fn crossfade_mode_to_int(s: &str) -> i64 {
         "shuffle" => 2,
         "albumChange" => 3,
         "trackChange" => 4,
+        "always" => 5,
         _ => 0,
     }
 }
