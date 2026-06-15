@@ -1,0 +1,89 @@
+---
+title: "Settings sync"
+description: "Back up and share your audio settings via Rocksky."
+icon: 'cloud-arrow-up'
+---
+
+Rockbox Zig can sync your audio settings — equalizer, crossfade, ReplayGain, and tone controls — with [Rocksky](https://rocksky.app), a social layer built on the AT Protocol (Bluesky). Once pushed, your settings are reachable from any device you own, and can optionally be made public so others can pull them by handle.
+
+## Prerequisites
+
+- `rockboxd` installed and on your `$PATH`
+- A [Bluesky](https://bsky.app) account (used as the Rocksky identity)
+
+## Step 1 — Log in
+
+```sh
+rockboxd login your.handle.bsky.social
+```
+
+This opens the Rocksky authorisation page in your browser. After you approve access, a local callback server on port `6996` captures the token and writes it to `~/.config/rockbox.org/token`. You only need to do this once per machine.
+
+Verify the login succeeded:
+
+```sh
+rockboxd whoami
+```
+
+## Step 2 — Push your settings
+
+Configure your audio settings (`settings.toml`, or via the web/desktop UI), then upload them:
+
+```sh
+rockboxd settings push
+```
+
+The following sections of `~/.config/rockbox.org/settings.toml` are uploaded:
+
+| Section      | Fields synced                                                                      |
+| ------------ | ---------------------------------------------------------------------------------- |
+| Equalizer    | `eq_enabled`, `eq_precut`, `eq_band_settings` (cutoff / gain / Q per band)        |
+| Crossfade    | `crossfade`, `fade_in_delay`, `fade_in_duration`, `fade_out_delay`, `fade_out_duration`, `fade_out_mixmode` |
+| ReplayGain   | `replaygain_settings.type`, `replaygain_settings.preamp`, `replaygain_settings.noclip` |
+| Tone         | `bass`, `treble`, `balance`, `channel_config`                                      |
+
+All other fields (`music_dir`, `audio_output`, etc.) are never uploaded.
+
+## Step 3 — Pull your settings on another device
+
+Log in on the second device, then pull:
+
+```sh
+rockboxd settings pull
+```
+
+This merges the downloaded values into the local `settings.toml` without touching any other fields. Restart `rockboxd` to apply them.
+
+## Sharing settings publicly
+
+Any user's settings can be pulled without logging in by passing their DID or Bluesky handle:
+
+```sh
+# by handle
+rockboxd settings pull --did alice.bsky.social
+
+# by DID
+rockboxd settings pull --did did:plc:abc123xyz
+```
+
+This is useful for sharing EQ presets or replication of a tuned listening profile across devices owned by different accounts.
+
+## Token management
+
+| File                              | Contents                  |
+| --------------------------------- | ------------------------- |
+| `~/.config/rockbox.org/token`     | Bearer token (plain text) |
+
+To log out, delete the token file:
+
+```sh
+rm ~/.config/rockbox.org/token
+```
+
+## Troubleshooting
+
+**"Session expired or invalid"** — the stored token has been revoked or expired. Run `rockboxd login <handle>` again.
+
+**"No settings file"** on `settings push` — pull first to create the file, or configure `settings.toml` manually and run push again.
+
+**Port 6996 already in use** — the login callback server cannot bind. Stop whatever is listening on that port and retry.

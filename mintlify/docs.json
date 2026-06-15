@@ -79,6 +79,7 @@
             "group": "Reference",
             "pages": [
               "reference/cli",
+              "reference/settings-sync",
               "reference/ports",
               "reference/settings-toml",
               "reference/troubleshooting",

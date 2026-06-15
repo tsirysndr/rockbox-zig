@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.15]
+
+### Added
+- `rockboxd login <handle>` — OAuth login to Rocksky using your Bluesky handle; opens the authorisation URL in the default browser and spins up a minimal tokio TCP server on port 6996 to receive the callback token, which is persisted to `~/.config/rockbox.org/token`
+- `rockboxd whoami` — print the currently logged-in Rocksky user (reads the stored token and resolves the handle via the Rocksky API)
+- `rockboxd settings pull [--did <DID_OR_HANDLE>]` — fetch audio settings (equalizer, crossfade, replaygain, tone/bass/treble/balance/channels) from Rocksky and merge them into `~/.config/rockbox.org/settings.toml` without touching any other fields; `--did` enables public access — any user's settings can be pulled without a token by passing their DID or handle
+- `rockboxd settings push` — read the current `settings.toml` and upload the audio sections (equalizer, crossfade, replaygain, tone) to Rocksky via `app.rocksky.rockbox.putAudioSettings`; requires a valid stored token
+- All four subcommands exit the process immediately after completing — the Zig firmware and gRPC/HTTP servers are never started, avoiding the C-global-initialisation segfault that would occur before `main_c()` runs
+
 ## [2026.06.14]
 
 ### Added

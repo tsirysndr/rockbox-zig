@@ -88,12 +88,67 @@ rockbox bluetooth connect AA:BB:CC:DD:EE:FF
 ## `rockboxd`
 
 The daemon. Usually you don't run it directly — `rockbox start` or the
-systemd unit handles it. When you do invoke it manually, it takes no
-subcommands; behaviour is driven by environment variables and
-`~/.config/rockbox.org/settings.toml`.
+systemd unit handles it. When you do need to invoke it manually, most
+configuration is driven by environment variables and
+`~/.config/rockbox.org/settings.toml`. A small set of subcommands are
+also available for account management and settings sync; they exit the
+process immediately without starting the Zig firmware or any servers.
 
 ```sh
-rockboxd
+rockboxd [SUBCOMMAND]
+```
+
+### Subcommands
+
+| Subcommand                              | Description                                                     |
+| --------------------------------------- | --------------------------------------------------------------- |
+| _(none)_                                | Start the daemon (server + firmware)                            |
+| `login <handle>`                        | Log in to Rocksky with your Bluesky handle                      |
+| `whoami`                                | Print the currently logged-in Rocksky user                      |
+| `settings pull [--did <DID_OR_HANDLE>]` | Pull audio settings from Rocksky into `settings.toml`           |
+| `settings push`                         | Push `settings.toml` audio settings to Rocksky                  |
+
+#### `login <handle>`
+
+Opens the Rocksky OAuth authorisation URL in your default browser and
+listens on `localhost:6996` for the callback. On success the token is
+saved to `~/.config/rockbox.org/token`.
+
+```sh
+rockboxd login alice.bsky.social
+```
+
+#### `whoami`
+
+Reads the stored token and resolves the Rocksky account associated with it.
+
+```sh
+rockboxd whoami
+```
+
+#### `settings pull`
+
+Downloads your audio settings (equalizer, crossfade, replaygain, tone)
+from Rocksky and merges them into `~/.config/rockbox.org/settings.toml`.
+All other fields in `settings.toml` (e.g. `music_dir`, `audio_output`)
+are left untouched. Restart `rockboxd` to apply the new settings.
+
+```sh
+# Pull your own settings (requires login)
+rockboxd settings pull
+
+# Pull another user's settings publicly — no login required
+rockboxd settings pull --did alice.bsky.social
+rockboxd settings pull --did did:plc:abc123
+```
+
+#### `settings push`
+
+Reads the audio sections of `~/.config/rockbox.org/settings.toml` and
+uploads them to Rocksky. Requires a stored token (`rockboxd login` first).
+
+```sh
+rockboxd settings push
 ```
 
 ### Environment variables
@@ -133,9 +188,10 @@ mode). Use `tracing::{debug,info,warn,error}!` in Rust code.
 
 ### Files
 
-| Path                                              | Purpose                              |
-|---------------------------------------------------|--------------------------------------|
-| `~/.config/rockbox.org/settings.toml`             | Persistent configuration             |
-| `~/.config/rockbox.org/library.db`                | SQLite library + listening stats     |
-| `~/.config/rockbox.org/playlists/`                | Saved playlists                      |
-| `~/.config/systemd/user/rockboxd.service`         | systemd unit (after `service install`) |
+| Path                                              | Purpose                                    |
+| ------------------------------------------------- | ------------------------------------------ |
+| `~/.config/rockbox.org/settings.toml`             | Persistent configuration                   |
+| `~/.config/rockbox.org/library.db`                | SQLite library + listening stats           |
+| `~/.config/rockbox.org/playlists/`                | Saved playlists                            |
+| `~/.config/rockbox.org/token`                     | Rocksky OAuth token (written by `login`)   |
+| `~/.config/systemd/user/rockboxd.service`         | systemd unit (after `service install`)     |
