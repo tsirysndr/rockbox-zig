@@ -2,10 +2,14 @@ use anyhow::Error;
 use lofty::{file::TaggedFileExt, probe::Probe, tag::Tag};
 
 pub fn extract_label(track_path: &str) -> Result<Option<String>, Error> {
-    let tagged_file = match Probe::open(track_path)
-        .expect("ERROR: Bad path provided!")
-        .read()
-    {
+    let probe = match Probe::open(track_path) {
+        Ok(p) => p,
+        Err(e) => {
+            println!("label: cannot open {}: {}", track_path, e);
+            return Ok(None);
+        }
+    };
+    let tagged_file = match probe.read() {
         Ok(tagged_file) => tagged_file,
         Err(e) => {
             println!("Error opening file: {}", e);

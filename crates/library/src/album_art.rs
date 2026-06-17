@@ -27,10 +27,14 @@ pub fn extract_and_save_album_cover_with_key(
     track_path: &str,
     album_key: Option<&str>,
 ) -> Result<Option<String>, Error> {
-    let tagged_file = match Probe::open(track_path)
-        .expect("ERROR: Bad path provided!")
-        .read()
-    {
+    let probe = match Probe::open(track_path) {
+        Ok(p) => p,
+        Err(e) => {
+            println!("album_art: cannot open {}: {}", track_path, e);
+            return Ok(None);
+        }
+    };
+    let tagged_file = match probe.read() {
         Ok(tagged_file) => tagged_file,
         Err(e) => {
             println!("Error opening file: {}", e);
