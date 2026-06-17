@@ -125,13 +125,32 @@ static void *cmaf_thread(void *arg)
         if (cmaf_stop)
             break;
 
-        pthread_mutex_lock(&cmaf_mtx);
-        bool got_more = pcm_play_dma_complete_callback(PCM_DMAST_OK,
+        /* Wait up to ~5 s for the codec to produce the next PCM chunk before
+         * declaring the stream dead. `pcm_play_dma_complete_callback` is
+         * non-blocking — it returns false the instant the playback engine
+         * hasn't queued the next chunk yet. On real DMA hardware that's fine
+         * (DMA can't stall on us). For this software sink, on an HTTP source
+         * with a CPU-bound decoder, the codec is routinely a few ms late
+         * preparing the next chunk and the sink used to give up after one
+         * missed poll — killing playback within 23 ms of every track start.
+         *
+         * Poll every 10 ms; bail only after sustained starvation that's much
+         * longer than any healthy refill takes (codec underrun, HTTP stall,
+         * genuine end-of-track). 5 s is well under any user-noticeable gap
+         * between tracks and well over typical decoder/buffering jitter. */
+        bool got_more = false;
+        for (int spins = 0; spins < 500; spins++) {
+            pthread_mutex_lock(&cmaf_mtx);
+            got_more = pcm_play_dma_complete_callback(PCM_DMAST_OK,
                                                        &pcm_data, &pcm_size);
-        pthread_mutex_unlock(&cmaf_mtx);
+            pthread_mutex_unlock(&cmaf_mtx);
+            if (got_more || cmaf_stop)
+                break;
+            usleep(10000); /* 10 ms */
+        }
 
         if (!got_more) {
-            logf("pcm-cmaf: no more PCM data");
+            logf("pcm-cmaf: no more PCM data after 5s wait");
             break;
         }
 
