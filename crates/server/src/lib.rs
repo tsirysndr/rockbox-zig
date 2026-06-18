@@ -80,11 +80,18 @@ pub extern "C" fn start_server() {
 
     // Run the HTTP server in its own Rust OS thread so actix gets a proper
     // multi-worker runtime instead of collapsing onto the Rockbox C thread.
+    //
+    // If run_http_server() returns Err, exit the whole process — the alternative
+    // (log + thread exits, rest of rockbox keeps running) leaves :6063 silently
+    // dead, which surfaces downstream as "error sending request for url
+    // (http://127.0.0.1:6063/...)" from the GraphQL crate. Hard-exit so the
+    // container restarts cleanly.
     thread::spawn(
         || match actix_rt::System::new().block_on(run_http_server()) {
             Ok(_) => {}
             Err(e) => {
-                error!("Error starting HTTP server: {}", e);
+                error!("Error starting HTTP server: {} — exiting", e);
+                std::process::exit(1);
             }
         },
     );
