@@ -200,21 +200,43 @@ enum codec_status codec_run(void)
 
         if (file_offset > 0 && file_offset != ci->curpos)
         {
+            fprintf(stderr,
+                "FAAD: i=%u seek_buffer file_offset=%d curpos=%ld\n",
+                i, file_offset, (long)ci->curpos);
             ci->seek_buffer(file_offset);
         }
 
         /* Request the required number of bytes from the input buffer */
         buffer=ci->request_buffer(&n, FAAD_BYTE_BUFFER_SIZE);
 
+        if (i < 4 || i % 50 == 0) {
+            fprintf(stderr,
+                "FAAD: i=%u request_buffer asked=%d got_n=%zu buf=%p\n",
+                i, FAAD_BYTE_BUFFER_SIZE, n, buffer);
+        }
+
         /* Decode one block - returned samples will be host-endian */
         ret = NeAACDecDecode(decoder, &frame_info, buffer, n);
 
         /* NeAACDecDecode may sometimes return NULL without setting error. */
         if (ret == NULL || frame_info.error > 0) {
+            fprintf(stderr,
+                "FAAD: decode failed at i=%u ret=%p error=%u bytesconsumed=%lu "
+                "samples=%lu n=%zu file_offset=%d curpos=%ld\n",
+                i, ret, frame_info.error,
+                (unsigned long)frame_info.bytesconsumed,
+                (unsigned long)frame_info.samples,
+                n, file_offset, (long)ci->curpos);
+
             // In files with gaps between chunks and reduced lookup_table we can't properly detect all gaps
             // in m4a_check_sample_offset.  So just ignore decode errors till next chunk present in lookup_table
-            if (file_offset > 0)
+            if (file_offset > 0) {
+                fprintf(stderr,
+                    "FAAD: returning CODEC_ERROR (i=%u decoded so far)\n", i);
                 return CODEC_ERROR;
+            }
+            fprintf(stderr,
+                "FAAD: tolerating decode error (file_offset<=0), continuing\n");
         }
 
         /* Advance codec buffer (no need to call set_offset because of this) */

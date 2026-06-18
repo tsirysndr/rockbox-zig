@@ -2210,6 +2210,48 @@ static int audio_load_track(void)
         return LOAD_TRACK_ERR_NO_MORE;
     }
 
+    /* Suppress look-ahead of the SAME HTTP/HTTPS URL the codec is already
+     * playing.  Without this, a 1-track playlist with REPEAT_ALL (the
+     * rockbox default) wraps `playlist_peek(+N)` back to the same URL every
+     * look-ahead cycle.  Each iteration ends up calling
+     *   bufopen(path, TYPE_CODEC) → stream_open → rb_net_open
+     * which spawns a fresh TCP+TLS+GET to the source — and each new netstream
+     * handle gets its own 4 MB prefetch.  With 3–4 concurrent downloads of
+     * the same file the buffering thread thrashes round-robin between
+     * handles, the active codec starves of compressed input, and playback
+     * stops within a frame or two.
+     *
+     * Local files don't have this problem (kernel page cache + free
+     * lseek), so the skip is HTTP-only.  Treat it as end-of-playlist for
+     * look-ahead purposes — the engine will still play the current track
+     * to completion; on natural-end the playlist code re-evaluates and
+     * loads the next URL fresh. */
+    if (strncmp(path, "http://", 7) == 0 ||
+        strncmp(path, "https://", 8) == 0)
+    {
+        struct track_info cur_info;
+        if (track_list_current(0, &cur_info) && cur_info.id3_hid >= 0)
+        {
+            struct mp3entry *cur_id3 = bufgetid3(cur_info.id3_hid);
+            if (cur_id3 && cur_id3->path[0] != '\0' &&
+                strcmp(cur_id3->path, path) == 0)
+            {
+                logf("%s: skip look-ahead of same HTTP URL", __func__);
+                id3_write_locked(UNBUFFERED_ID3, NULL);
+
+                if (filling != STATE_FULL)
+                    track_list_free_info(&info);
+
+                playlist_peek_offset--;
+                if (fd != -1)
+                    stream_close(fd);
+
+                filling = STATE_END_OF_PLAYLIST;
+                return LOAD_TRACK_ERR_NO_MORE;
+            }
+        }
+    }
+
     /* Successfully opened the file - get track metadata */
     if (filling == STATE_FULL ||
         (info.id3_hid = bufopen(path, 0, TYPE_ID3, NULL)) < 0)
