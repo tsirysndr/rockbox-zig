@@ -2252,6 +2252,47 @@ static int audio_load_track(void)
         }
     }
 
+    /* HTTP look-ahead throttle: defer further look-ahead while the
+     * current track's audio is still streaming from HTTP.  Each extra
+     * HTTP audio bufopen spawns another rb_net_open → fresh TCP+TLS+GET,
+     * and the buffering thread round-robins one filechunk at a time
+     * between every active TYPE_PACKET_AUDIO handle.  With N concurrent
+     * HTTP downloads, the active codec gets only 1/N of the network
+     * throughput → starvation → "no more PCM data" within seconds.
+     *
+     * Setting STATE_FULL here makes the existing buffer-full handler
+     * below clean up and defer.  The engine retries the load when
+     * buffer_event_finished_callback fires for the current track (or any
+     * other handle finishes loading), which is exactly the point at
+     * which a 2nd parallel download becomes safe.  Local files share
+     * the kernel page cache and zero-cost lseek, so they don't compete
+     * meaningfully — only throttle HTTP.  */
+    if (filling != STATE_FULL &&
+        (strncmp(path, "http://", 7) == 0 ||
+         strncmp(path, "https://", 8) == 0))
+    {
+        struct track_info cur_info;
+        if (track_list_current(0, &cur_info) &&
+            cur_info.audio_hid >= 0 &&
+            buf_handle_remaining(cur_info.audio_hid) > 0)
+        {
+            struct mp3entry *cur_id3 = bufgetid3(cur_info.id3_hid);
+            if (cur_id3 && cur_id3->path[0] != '\0' &&
+                (strncmp(cur_id3->path, "http://", 7) == 0 ||
+                 strncmp(cur_id3->path, "https://", 8) == 0))
+            {
+                logf("%s: defer HTTP look-ahead "
+                     "(current still buffering, %ld bytes left)",
+                     __func__,
+                     (long)buf_handle_remaining(cur_info.audio_hid));
+                filling = STATE_FULL;
+                /* fall through to the STATE_FULL handler immediately
+                 * below — it un-increments playlist_peek_offset, frees
+                 * the track_info, closes fd, and returns LOAD_TRACK_OK. */
+            }
+        }
+    }
+
     /* Successfully opened the file - get track metadata */
     if (filling == STATE_FULL ||
         (info.id3_hid = bufopen(path, 0, TYPE_ID3, NULL)) < 0)
