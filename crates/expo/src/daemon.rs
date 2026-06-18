@@ -83,6 +83,8 @@ static _KEEPALIVE_CHROMECAST: unsafe extern "C" fn(*const c_char) =
     rockbox_chromecast::pcm::pcm_chromecast_set_device_host;
 #[used]
 static _KEEPALIVE_UPNP: extern "C" fn(u16) = rockbox_upnp::pcm_upnp_set_http_port;
+#[used]
+static _KEEPALIVE_CMAF: extern "C" fn(u16) = rockbox_cmaf::pcm_cmaf_set_http_port;
 
 /// `save_remote_track_metadata` — port of crates/cli's identical function
 /// (we don't depend on rockbox-cli because of its host-only assumptions:

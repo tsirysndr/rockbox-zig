@@ -36,6 +36,7 @@ embedded-daemon = [
     "dep:rockbox-slim",       "rockbox-slim/ffi",
     "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
     "dep:rockbox-upnp",       "rockbox-upnp/ffi",
+    "dep:rockbox-cmaf",       "rockbox-cmaf/ffi",
     "rockbox-server/fts5",        # cascades to rockbox-graphql/fts5 + rockbox-rpc/fts5
 ]
 
@@ -72,6 +73,7 @@ rockbox-airplay    = { path = "../airplay",    optional = true }
 rockbox-slim       = { path = "../slim",       optional = true }
 rockbox-chromecast = { path = "../chromecast", optional = true }
 rockbox-upnp       = { path = "../upnp",       optional = true }
+rockbox-cmaf       = { path = "../cmaf",       optional = true }
 
 # ── Android-only ───────────────────────────────────────────────────────────
 [target.'cfg(target_os = "android")'.dependencies]
