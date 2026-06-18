@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.18]
+
+### Fixed
+- `server`: hard-exit when `run_http_server()` returns `Err` — the spawning thread used to log and exit silently, leaving `:6063` dead while the rest of rockboxd kept running and surfaced only as downstream GraphQL request errors
+- `playback`: skip HTTP look-ahead of the currently-playing URL — `REPEAT_ALL` on a single-track playlist wrapped `playlist_peek(+N)` back to the same URL every look-ahead cycle, each iteration spawning a fresh TCP+TLS+GET and a 4 MB prefetch; treating same-URL HTTP look-ahead as end-of-playlist lets natural-end re-load the next URL fresh without thrashing the buffering thread (local files unaffected — they share the page cache)
+- `playback`: throttle HTTP look-ahead while the current track is still streaming — parallel HTTP bufopens shared the buffering-thread filechunk round-robin and starved the active codec until "no more PCM data" fired; deferred until the active stream finishes
+- `pcm-cmaf`: poll every 10 ms for up to 5 s for the next PCM chunk before bailing — the sink used to give up the instant `pcm_play_dma_complete_callback` returned `false`, killing playback within ~23 ms of every track start whenever the codec hadn't queued the next chunk yet
+- `library`: replace `.expect()` panics on `Probe::open()` in the `album_art`, `copyright_message`, and `label` extractors with logged errors that return `Ok(None)`, so an unreadable track no longer aborts the library scan
+
 ## [2026.06.15]
 
 ### Added
