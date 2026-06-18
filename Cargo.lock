@@ -9633,7 +9633,6 @@ dependencies = [
  "reqwest",
  "rockbox-airplay",
  "rockbox-chromecast",
- "rockbox-cmaf",
  "rockbox-cpal-sink",
  "rockbox-discovery",
  "rockbox-graphql",

@@ -5,3 +5,4 @@ lcd-noop.c
 button-noop.c
 cpuinfo-noop.c
 audiohw-noop.c
+pcm-cmaf-stub.c

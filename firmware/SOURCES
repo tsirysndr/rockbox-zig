@@ -554,7 +554,12 @@ target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
+/* CMAF (fdk-aac HLS/DASH) sink — disabled on Android. fdk-aac isn't
+ * cross-compiled into the cdylib and there's no use case for serving
+ * HLS/DASH off a phone. */
+#if !(CONFIG_PLATFORM & PLATFORM_ANDROID)
 target/hosted/pcm-cmaf.c
+#endif
 #endif /* !(CONFIG_PLATFORM & PLATFORM_WASM) */
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
@@ -2007,6 +2012,10 @@ target/hosted/android/cdylib/lcd-noop.c
 target/hosted/android/cdylib/button-noop.c
 target/hosted/android/cdylib/cpuinfo-noop.c
 target/hosted/android/cdylib/audiohw-noop.c
+/* CMAF (HLS/DASH) sink stub — fdk-aac isn't cross-compiled for Android, so
+ * pcm-cmaf.c is excluded above. These no-op symbols satisfy the references
+ * crates/sys still emits for `pcm_cmaf_*`. */
+target/hosted/android/cdylib/pcm-cmaf-stub.c
 /* Route firmware DEBUGF()/logf()/panicf() to logcat instead of stderr.
  * Stock debug-hosted.c writes to stderr which Android pipes to /dev/null;
  * debug-android.c calls __android_log_print so the buffering / metadata /
