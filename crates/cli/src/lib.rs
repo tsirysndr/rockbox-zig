@@ -354,7 +354,7 @@ async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
                 path
             );
         }
-        match scan_audio_files(pool.clone(), path.into()).await {
+        match scan_audio_files(pool.clone(), path.clone().into()).await {
             Ok(_) => info!("Audio scan complete"),
             Err(e) => error!("Failed to scan audio files: {}", e),
         }
@@ -426,6 +426,10 @@ async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
     } else {
         info!("No playlists to index.");
     }
+
+    if let Err(e) = rockbox_library::watcher::start_watcher(pool.clone(), path.into()) {
+        warn!("Failed to start library watcher: {}", e);
+    }
     Ok(())
 }
 
@@ -446,7 +450,7 @@ async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
                 path
             );
         }
-        match scan_audio_files(pool.clone(), path.into()).await {
+        match scan_audio_files(pool.clone(), path.clone().into()).await {
             Ok(_) => info!("Audio scan complete (FTS5 indexed via triggers)"),
             Err(e) => tracing::error!("Failed to scan audio files: {}", e),
         }
@@ -455,6 +459,10 @@ async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
             "Library already indexed ({} tracks); FTS5 ready.",
             tracks.len()
         );
+    }
+
+    if let Err(e) = rockbox_library::watcher::start_watcher(pool.clone(), path.into()) {
+        warn!("Failed to start library watcher: {}", e);
     }
     Ok(())
 }

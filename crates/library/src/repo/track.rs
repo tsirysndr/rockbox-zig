@@ -105,6 +105,41 @@ pub async fn find_by_path(pool: Pool<Sqlite>, path: &str) -> Result<Option<Track
     Ok(result)
 }
 
+pub async fn delete_by_path(pool: Pool<Sqlite>, path: &str) -> Result<Option<Track>, Error> {
+    let track: Option<Track> = sqlx::query_as("SELECT * FROM track WHERE path = $1")
+        .bind(path)
+        .fetch_optional(&pool)
+        .await?;
+    let Some(track) = track else {
+        return Ok(None);
+    };
+
+    let mut tx = pool.begin().await?;
+    sqlx::query("DELETE FROM album_tracks WHERE track_id = $1")
+        .bind(&track.id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM artist_tracks WHERE track_id = $1")
+        .bind(&track.id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM playlist_tracks WHERE track_id = $1")
+        .bind(&track.id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM favourites WHERE track_id = $1")
+        .bind(&track.id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM track WHERE id = $1")
+        .bind(&track.id)
+        .execute(&mut *tx)
+        .await?;
+    tx.commit().await?;
+
+    Ok(Some(track))
+}
+
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Track>, Error> {
     let result: Vec<Track> =
         sqlx::query_as("SELECT * FROM track WHERE is_remote = 0 ORDER BY title ASC")

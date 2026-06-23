@@ -14,6 +14,7 @@ pub mod entity;
 pub mod genres;
 pub mod label;
 pub mod repo;
+pub mod watcher;
 
 pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     let home = env::var("HOME").unwrap_or_else(|_| ".".into());

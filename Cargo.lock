@@ -9778,6 +9778,7 @@ dependencies = [
  "futures",
  "lofty",
  "md5",
+ "notify",
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-sys",
