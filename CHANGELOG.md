@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.23]
+
+### Added
+- S3-compatible HTTP API — new `crates/s3` actix-web server listens on `s3_port` (default `9000`) and exposes `music_dir` as a single fixed bucket (`music`, region `us-east-1`); supports `PutObject`, `DeleteObject`, `GetObject`, `HeadObject`, `ListObjectsV2`, and `ListBuckets` with AWS Signature V4 header-form authentication; the new `s3_enabled`, `s3_host`, `s3_port`, `s3_access_key`, `s3_secret_key` keys in `settings.toml` gate startup (server stays off when disabled or credentials are empty); per-PUT cap 2 GiB, uploads restricted to the same audio-extension allowlist as the library scanner; `STREAMING-AWS4-HMAC-SHA256-PAYLOAD` is not supported (clients should use `UNSIGNED-PAYLOAD` or sign the full body — awscli v2.23+ needs `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` to opt out of the new default-on chunked signing); README, CLAUDE.md and the mintlify reference document client recipes for awscli, rclone, and MinIO Client
+- `library`: filesystem watcher (`crates/library/src/watcher.rs`) — recursive `notify`-based watch on `music_dir` keeps the SQLite tag database in sync with on-disk changes; `Create` and data-modify events call `save_audio_metadata`, `Remove` events call the new `repo::track::delete_by_path` (cascades through `album_tracks`, `artist_tracks`, `playlist_tracks`, `favourites`), and rename events split into add/remove pairs; non-audio files are ignored via the same 18-extension allowlist the scanner uses; the watcher boots after the initial scan in `crates/cli/src/lib.rs::run_indexing()` and is also the sync engine behind the new S3 API — no separate DB code path
+
+### Fixed
+- `build`: link `CoreServices.framework` on macOS so the `notify` crate's FSEvents backend resolves at link time — macOS-Intel CI was failing the Zig link step with undefined symbols `_FSEventStream{Create,Invalidate,Release,ScheduleWithRunLoop,Start,Stop}`; added to both the `rockboxd` executable and the embeddable `librockboxd.a` link blocks in `zig/build.zig`, and to the embedder-facing framework list in CLAUDE.md
+
 ## [2026.06.18]
 
 ### Fixed
