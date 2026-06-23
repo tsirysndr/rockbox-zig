@@ -14,7 +14,7 @@
 ![Rockbox UI](./docs/gpui.png)
 
 A modern take on the [Rockbox](https://www.rockbox.org) open source audio
-player, extended with Rust and Zig. Rockbox Zig exposes the full Rockbox audio
+player, extended with Rust and Zig. Rockbox Daemon exposes the full Rockbox audio
 engine — gapless playback, DSP, 20+ codecs, tag database — through gRPC,
 GraphQL, HTTP, and MPD APIs, in a single binary (`rockboxd`) and adds multi-room output via AirPlay, Snapcast,
 and Squeezelite.
