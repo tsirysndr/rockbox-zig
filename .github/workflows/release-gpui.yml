@@ -90,8 +90,12 @@ jobs:
         run: cargo build --release -p rockbox-embed
 
       # ── Step 4: Fat static library ────────────────────────────────────────
+      # Remove the cached archive so the zig link step always re-runs — the
+      # cache key only hashes Cargo.lock, so changes to crates/embed sources
+      # would otherwise leave a stale librockboxd.a in place.
       - name: Build librockboxd.a
         run: |
+          rm -f zig/zig-out/lib/librockboxd.a
           cd zig
           zig build lib -Doptimize=ReleaseFast ${{ matrix.zig_cpu }}
 
