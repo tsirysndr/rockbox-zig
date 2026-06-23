@@ -752,6 +752,17 @@ pub struct NewGlobalSettings {
     /// memory only. Useful for serving the same artefacts from an external
     /// HTTP server (nginx, Caddy, a CDN origin).
     pub cmaf_segment_dir: Option<String>,
+    /// Enable the S3-compatible HTTP API (default: false). Requires
+    /// `s3_access_key` and `s3_secret_key` to be set.
+    pub s3_enabled: Option<bool>,
+    /// Listen address for the S3 server (default: "0.0.0.0").
+    pub s3_host: Option<String>,
+    /// Port for the S3 server (default: 9000).
+    pub s3_port: Option<u16>,
+    /// AWS access key ID for SigV4 auth.
+    pub s3_access_key: Option<String>,
+    /// AWS secret access key for SigV4 auth.
+    pub s3_secret_key: Option<String>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -822,6 +833,11 @@ impl From<UserSettings> for NewGlobalSettings {
             cmaf_http_port: None,
             cmaf_bitrate: None,
             cmaf_segment_dir: None,
+            s3_enabled: None,
+            s3_host: None,
+            s3_port: None,
+            s3_access_key: None,
+            s3_secret_key: None,
         }
     }
 }

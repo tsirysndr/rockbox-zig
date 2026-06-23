@@ -606,6 +606,19 @@ pub extern "C" fn start_servers() {
             .enable_all()
             .build()
             .unwrap();
+        match runtime.block_on(rockbox_s3::start()) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error starting S3 API server: {}", e);
+            }
+        }
+    });
+
+    thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         match runtime.block_on(rockbox_graphql::server::start()) {
             Ok(_) => {}
             Err(e) => {

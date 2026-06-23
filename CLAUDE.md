@@ -49,6 +49,7 @@ crates/            Rust workspace
   chromecast/      Chromecast output
   rpc/             gRPC definitions / generated code
   graphql/         GraphQL schema and resolvers
+  s3/              S3-compatible HTTP API (SigV4 auth, PUT/DELETE/GET/HEAD/List)
   mpd/             MPD protocol server
   mpris/           MPRIS D-Bus integration
   tracklist/       Playlist / tracklist management
@@ -164,6 +165,14 @@ airplay_port = 5000            # optional, default 5000
 audio_output = "squeezelite"
 squeezelite_port = 3483        # optional, Slim Protocol port (default 3483)
 squeezelite_http_port = 9999   # optional, HTTP PCM stream port (default 9999)
+
+# S3-compatible API (upload / delete audio files in music_dir)
+s3_enabled = true
+s3_port = 9000                 # optional, default 9000
+s3_host = "0.0.0.0"            # optional, default "0.0.0.0"
+s3_access_key = "AKIA..."
+s3_secret_key = "wJalrXUt..."
+# region is fixed to "us-east-1"; bucket is fixed to "music"
 ```
 
 Run one or more squeezelite clients pointing at rockboxd for multi-room:
@@ -171,6 +180,26 @@ Run one or more squeezelite clients pointing at rockboxd for multi-room:
 squeezelite -s localhost -n "Living Room"
 squeezelite -s localhost -n "Kitchen"
 ```
+
+## S3-compatible API
+
+`crates/s3/` exposes a single-bucket S3 server (constants: bucket `music`,
+region `us-east-1`, port default `9000`). Authentication is AWS Signature
+V4 header-form (`crates/s3/src/sigv4.rs`). Supported ops: `PutObject`,
+`DeleteObject`, `GetObject`, `HeadObject`, `ListObjectsV2`, `ListBuckets`.
+
+**DB sync is structural, not coded** — every PUT writes a file under
+`music_dir`, every DELETE removes one. The library watcher
+(`crates/library/src/watcher.rs`) picks up the `Create`/`Remove` event and
+calls `save_audio_metadata()` / `repo::track::delete_by_path()`. Do NOT
+add a parallel "tell the DB about this S3 op" code path — it would race
+with the watcher and double-insert.
+
+**Not implemented**: multipart upload, `STREAMING-AWS4-HMAC-SHA256-PAYLOAD`
+(awscli v2.23+ defaults that require `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`
+to fall back to single-shot signing), bucket CRUD, presigned URLs.
+Single PUT cap is 2 GiB. Uploads are restricted to audio extensions
+(same allowlist as the watcher's `AUDIO_EXTENSIONS`).
 
 ## PCM sink architecture
 

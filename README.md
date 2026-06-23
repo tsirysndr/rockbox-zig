@@ -45,6 +45,7 @@ and Squeezelite.
 - [x] [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server — compatible with all MPD clients
 - [x] [MPRIS](https://specifications.freedesktop.org/mpris-spec/) — desktop media key and taskbar integration
 - [x] Subsonic/Navidrome API — compatible with Cassette, Symfonium, DSub, Ultrasonic and more
+- [x] S3-compatible API — upload / delete audio files from `awscli`, `mc`, `rclone`; the library DB stays in sync automatically
 - [x] Fast search powered by [Typesense](https://typesense.org)
 - [x] Navigate by folders or tag database
 - [x] UPnP/DLNA
@@ -238,6 +239,7 @@ rockbox
 | HTTP REST API                        | 6063         | HTTP            |
 | MPD server                           | 6600         | MPD protocol    |
 | Subsonic / Navidrome API             | 4533         | HTTP            |
+| S3-compatible API                    | 9000         | HTTP            |
 | CMAF (HLS + DASH)                    | 7882         | HTTP            |
 | Slim Protocol (squeezelite)          | 3483         | TCP             |
 | HTTP PCM stream (squeezelite)        | 9999         | HTTP            |
@@ -711,6 +713,54 @@ Try it live with
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/grpc.png" width="100%" />
 </p>
+
+### S3-compatible API
+
+Upload and delete audio files in `music_dir` using any AWS S3 client
+(`awscli`, MinIO Client `mc`, `rclone`, AWS SDKs). Authenticated with AWS
+Signature V4. The library DB stays in sync automatically — every PUT
+triggers an add, every DELETE triggers a remove.
+
+Enable in `~/.config/rockbox.org/settings.toml`:
+
+```toml
+s3_enabled = true
+s3_port = 9000                      # optional, default 9000
+s3_host = "0.0.0.0"                 # optional, default "0.0.0.0"
+s3_access_key = "your-access-key"
+s3_secret_key = "your-secret-key"
+```
+
+Region is fixed to `us-east-1` and the bucket name is fixed to `music`.
+
+```sh
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_DEFAULT_REGION="us-east-1"
+# Required for awscli v2.23+ — disables on-by-default integrity headers
+# that confuse non-AWS endpoints.
+export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+
+alias rbs3='aws --endpoint-url http://localhost:9000'
+
+# Upload (single file or recursive)
+rbs3 s3 cp song.flac s3://music/song.flac
+rbs3 s3 sync ~/Staging s3://music/ --exclude "*" --include "*.flac" --include "*.mp3"
+
+# List
+rbs3 s3 ls s3://music/
+rbs3 s3api list-objects-v2 --bucket music --prefix "Albums/"
+
+# Delete
+rbs3 s3 rm s3://music/song.flac
+```
+
+Only audio extensions are accepted on upload: `mp3, ogg, flac, m4a, aac,
+mp4, alac, wav, wv, mpc, aiff, aif, ac3, opus, spx, sid, ape, wma`.
+
+Single-shot uploads only — multipart upload and `STREAMING-AWS4-HMAC-SHA256-PAYLOAD`
+are not yet implemented (cap per PUT: 2 GiB).
 
 ---
 

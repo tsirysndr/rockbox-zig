@@ -35,6 +35,7 @@ rockbox-mpd = {path = "../mpd"}
 rockbox-mpris = {path = "../mpris"}
 rockbox-network = { path = "../network" }
 rockbox-rpc = {path = "../rpc"}
+rockbox-s3 = {path = "../s3"}
 rockbox-settings = {path = "../settings"}
 rockbox-typesense = { path = "../typesense" }
 rockbox-fts5 = { path = "../fts5", optional = true }

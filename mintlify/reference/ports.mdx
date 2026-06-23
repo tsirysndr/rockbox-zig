@@ -11,6 +11,7 @@ icon: 'plug'
 | HTTP REST                              | 6063  | HTTP               | `ROCKBOX_TCP_PORT`          |
 | MPD server                             | 6600  | MPD protocol       | `ROCKBOX_MPD_PORT`          |
 | Subsonic / Navidrome API               | 4533  | HTTP               | `subsonic_port`             |
+| S3-compatible API                      | 9000  | HTTP               | `s3_port`                   |
 | CMAF (HLS + DASH)                      | 7882  | HTTP               | `cmaf_http_port`            |
 | Slim Protocol (squeezelite)            | 3483  | TCP                | `squeezelite_port`          |
 | HTTP PCM stream (squeezelite)          | 9999  | HTTP               | `squeezelite_http_port`     |
@@ -43,6 +44,7 @@ inbound on these is needed:
 - `6063/tcp` — for the REST API
 - `6600/tcp` — for MPD clients
 - `4533/tcp` — for Subsonic/Navidrome clients (Cassette, Symfonium, DSub, …)
+- `9000/tcp` — for the S3-compatible API (awscli, mc, rclone) when `s3_enabled = true`
 - `7882/tcp` — for HLS / DASH in-browser playback (when `audio_output = "cmaf"`)
 - `5353/udp` — mDNS (multicast)
 - `1900/udp` — SSDP (multicast)

@@ -986,6 +986,11 @@ pub mod api {
                     cmaf_http_port: None,
                     cmaf_bitrate: None,
                     cmaf_segment_dir: None,
+                    s3_enabled: None,
+                    s3_host: None,
+                    s3_port: None,
+                    s3_access_key: None,
+                    s3_secret_key: None,
                 }
             }
         }

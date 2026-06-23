@@ -1,0 +1,24 @@
+[package]
+name = "rockbox-s3"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+actix-rt = "2"
+actix-web = "4"
+anyhow = { workspace = true }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde", "std"] }
+futures-util = "0.3"
+hex = "0.4"
+hmac = "0.12"
+percent-encoding = { workspace = true }
+rockbox-settings = { path = "../settings" }
+sha2 = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }

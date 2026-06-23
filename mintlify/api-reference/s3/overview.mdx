@@ -1,0 +1,206 @@
+---
+title: "S3-compatible API"
+description: "Upload, list, and delete audio files in music_dir from any AWS S3 client."
+icon: 'cloud-arrow-up'
+---
+
+`rockboxd` exposes an **S3-compatible HTTP API** on **port 9000**, so
+any tool that speaks S3 — `awscli`, MinIO Client (`mc`), `rclone`,
+the AWS SDKs, S3-mounted backup tools — can push audio files into
+your library and remove them again. The library DB stays in sync
+automatically through the filesystem watcher: every PUT triggers an
+add, every DELETE triggers a remove. You don't need to call a separate
+"rescan" endpoint.
+
+## Enable it
+
+In `~/.config/rockbox.org/settings.toml`:
+
+```toml
+s3_enabled = true
+s3_port = 9000                # optional, default 9000
+s3_host = "0.0.0.0"           # optional, default "0.0.0.0"
+s3_access_key = "your-access-key"
+s3_secret_key = "your-secret-key"
+```
+
+The region is fixed to `us-east-1` and the bucket is fixed to
+`music` — these are not configurable. Clients **must** sign with
+region `us-east-1` and address objects as `s3://music/<key>`.
+
+If `s3_enabled` is omitted/false, or either credential is empty,
+the server doesn't start (you'll see a `s3: disabled` debug log line
+on startup).
+
+## Supported operations
+
+| Operation         | Method   | Path                          |
+| ----------------- | -------- | ----------------------------- |
+| `ListBuckets`     | `GET`    | `/`                           |
+| `ListObjectsV2`   | `GET`    | `/music?list-type=2&...`      |
+| `PutObject`       | `PUT`    | `/music/{key}`                |
+| `GetObject`       | `GET`    | `/music/{key}`                |
+| `HeadObject`      | `HEAD`   | `/music/{key}`                |
+| `DeleteObject`    | `DELETE` | `/music/{key}`                |
+
+`ListObjectsV2` supports `prefix`, `delimiter`, and `max-keys` (capped
+at 1000). `GetObject` honours `If-Match` / `If-None-Match` against the
+returned `ETag`.
+
+## Use it with awscli
+
+```sh
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_DEFAULT_REGION="us-east-1"
+
+# Required for awscli v2.23+. The new default-on integrity headers send
+# a STREAMING-AWS4-HMAC-SHA256-PAYLOAD body that rockbox's S3 server does
+# not implement — these env vars fall back to single-shot SigV4.
+export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+
+alias rbs3='aws --endpoint-url http://localhost:9000'
+
+# Upload a single file
+rbs3 s3 cp song.flac s3://music/song.flac
+
+# Upload a directory tree (audio files only)
+rbs3 s3 sync ~/Staging s3://music/ \
+    --exclude "*" --include "*.flac" --include "*.mp3" --include "*.m4a"
+
+# List
+rbs3 s3 ls s3://music/
+rbs3 s3 ls s3://music/Albums/Vespertine/
+rbs3 s3api list-objects-v2 --bucket music --prefix "Albums/" --max-keys 100
+
+# Metadata only
+rbs3 s3api head-object --bucket music --key "song.flac"
+
+# Download
+rbs3 s3 cp s3://music/song.flac ./song.flac
+
+# Delete
+rbs3 s3 rm s3://music/song.flac
+rbs3 s3 rm s3://music/Albums/Old/ --recursive
+```
+
+If you can't set those env vars (older awscli, locked-down CI), use
+the raw `s3api put-object` subcommand instead of `s3 cp` — it always
+signs the full body in one shot:
+
+```sh
+rbs3 s3api put-object \
+    --bucket music \
+    --key "Albums/Vespertine/01 Hidden Place.flac" \
+    --body "/Users/me/staging/01 Hidden Place.flac"
+```
+
+## Use it with rclone
+
+`rclone` defaults to `UNSIGNED-PAYLOAD` for non-AWS endpoints, so no
+extra knobs are needed:
+
+```sh
+rclone config create rbs3 s3 \
+    provider=Other \
+    access_key_id="$AWS_ACCESS_KEY_ID" \
+    secret_access_key="$AWS_SECRET_ACCESS_KEY" \
+    endpoint=http://localhost:9000 \
+    region=us-east-1
+
+rclone copy ~/Staging rbs3:music --include "*.{flac,mp3,m4a,ogg,opus}"
+rclone ls   rbs3:music
+rclone delete rbs3:music/old-stuff
+```
+
+## Use it with MinIO Client (mc)
+
+```sh
+mc alias set rbs3 http://localhost:9000 \
+    "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY"
+
+mc cp song.flac rbs3/music/song.flac
+mc ls rbs3/music
+mc rm rbs3/music/song.flac
+```
+
+## Allowed file extensions
+
+Uploads are restricted to recognised audio extensions:
+
+```
+mp3, ogg, flac, m4a, aac, mp4, alac, wav, wv, mpc,
+aiff, aif, ac3, opus, spx, sid, ape, wma
+```
+
+A `PUT` with any other extension returns
+`400 Bad Request — InvalidRequest`. The list mirrors the library
+watcher's `AUDIO_EXTENSIONS`, so anything the scanner would index is
+also accepted on upload.
+
+## Limitations
+
+- **Single-shot uploads only** — no multipart upload, no
+  `STREAMING-AWS4-HMAC-SHA256-PAYLOAD`. Per-PUT cap is **2 GiB**.
+- **One fixed bucket** (`music`). Bucket CRUD isn't supported.
+- **Header-form SigV4 only** — no presigned URLs, no query-string auth.
+- **No ACLs, policies, versioning, lifecycle, tagging, or encryption
+  headers.** They're parsed-and-ignored, not rejected, so existing
+  clients won't crash.
+- The watcher is the only path that mutates the library DB. Adding a
+  parallel "tell the DB about this S3 op" code path would race with
+  the watcher and double-insert.
+
+## How sync works
+
+```
+PUT /music/Albums/X.flac
+   → write to $music_dir/Albums/X.flac
+       ↓
+   notify::Event::Create
+       ↓
+   library/src/watcher.rs::handle_event
+       ↓
+   save_audio_metadata() → SQLite INSERT
+```
+
+```
+DELETE /music/Albums/X.flac
+   → unlink $music_dir/Albums/X.flac
+       ↓
+   notify::Event::Remove
+       ↓
+   repo::track::delete_by_path() → SQLite DELETE (cascades)
+```
+
+This means new uploads appear in MPD, Subsonic, GraphQL, gRPC, and
+the web UI within milliseconds without a manual rescan.
+
+## Troubleshooting
+
+| Symptom                                       | Cause / fix                                                                                                       |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `SignatureDoesNotMatch` on PUT                | awscli is sending chunked SigV4. Set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` and `AWS_RESPONSE_CHECKSUM_VALIDATION=when_required`, or use `s3api put-object`. |
+| `NotImplemented: STREAMING-AWS4-HMAC-SHA256-PAYLOAD` | Same root cause as above.                                                                                  |
+| `InvalidRequest: Only audio file extensions are accepted` | Key doesn't end in a recognised audio extension.                                                       |
+| `NoSuchBucket`                                | Bucket name is fixed to `music`. `s3://anything-else/` won't work.                                                |
+| `RequestTimeTooSkewed`                        | Client clock is more than 15 minutes off from the server clock. Fix NTP.                                          |
+| `AccessDenied: Authorization header missing`  | Client didn't sign the request — usually a misconfigured profile or missing `AWS_*` env vars.                     |
+| Server doesn't start                          | `s3_enabled = false`, or `s3_access_key` / `s3_secret_key` is empty. Check `tracing` logs.                        |
+
+## When to choose S3 over the alternatives
+
+- You already have an S3-aware backup pipeline (`rclone sync`,
+  `restic`, S3 mounting tools) and want it to write to your Rockbox
+  library.
+- You want to use the AWS SDKs from a language that doesn't have a
+  Rockbox SDK yet.
+- You want simple, well-documented multi-language tooling that handles
+  retries, multipart-on-large-files (in clients that ask for it),
+  and concurrent uploads out of the box.
+
+For programmatic playback control — playing, queueing, searching —
+use [GraphQL](/api-reference/graphql/overview),
+[gRPC](/api-reference/grpc/overview), or
+[REST](/api-reference/rest/overview) instead.

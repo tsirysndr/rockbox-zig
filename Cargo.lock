@@ -9957,6 +9957,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-s3"
+version = "0.1.0"
+dependencies = [
+ "actix-rt",
+ "actix-web",
+ "anyhow",
+ "chrono",
+ "futures-util",
+ "hex",
+ "hmac",
+ "percent-encoding",
+ "rockbox-settings",
+ "sha2",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-server"
 version = "0.1.0"
 dependencies = [
@@ -9986,6 +10004,7 @@ dependencies = [
  "rockbox-playlists",
  "rockbox-rocksky",
  "rockbox-rpc",
+ "rockbox-s3",
  "rockbox-settings",
  "rockbox-slim",
  "rockbox-sys",

@@ -23,6 +23,23 @@ Keys not listed here are ignored.
 | `subsonic_password`   | string | —        | Password; server is **disabled** when this is empty    |
 | `subsonic_port`       | int    | `4533`   | TCP port the Subsonic API listens on                   |
 
+## S3-compatible API server
+
+| Key               | Type   | Default     | Description                                                    |
+| ----------------- | ------ | ----------- | -------------------------------------------------------------- |
+| `s3_enabled`      | bool   | `false`     | Start the S3-compatible HTTP server                            |
+| `s3_host`         | string | `"0.0.0.0"` | Listen address                                                 |
+| `s3_port`         | int    | `9000`      | TCP port the S3 API listens on                                 |
+| `s3_access_key`   | string | —           | AWS access key ID for SigV4 auth; server **disabled** if empty |
+| `s3_secret_key`   | string | —           | AWS secret access key for SigV4 auth; server **disabled** if empty |
+
+The bucket name is fixed to `music` and the region is fixed to
+`us-east-1`. The single bucket maps 1:1 to `music_dir`. Uploads are
+accepted only for recognised audio extensions, and the library DB
+stays in sync via the filesystem watcher — no rescan needed. See
+[API reference › S3](/api-reference/s3/overview) for the supported
+operations and client recipes.
+
 ## CMAF (HLS + DASH) sink
 
 | Key                | Type   | Default  | Description                                                                 |
