@@ -64,12 +64,12 @@ jobs:
           key: android-aarch64-check-target-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: android-aarch64-check-target-
 
-      - name: Cache Android firmware build
-        uses: actions/cache@v4
-        with:
-          path: build-android-arm64/
-          key: android-aarch64-check-firmware-${{ hashFiles('firmware/**', 'apps/**', 'lib/**', 'tools/configure') }}
-          restore-keys: android-aarch64-check-firmware-
+      #- name: Cache Android firmware build
+      #  uses: actions/cache@v4
+      #   with:
+      #     path: build-android-arm64/
+      #     key: android-aarch64-check-firmware-${{ hashFiles('firmware/**', 'apps/**', 'lib/**', 'tools/configure') }}
+      #     restore-keys: android-aarch64-check-firmware-
 
       - name: Build Android firmware (C static libs)
         run: |
