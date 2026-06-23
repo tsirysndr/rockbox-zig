@@ -2,7 +2,7 @@
   <img src="https://www.rockbox.org/rockbox400.png" />
 </div>
 
-# Rockbox Zig 🎵 ⚡
+# Rockbox Daemon 🎵 ⚡
 
 [![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
 [![ci](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml)
