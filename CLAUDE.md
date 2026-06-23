@@ -116,7 +116,7 @@ Consumers must also link these system libraries at final link time:
 | Platform | Required flags                                                               |
 | -------- | ---------------------------------------------------------------------------- |
 | macOS    | `-framework CoreAudio -framework AudioUnit -framework AudioToolbox`          |
-|          | `-framework CoreFoundation -framework Security`                              |
+|          | `-framework CoreFoundation -framework Security -framework CoreServices`      |
 | Linux    | `-lasound -lunwind -ldbus-1`                                                 |
 
 The GPUI desktop client links `librockboxd.a` automatically via `gpui/build.rs`

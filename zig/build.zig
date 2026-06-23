@@ -146,6 +146,9 @@ pub fn build(b: *std.Build) void {
         }
         exe.root_module.linkFramework("CoreFoundation", .{});
         exe.root_module.linkFramework("Security", .{});
+        // FSEvents (notify crate, used by the library filesystem watcher and
+        // the S3 server's PUT/DELETE → DB sync path) lives in CoreServices.
+        exe.root_module.linkFramework("CoreServices", .{});
         if (headless) {
             // Required by cpal's CoreAudio backend.
             exe.root_module.linkFramework("CoreAudio", .{});
@@ -327,7 +330,7 @@ pub fn build(b: *std.Build) void {
     //
     // Consumers link: librockboxd.a + system audio libs
     //   macOS: -framework CoreAudio -framework AudioUnit -framework AudioToolbox
-    //          -framework CoreFoundation -framework Security
+    //          -framework CoreFoundation -framework Security -framework CoreServices
     //   Linux: -lasound -lunwind -ldbus-1
     {
         const hw = "../build-headless";
@@ -355,6 +358,7 @@ pub fn build(b: *std.Build) void {
             }
             embed_lib.root_module.linkFramework("CoreFoundation", .{});
             embed_lib.root_module.linkFramework("Security", .{});
+            embed_lib.root_module.linkFramework("CoreServices", .{});
             embed_lib.root_module.linkFramework("CoreAudio", .{});
             embed_lib.root_module.linkFramework("AudioUnit", .{});
             embed_lib.root_module.linkFramework("AudioToolbox", .{});
