@@ -26,7 +26,7 @@ pub async fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
     }
 
     let client = reqwest::Client::builder()
-        .user_agent("Rockbox/1.0 (https://github.com/tsirysndr/rockbox-zig)")
+        .user_agent("Rockbox/1.0 (https://github.com/tsirysndr/rockboxd)")
         .build()?;
 
     for genre in genres {

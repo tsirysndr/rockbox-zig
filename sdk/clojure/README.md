@@ -3,9 +3,9 @@
 [![Clojars Project](https://img.shields.io/clojars/v/org.clojars.tsiry/rockbox-clj.svg)](https://clojars.org/org.clojars.tsiry/rockbox-clj)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
 [![Clojure](https://img.shields.io/badge/clojure-1.10+-black?style=flat-square&logo=clojure&logoColor=white)](https://clojure.org/)
-[![GitHub](https://img.shields.io/badge/github-rockbox--zig-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockbox-zig)
+[![GitHub](https://img.shields.io/badge/github-rockboxd-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockboxd)
 
-Idiomatic Clojure SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a thin,
+Idiomatic Clojure SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a thin,
 zero-dependency-heavy wrapper around rockboxd's GraphQL API with real-time
 WebSocket subscriptions and a tiny plugin system.
 

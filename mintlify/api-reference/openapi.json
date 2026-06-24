@@ -4,10 +4,10 @@
     "title": "Rockbox HTTP API",
     "version": "1.0.0",
     "summary": "HTTP REST API for rockboxd — playback, library, playlists, devices, settings.",
-    "description": "Rockbox Zig exposes its full feature surface over HTTP REST on port 6063 (configurable via `ROCKBOX_TCP_PORT`). It complements the GraphQL API on :6062 and the gRPC API on :6061 — all three speak to the same in-process state.\n\nAll handlers are defined in `crates/server/src/handlers/` and registered in `crates/server/src/lib.rs:run_http_server()`.",
+    "description": "Rockbox Daemon exposes its full feature surface over HTTP REST on port 6063 (configurable via `ROCKBOX_TCP_PORT`). It complements the GraphQL API on :6062 and the gRPC API on :6061 — all three speak to the same in-process state.\n\nAll handlers are defined in `crates/server/src/handlers/` and registered in `crates/server/src/lib.rs:run_http_server()`.",
     "contact": {
-      "name": "Rockbox Zig",
-      "url": "https://github.com/tsirysndr/rockbox-zig"
+      "name": "Rockbox Daemon",
+      "url": "https://github.com/tsirysndr/rockboxd"
     },
     "license": {
       "name": "GPL-2.0",

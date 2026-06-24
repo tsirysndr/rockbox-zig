@@ -34,7 +34,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tsirysndr/rockbox-zig.git",
+    "url": "git+https://github.com/tsirysndr/rockboxd.git",
     "directory": "sdk/typescript"
   },
   "devDependencies": {

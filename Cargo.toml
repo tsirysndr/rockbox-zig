@@ -15,7 +15,7 @@ panic = "abort"
 authors = ["Tsiry Sandratraina <tsiry.sndr@fluentci.io"]
 edition = "2021"
 license = "LGPL-2.1"
-repository = "https://github.com/tsirysndr/rockbox-zig"
+repository = "https://github.com/tsirysndr/rockboxd"
 
 [workspace.dependencies]
 async-trait = "0.1.73"

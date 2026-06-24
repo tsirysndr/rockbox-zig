@@ -7,9 +7,9 @@
 [![GraphQL](https://img.shields.io/badge/GraphQL-client-E10098?style=flat-square&logo=graphql&logoColor=white)](https://graphql.org/)
 [![WebSocket](https://img.shields.io/badge/WebSocket-realtime-4353FF?style=flat-square&logo=socketdotio&logoColor=white)](https://github.com/enhancv/websocket-client-simple)
 [![Plugins](https://img.shields.io/badge/plugins-extensible-8A2BE2?style=flat-square&logo=rubygems&logoColor=white)](#plugin-system)
-[![GitHub](https://img.shields.io/badge/github-rockbox--zig-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockbox-zig)
+[![GitHub](https://img.shields.io/badge/github-rockboxd-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockboxd)
 
-Ruby SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a builder-friendly, block-friendly GraphQL client with real-time event subscriptions and a plugin system.
+Ruby SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a builder-friendly, block-friendly GraphQL client with real-time event subscriptions and a plugin system.
 
 ```ruby
 require "rockbox"

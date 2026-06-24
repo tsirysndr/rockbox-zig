@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "linden",
-  "name": "Rockbox Zig",
+  "name": "Rockbox Daemon",
   "appearance": {
     "default": "dark",
     "strict": true
@@ -133,7 +133,7 @@
       "anchors": [
         {
           "anchor": "GitHub",
-          "href": "https://github.com/tsirysndr/rockbox-zig",
+          "href": "https://github.com/tsirysndr/rockboxd",
           "icon": "github"
         },
         {
@@ -143,7 +143,7 @@
         },
         {
           "anchor": "Releases",
-          "href": "https://github.com/tsirysndr/rockbox-zig/releases",
+          "href": "https://github.com/tsirysndr/rockboxd/releases",
           "icon": "rocket"
         }
       ]
@@ -157,12 +157,12 @@
     "links": [
       {
         "label": "Issues",
-        "href": "https://github.com/tsirysndr/rockbox-zig/issues"
+        "href": "https://github.com/tsirysndr/rockboxd/issues"
       }
     ],
     "primary": {
       "type": "github",
-      "href": "https://github.com/tsirysndr/rockbox-zig"
+      "href": "https://github.com/tsirysndr/rockboxd"
     }
   },
   "contextual": {
@@ -179,7 +179,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/tsirysndr/rockbox-zig",
+      "github": "https://github.com/tsirysndr/rockboxd",
       "discord": "https://discord.gg/tXPrgcPKSt"
     }
   }

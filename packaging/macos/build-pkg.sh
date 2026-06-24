@@ -26,7 +26,7 @@ cp zig/zig-out/bin/rockboxd "$TMP/usr/local/bin"
 cp ./packaging/macos/postinstall "/tmp/scripts"
 
 pkgbuild \
-  --identifier "com.github.rockbox-zig" \
+  --identifier "com.github.rockboxd" \
   --version "$VERSION" \
   --root "$TMP" \
   --scripts "/tmp/scripts" \

@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-description: "Install pre-built binaries or build Rockbox Zig from source."
+description: "Install pre-built binaries or build Rockbox Daemon from source."
 icon: 'download'
 ---
 
@@ -10,7 +10,7 @@ Building from source is documented in [Architecture › Build](/architecture/bui
 ## Pre-built binaries
 
 Pre-built packages for the latest release are on the
-[Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
+[Releases page](https://github.com/tsirysndr/rockboxd/releases/latest).
 
 | Platform | Architecture            | Package         |
 |----------|-------------------------|-----------------|
@@ -56,7 +56,7 @@ brew install tsirysndr/tap/rockbox
 ### Arch Linux
 
 ```sh
-paru -S rockbox-zig-bin
+paru -S rockboxd-bin
 ```
 
 ### Universal installer
@@ -65,7 +65,7 @@ The installer detects your OS and architecture and drops the right binary
 under `/usr/local/bin`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockboxd/HEAD/install.sh | bash
 ```
 
 ### Docker
@@ -126,7 +126,7 @@ See the full [port reference](/reference/ports).
 
 ## Building from source
 
-If you want to hack on Rockbox Zig itself, see
+If you want to hack on Rockbox Daemon itself, see
 [Architecture › Build](/architecture/build) for the Make + Cargo + Zig
 toolchain.
 
@@ -147,7 +147,7 @@ toolchain.
   </Accordion>
   <Accordion title="Arch">
     ```sh
-    sudo pacman -Rns rockbox-zig-bin
+    sudo pacman -Rns rockboxd-bin
     ```
   </Accordion>
   <Accordion title="macOS (Homebrew)">

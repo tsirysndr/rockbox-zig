@@ -1,6 +1,6 @@
 # rockbox-chromecast
 
-Chromecast output sink for Rockbox Zig. Streams live audio from the Rockbox
+Chromecast output sink for Rockbox Daemon. Streams live audio from the Rockbox
 firmware to any Google Cast-compatible device on the LAN — Google Home, Chromecast
 Audio, Chromecast with Google TV, Nest Hub, and third-party Cast receivers.
 

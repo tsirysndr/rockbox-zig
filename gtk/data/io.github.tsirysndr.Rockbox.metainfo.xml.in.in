@@ -32,12 +32,12 @@
   <project_license>GPL-3.0-or-later</project_license>
 
   <!-- URLs -->
-  <url type="homepage">https://github.com/tsirysndr/rockbox-zig</url>
-  <url type="bugtracker">https://github.com/tsirysndr/rockbox-zig/issues</url>
+  <url type="homepage">https://github.com/tsirysndr/rockboxd</url>
+  <url type="bugtracker">https://github.com/tsirysndr/rockboxd/issues</url>
   <url type="donation">https://github.com/sponsors/tsirysndr</url>
   <url type="contact">tsiry.sndr@fluentci.io</url>
-  <url type="vcs-browser">https://github.com/tsirysndr/rockbox-zig</url>
-  <url type="contribute">https://github.com/tsirysndr/rockbox-zig/blob/master/CONTRIBUTING.md</url>
+  <url type="vcs-browser">https://github.com/tsirysndr/rockboxd</url>
+  <url type="contribute">https://github.com/tsirysndr/rockboxd/blob/master/CONTRIBUTING.md</url>
 
   <!-- Supported Hardware -->
   <requires>
@@ -46,37 +46,37 @@
   <screenshots>
     <screenshot type="default">
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/1.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/1.png</image>
       <caption>Music Library</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/2.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/2.png</image>
       <caption>Album Details</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/3.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/3.png</image>
       <caption>Play Queue</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/4.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/4.png</image>
       <caption>Equalizer Settings</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/5.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/5.png</image>
       <caption>File Browser</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/6.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/6.png</image>
       <caption>Tracks</caption>
     </screenshot>
     <screenshot>
       <image>
-        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/7.png</image>
+        https://raw.githubusercontent.com/tsirysndr/rockboxd/master/gtk/data/screenshots/7.png</image>
       <caption>Crossfade Settings</caption>
     </screenshot>
   </screenshots>

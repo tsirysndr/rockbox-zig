@@ -144,7 +144,7 @@ features = [
 
 [features]
 aws-lc-rs = ["rustls/aws_lc_rs"]
-# PATCHED for rockbox-zig: default now uses ring instead of aws-lc-rs.
+# PATCHED for rockboxd: default now uses ring instead of aws-lc-rs.
 # aws-lc-rs requires cmake-cross-compiling a C library (aws-lc-sys) which
 # doesn't work on Android NDK. ring has well-tested Android pre-built
 # binaries. Original line was: "aws-lc-rs",

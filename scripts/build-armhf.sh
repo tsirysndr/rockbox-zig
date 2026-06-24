@@ -27,7 +27,7 @@ set -euo pipefail
 ROOTDIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOTDIR"
 
-DOCKER_IMAGE="rockbox-zig-armhf"
+DOCKER_IMAGE="rockboxd-armhf"
 BUILD_DIR="build-armhf"
 RUST_TARGET="arm-unknown-linux-gnueabihf"
 

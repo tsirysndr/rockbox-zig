@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary     = "Idiomatic Ruby SDK for Rockbox"
   spec.description = "Ruby SDK for Rockbox — a builder-friendly, block-friendly GraphQL client " \
                      "with real-time event subscriptions and a plugin system."
-  spec.homepage    = "https://github.com/tsirysndr/rockbox-zig"
+  spec.homepage    = "https://github.com/tsirysndr/rockboxd"
   spec.license     = "MIT"
 
   spec.required_ruby_version = ">= 3.0"

@@ -5,9 +5,9 @@
 # Rockbox Daemon 🎵 ⚡
 
 [![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
-[![ci](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml)
+[![ci](https://github.com/tsirysndr/rockboxd/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockboxd/actions/workflows/ci.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tsiry/rockbox)](https://hub.docker.com/r/tsiry/rockbox)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/tsirysndr/rockbox-zig/total)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/tsirysndr/rockboxd/total)
 [![discord](https://img.shields.io/discord/1292855167921815715?label=discord&logo=discord&color=5865F2)](https://discord.gg/tXPrgcPKSt)
 [![storybook](https://raw.githubusercontent.com/storybooks/brand/master/badge/badge-storybook.svg)](https://master--670ceec25af685dcdc87c0df.chromatic.com/?path=/story/components-albums--default)
 
@@ -553,7 +553,7 @@ dnf install rockbox
 ### Arch Linux
 
 ```sh
-paru -S rockbox-zig-bin
+paru -S rockboxd-bin
 ```
 
 ### macOS/Linux (Homebrew)
@@ -565,7 +565,7 @@ brew install tsirysndr/tap/rockbox
 ### Universal (curl installer)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockboxd/HEAD/install.sh | bash
 ```
 
 ---
@@ -573,7 +573,7 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 ## 📦 Downloads
 
 Pre-built binaries for the latest release are available on the
-[Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
+[Releases page](https://github.com/tsirysndr/rockboxd/releases/latest).
 
 | Platform | Architecture            | Package   |
 | -------- | ----------------------- | --------- |
@@ -625,8 +625,8 @@ Rust toolchain (`rustup update stable`).
 
 ```sh
 # 1. Clone
-git clone https://github.com/tsirysndr/rockbox-zig.git
-cd rockbox-zig
+git clone https://github.com/tsirysndr/rockboxd.git
+cd rockboxd
 git submodule update --init --recursive
 
 # 2. Build the web UI

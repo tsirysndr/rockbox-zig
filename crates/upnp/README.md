@@ -1,6 +1,6 @@
 # rockbox-upnp
 
-UPnP/DLNA support for Rockbox Zig. This crate provides three independent but
+UPnP/DLNA support for Rockbox Daemon. This crate provides three independent but
 complementary features:
 
 | Feature                             | What it does                                                                                         |

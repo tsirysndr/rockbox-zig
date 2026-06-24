@@ -17,7 +17,7 @@ pub mod api {
 pub fn install_rockboxd() -> Result<(), Error> {
     let mut child = Command::new("sh")
         .arg("-c")
-        .arg("type rockboxd > /dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash")
+        .arg("type rockboxd > /dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockboxd/HEAD/install.sh | bash")
         .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())

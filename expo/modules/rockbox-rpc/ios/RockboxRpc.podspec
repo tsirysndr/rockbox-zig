@@ -8,8 +8,8 @@ Pod::Spec.new do |s|
   s.summary        = package['description']
   s.description    = package['description']
   s.license        = 'LGPL-2.1'
-  s.author         = 'Rockbox Zig'
-  s.homepage       = 'https://github.com/tsirysndr/rockbox-zig'
+  s.author         = 'Rockbox Daemon'
+  s.homepage       = 'https://github.com/tsirysndr/rockboxd'
   s.platforms      = { :ios => '15.1', :tvos => '15.1' }
   s.swift_version  = '5.9'
   s.source         = { git: '' }

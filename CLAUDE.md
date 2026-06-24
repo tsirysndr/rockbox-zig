@@ -1,4 +1,4 @@
-# CLAUDE.md — Rockbox Zig
+# CLAUDE.md — Rockbox Daemon
 
 ## Markdown formatting
 
@@ -20,7 +20,7 @@ When editing an existing table, re-align the whole table (not just the changed r
 
 ## Project overview
 
-Rockbox Zig is a modern wrapper around the [Rockbox](https://www.rockbox.org) open-source audio player firmware. It adds Rust/Zig services on top of the C firmware to expose gRPC, GraphQL, HTTP, and MPD APIs, a Typesense-backed search engine, Chromecast/AirPlay/Snapcast/Squeezelite output sinks, and a desktop/web UI.
+Rockbox Daemon is a modern wrapper around the [Rockbox](https://www.rockbox.org) open-source audio player firmware. It adds Rust/Zig services on top of the C firmware to expose gRPC, GraphQL, HTTP, and MPD APIs, a Typesense-backed search engine, Chromecast/AirPlay/Snapcast/Squeezelite output sinks, and a desktop/web UI.
 
 The binary is called **`rockboxd`**. It is a single executable built by Zig that links:
 - The Rockbox C firmware (compiled by Make into `build-lib/libfirmware.a` and friends)

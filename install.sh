@@ -18,7 +18,7 @@ if ! command -v tar >/dev/null 2>&1; then
     exit 1
 fi
 
-RELEASE_URL="https://api.github.com/repos/tsirysndr/rockbox-zig/releases/latest"
+RELEASE_URL="https://api.github.com/repos/tsirysndr/rockboxd/releases/latest"
 INSTALL_DIR="/usr/local/bin"
 
 # ── Detect OS / architecture ──────────────────────────────────────────────────
@@ -90,7 +90,7 @@ DOWNLOAD_URL=$(curl -sSL "$RELEASE_URL" \
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo "Error: could not find a release asset for platform '${PLATFORM}'."
-    echo "Check https://github.com/tsirysndr/rockbox-zig/releases for available builds."
+    echo "Check https://github.com/tsirysndr/rockboxd/releases for available builds."
     exit 1
 fi
 
@@ -119,10 +119,10 @@ ${ORANGE}
     Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \\
                       \/            \/     \/    \/            \/
 ${NO_COLOR}
-Welcome to Rockbox Zig! 🚀
+Welcome to Rockbox Daemon! 🚀
 A fork of the original Rockbox project, with a focus on modernization and more features.
 
-${GREEN}https://github.com/tsirysndr/rockbox-zig${NO_COLOR}
+${GREEN}https://github.com/tsirysndr/rockboxd${NO_COLOR}
 
 Please file an issue if you encounter any problems!
 

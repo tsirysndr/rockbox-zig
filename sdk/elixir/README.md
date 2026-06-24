@@ -2,7 +2,7 @@
 
 [![Package Version](https://img.shields.io/hexpm/v/rockbox_ex)](https://hex.pm/packages/rockbox_ex)
 
-Idiomatic Elixir SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a fully typed
+Idiomatic Elixir SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a fully typed
 GraphQL client for `rockboxd` with real-time WebSocket subscriptions, a
 plugin behaviour, and a builder DSL for smart playlists.
 

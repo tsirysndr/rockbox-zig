@@ -1,6 +1,6 @@
 # @rockbox-zig/sdk
 
-TypeScript SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a fully typed GraphQL client with real-time subscriptions and a plugin system.
+TypeScript SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a fully typed GraphQL client with real-time subscriptions and a plugin system.
 
 ## Table of contents
 

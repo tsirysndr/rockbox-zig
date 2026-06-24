@@ -2,7 +2,7 @@
  * @see https://www.electron.build/configuration/configuration
  */
 {
-  appId: "com.rockbox-zig.app",
+  appId: "com.rockboxd.app",
   asar: true,
   directories: {
     output: "release/v${version}",
@@ -27,6 +27,6 @@
   publish: {
     provider: "generic",
     channel: "latest",
-    url: "https://github.com/tsirysndr/rockbox-zig/releases/download/v${version}/",
+    url: "https://github.com/tsirysndr/rockboxd/releases/download/v${version}/",
   },
 }

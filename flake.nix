@@ -1,5 +1,5 @@
 {
-  description = "Rockbox Zig — rockboxd daemon (gRPC/GraphQL/HTTP/MPD audio server)";
+  description = "Rockbox Daemon — rockboxd daemon (gRPC/GraphQL/HTTP/MPD audio server)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -188,7 +188,7 @@
 
           meta = with lib; {
             description = "Rockbox daemon — gRPC / GraphQL / HTTP / MPD audio server";
-            homepage    = "https://github.com/tsirysndr/rockbox-zig";
+            homepage    = "https://github.com/tsirysndr/rockboxd";
             license     = licenses.lgpl21;
             platforms   = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
             mainProgram = "rockboxd";
@@ -229,7 +229,7 @@
           ] ++ linuxPkgs ++ darwinPkgs;
 
           shellHook = ''
-            echo "Rockbox Zig development environment"
+            echo "Rockbox Daemon development environment"
             echo "  Zig:  $(zig version)"
             echo "  Rust: $(rustc --version)"
             echo ""

@@ -1,10 +1,10 @@
 name = "rockbox"
 version = "1.0.0"
-description = "Gleam SDK for Rockbox Zig — pipe-friendly client for the rockboxd GraphQL API"
+description = "Gleam SDK for Rockbox Daemon — pipe-friendly client for the rockboxd GraphQL API"
 licences = ["MIT"]
 gleam = ">= 1.11.0"
 
-repository = { type = "github", user = "tsirysndr", repo = "rockbox-zig", path = "sdk/gleam" }
+repository = { type = "github", user = "tsirysndr", repo = "rockboxd", path = "sdk/gleam" }
 
 [dependencies]
 gleam_stdlib = ">= 0.46.0 and < 2.0.0"

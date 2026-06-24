@@ -1,4 +1,4 @@
-# Rockbox Zig — Documentation
+# Rockbox Daemon — Documentation
 
 The Mintlify source for [https://rockboxzig.mintlify.app](https://rockboxzig.mintlify.app).
 

@@ -2,7 +2,7 @@ defmodule Rockbox.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/tsirysndr/rockbox-zig"
+  @source_url "https://github.com/tsirysndr/rockboxd"
 
   def project do
     [

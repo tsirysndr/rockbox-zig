@@ -4,7 +4,7 @@ description: "Make → Cargo → Zig. The three-step pipeline that produces rock
 icon: 'hammer'
 ---
 
-Rockbox Zig is built by three tools in series:
+Rockbox Daemon is built by three tools in series:
 
 1. **Make** — compiles the Rockbox C firmware into static libraries.
 2. **Cargo** — compiles the Rust crates into static libraries (`crate-type = ["staticlib"]`).
@@ -51,8 +51,8 @@ You'll also need:
 
 ```sh
 # 1. Clone with submodules
-git clone https://github.com/tsirysndr/rockbox-zig.git
-cd rockbox-zig
+git clone https://github.com/tsirysndr/rockboxd.git
+cd rockboxd
 git submodule update --init --recursive
 
 # 2. Build the web UI (embedded into the binary)

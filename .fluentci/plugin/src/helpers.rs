@@ -30,14 +30,14 @@ pub fn download_release(version: String) -> Result<String, Error> {
         .pipeline("download-release")?
         .pkgx()?
         .with_workdir("/tmp/rbrelease")?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox_{}_x86_64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockboxd_{}_x86_64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox-codecs-{}-x86_64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox-assets-{}-x86_64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox_{}_aarch64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockboxd_{}_aarch64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox-codecs-{}-aarch64-linux.tar.gz", version, version)])?
-        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockbox-zig/releases/download/{}/rockbox-assets-{}-aarch64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox_{}_x86_64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockboxd_{}_x86_64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox-codecs-{}-x86_64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox-assets-{}-x86_64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox_{}_aarch64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockboxd_{}_aarch64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox-codecs-{}-aarch64-linux.tar.gz", version, version)])?
+        .with_exec(vec!["pkgx", "wget@1.21.4", &format!("https://github.com/tsirysndr/rockboxd/releases/download/{}/rockbox-assets-{}-aarch64-linux.tar.gz", version, version)])?
         .with_exec(vec!["mkdir", "-p", "amd64/bin", "amd64/lib/rockbox", "amd64/share/rockbox", "arm64/bin", "arm64/lib/rockbox", "arm64/share/rockbox"])?
         .stdout()?;
 

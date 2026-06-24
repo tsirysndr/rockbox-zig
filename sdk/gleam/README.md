@@ -3,7 +3,7 @@
 [![Package Version](https://img.shields.io/hexpm/v/rockbox)](https://hex.pm/packages/rockbox)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/rockbox/)
 
-Gleam SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a
+Gleam SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a
 typed, pipe-friendly client for the `rockboxd` GraphQL API.
 
 - **Pipe-friendly** — every API function takes the client as its first arg.

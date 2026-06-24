@@ -1,14 +1,14 @@
 ---
 title: "FAQ"
-description: "Common questions about Rockbox Zig."
+description: "Common questions about Rockbox Daemon."
 icon: 'circle-question'
 ---
 
 <AccordionGroup>
 
-<Accordion title="What's the difference between Rockbox and Rockbox Zig?">
+<Accordion title="What's the difference between Rockbox and Rockbox Daemon?">
 [Rockbox](https://www.rockbox.org) is firmware for portable audio
-players. Rockbox Zig wraps that same C audio engine in Rust and Zig
+players. Rockbox Daemon wraps that same C audio engine in Rust and Zig
 services, exposing it on a desktop/server as a single `rockboxd` binary
 with gRPC, GraphQL, HTTP and MPD APIs and multi-room output sinks.
 The DSP, codecs and tag database come straight from upstream Rockbox.
@@ -16,7 +16,7 @@ The DSP, codecs and tag database come straight from upstream Rockbox.
 
 <Accordion title="Does it really run on a Raspberry Pi?">
 Yes. Linux ARM64 builds are on the
-[Releases page](https://github.com/tsirysndr/rockbox-zig/releases). It
+[Releases page](https://github.com/tsirysndr/rockboxd/releases). It
 runs comfortably on a Pi 4; on a Pi 3 expect Typesense indexing to be
 slower on first scan but playback is fine.
 </Accordion>
@@ -25,7 +25,7 @@ slower on first scan but playback is fine.
 MP3, OGG Vorbis, FLAC, WAV, AAC, ALAC, Opus, Musepack, WMA, APE,
 Wavpack, Speex, AIFF, AC3, SID and several more — 20+ codecs total. The
 codec list comes from upstream Rockbox; see
-[`AUDIO_EXTENSIONS`](https://github.com/tsirysndr/rockbox-zig/blob/master/crates/server/src/lib.rs)
+[`AUDIO_EXTENSIONS`](https://github.com/tsirysndr/rockboxd/blob/master/crates/server/src/lib.rs)
 for what is auto-scanned into the library.
 </Accordion>
 
@@ -36,7 +36,7 @@ provider integrations (YouTube, Spotify, Tidal) are on the roadmap.
 </Accordion>
 
 <Accordion title="Why not just use mpd / Mopidy / Volumio / Snapcast directly?">
-You can — they're great projects. Rockbox Zig differs in that the
+You can — they're great projects. Rockbox Daemon differs in that the
 audio engine, DSP, parametric EQ and crossfade are the upstream Rockbox
 implementation rather than ALSA's defaults. If you specifically want
 Rockbox's sound (dithering, PBE, Haas surround, ReplayGain pipeline, the
@@ -105,7 +105,7 @@ Wasm extensions inside `rockboxd` itself are on the roadmap.
 </Accordion>
 
 <Accordion title="How do I contribute?">
-Read the [Contributing guide](https://github.com/tsirysndr/rockbox-zig/blob/master/CONTRIBUTING.md),
+Read the [Contributing guide](https://github.com/tsirysndr/rockboxd/blob/master/CONTRIBUTING.md),
 hop into [Discord](https://discord.gg/tXPrgcPKSt), and open a PR. Build
 from source with the [build instructions](/architecture/build).
 </Accordion>

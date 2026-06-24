@@ -8,9 +8,9 @@
 [![Typed](https://img.shields.io/badge/typed-pydantic-e92063?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
 [![Ruff](https://img.shields.io/badge/lint-ruff-261230?style=flat-square&logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 [![mypy](https://img.shields.io/badge/mypy-strict-1F5082?style=flat-square)](http://mypy-lang.org/)
-[![GitHub](https://img.shields.io/badge/github-rockbox--zig-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockbox-zig)
+[![GitHub](https://img.shields.io/badge/github-rockboxd-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockboxd)
 
-Async Python SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a typed, batteries-included
+Async Python SDK for [Rockbox Daemon](https://github.com/tsirysndr/rockboxd) — a typed, batteries-included
 client for the GraphQL API exposed by `rockboxd`.
 
 ```python

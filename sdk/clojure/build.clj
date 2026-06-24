@@ -17,12 +17,12 @@
                 :version   version
                 :basis     @basis
                 :src-dirs  ["src"]
-                :scm       {:url                 "https://github.com/tsirysndr/rockbox-zig"
-                            :connection          "scm:git:git://github.com/tsirysndr/rockbox-zig.git"
-                            :developerConnection "scm:git:ssh://git@github.com/tsirysndr/rockbox-zig.git"
+                :scm       {:url                 "https://github.com/tsirysndr/rockboxd"
+                            :connection          "scm:git:git://github.com/tsirysndr/rockboxd.git"
+                            :developerConnection "scm:git:ssh://git@github.com/tsirysndr/rockboxd.git"
                             :tag                 (str "clojure-v" version)}
                 :pom-data  [[:description "Idiomatic Clojure SDK for Rockbox — GraphQL client with WebSocket subscriptions and a tiny plugin system."]
-                            [:url "https://github.com/tsirysndr/rockbox-zig"]
+                            [:url "https://github.com/tsirysndr/rockboxd"]
                             [:licenses
                              [:license
                               [:name "MIT License"]
