@@ -7,9 +7,12 @@
 #      firmware .a files with the arm-linux-gnueabihf-gcc cross-compiler.
 #   3. Inside Docker: extracts per-codec .o files and namespaces ogg_* symbols
 #      in libopus.a (same as build-headless.sh steps 2.5 and 2.6).
-#   4. On the host: builds Rust crates with `cross` (fts5 + cpal-sink features,
+#   4. On the host: builds the S3 admin web UI bundle (rust-embed reads it
+#      from crates/s3/s3webui/dist/ at compile time — the directory is
+#      gitignored, so a fresh checkout has no dist/ until this step runs).
+#   5. On the host: builds Rust crates with `cross` (fts5 + cpal-sink features,
 #      no typesense subprocess).
-#   5. On the host: links everything with Zig targeting arm-linux-gnueabihf.
+#   6. On the host: links everything with Zig targeting arm-linux-gnueabihf.
 #
 # Usage:
 #   bash scripts/build-armhf.sh
@@ -18,6 +21,7 @@
 #   - Docker (for the arm-linux-gnueabihf cross-toolchain)
 #   - cross  (cargo install cross)
 #   - zig    (0.16.0)
+#   - bun    (for the S3 admin web UI)
 #
 # Output:
 #   zig/zig-out/bin/rockboxd  (ARM hard-float ELF binary)
@@ -174,7 +178,13 @@ docker run --rm --platform linux/amd64 \
         echo \"    Copied + stripped .ARM.attributes: \$(ls \$SYSLIBS)\"
     "
 
-echo "==> Step 3: Build Rust crates with cross (fts5 + alsa-sink, no typesense subprocess)"
+echo "==> Step 3: Build S3 admin web UI bundle"
+# rust-embed in crates/s3/src/admin.rs reads crates/s3/s3webui/dist/ at
+# compile time. The directory is gitignored, so without this step a fresh
+# checkout fails the rockbox-server build with "no such file or directory".
+(cd crates/s3/s3webui && bun install --frozen-lockfile && bun run build)
+
+echo "==> Step 4: Build Rust crates with cross (fts5 + alsa-sink, no typesense subprocess)"
 cross build --release \
     --target "$RUST_TARGET" \
     --features fts5,alsa-sink \
@@ -184,7 +194,7 @@ cross build --release \
     --features fts5 \
     -p rockbox-server
 
-echo "==> Step 4: Link rockboxd with Zig for arm-linux-gnueabihf"
+echo "==> Step 5: Link rockboxd with Zig for arm-linux-gnueabihf"
 # Clear Zig's build cache so it re-links even when input timestamps are unchanged.
 rm -rf zig/.zig-cache zig/zig-out
 (cd zig && zig build \
