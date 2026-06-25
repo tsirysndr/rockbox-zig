@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version / tag label for the artifact (e.g. 2026.06.25)"
+        type: string
+        required: false
 
 jobs:
   build:
@@ -47,9 +53,6 @@ jobs:
           deno install
           deno run build
 
-      - name: Build rockboxd (headless)
-        run: bash scripts/build-headless.sh
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -60,8 +63,15 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build admin UI
+        # Must run before any rockbox-server / rockbox-cli build:
+        # rust-embed in crates/s3/src/admin.rs reads crates/s3/s3webui/dist/
+        # at compile time. The directory is gitignored, so without this step
+        # the embedded admin UI is empty in the final binary.
         working-directory: crates/s3/s3webui
         run: bun run build
+
+      - name: Build rockboxd (headless)
+        run: bash scripts/build-headless.sh
 
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
@@ -82,7 +92,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rockbox-macos-intel
+          name: rockbox-macos-intel${{ inputs.tag && format('-{0}', inputs.tag) || '' }}
           path: |
             target/release/rockbox
             zig/zig-out/bin/rockboxd
