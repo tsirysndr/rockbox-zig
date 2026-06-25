@@ -69,6 +69,19 @@ jobs:
           deno install
           deno run build
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+
       - name: Rust flags
         run: echo "RUSTFLAGS=-C target-cpu=x86-64 -A warnings" >> $GITHUB_ENV
 

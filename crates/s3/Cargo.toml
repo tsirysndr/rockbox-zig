@@ -17,8 +17,10 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "serd
 futures-util = "0.3"
 hex = "0.4"
 hmac = "0.12"
+mime_guess = "2"
 percent-encoding = { workspace = true }
 rockbox-settings = { path = "../settings" }
+rust-embed = { version = "8", features = ["interpolate-folder-path"] }
 sha2 = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

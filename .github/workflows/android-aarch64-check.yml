@@ -42,6 +42,19 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+
       - name: Add Android Rust target
         run: rustup target add aarch64-linux-android
 

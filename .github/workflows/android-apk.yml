@@ -66,6 +66,14 @@ jobs:
           deno clean
           rm -rf node_modules
 
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+
       - name: Cache Cargo registry and git
         uses: actions/cache@v4
         with:

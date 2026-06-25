@@ -13,6 +13,18 @@ RUN deno install --allow-scripts
 COPY webui/rockbox/ ./
 RUN deno task build
 
+# ── S3 admin UI ────────────────────────────────────────────────────────────────
+# Built inside the image so `docker build .` is self-contained — the repo's
+# .dockerignore excludes every `dist/` directory, so the host's pre-built bundle
+# never reaches the build context.
+FROM oven/bun:1 AS s3-admin-builder
+
+WORKDIR /app/crates/s3/s3webui
+COPY crates/s3/s3webui/package.json crates/s3/s3webui/bun.lock ./
+RUN bun install --frozen-lockfile
+COPY crates/s3/s3webui/ ./
+RUN bun run build
+
 # ── Rockbox daemon ─────────────────────────────────────────────────────────────
 FROM rust:1.95-trixie AS builder
 
@@ -48,7 +60,8 @@ RUN case "${TARGETARCH}" in \
 
 COPY . /app
 WORKDIR /app
-COPY --from=webui-builder /app/webui/rockbox/dist/ /app/webui/rockbox/dist/
+COPY --from=webui-builder      /app/webui/rockbox/dist/         /app/webui/rockbox/dist/
+COPY --from=s3-admin-builder   /app/crates/s3/s3webui/dist/     /app/crates/s3/s3webui/dist/
 
 # Build rockboxd via the headless script (configure + make + cargo + zig)
 RUN bash scripts/build-headless.sh

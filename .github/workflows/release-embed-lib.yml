@@ -113,6 +113,19 @@ jobs:
           deno install
           deno run build
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+
       # ── Step 1-2: Headless firmware + rockbox-server ──────────────────────
       # build-headless.sh configures build-headless/, builds firmware .a files,
       # extracts codec objects, and builds librockbox_cli.a + librockbox_server.a

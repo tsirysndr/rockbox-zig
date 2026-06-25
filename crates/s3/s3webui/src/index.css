@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@import "flyonui/variants.css";
+@source "../node_modules/flyonui/dist";
+@plugin "flyonui";
+
+@import "@fontsource-variable/roboto-mono/index.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
+
+/* --- Synthwave dark theme ------------------------------------------------ */
+:root,
+[data-theme="synthwave"] {
+  color-scheme: dark;
+
+  --color-base-100: oklch(18.8% 0.06 304);   /* deep midnight purple */
+  --color-base-200: oklch(15.2% 0.055 302);  /* darker panel */
+  --color-base-300: oklch(11.6% 0.05 302);   /* deepest surface */
+  --color-base-content: oklch(96% 0.025 320);
+
+  --color-primary: oklch(72.5% 0.235 340);    /* hot magenta */
+  --color-primary-content: oklch(18% 0.08 320);
+
+  --color-secondary: oklch(82% 0.165 200);    /* electric cyan */
+  --color-secondary-content: oklch(15% 0.05 220);
+
+  --color-accent: oklch(74% 0.19 290);        /* neon lavender */
+  --color-accent-content: oklch(15% 0.05 300);
+
+  --color-neutral: oklch(30% 0.05 300);
+  --color-neutral-content: oklch(95% 0.02 320);
+
+  --color-info: oklch(82% 0.16 215);
+  --color-info-content: oklch(15% 0.05 220);
+
+  --color-success: oklch(83% 0.22 142);
+  --color-success-content: oklch(15% 0.06 150);
+
+  --color-warning: oklch(82% 0.18 70);
+  --color-warning-content: oklch(20% 0.06 60);
+
+  --color-error: oklch(70% 0.22 18);
+  --color-error-content: oklch(18% 0.06 20);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.625rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+  font-family:
+    'Roboto Mono Variable',
+    'Roboto Mono',
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  font-feature-settings:
+    'liga' on,
+    'calt' on,
+    'zero' on;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code,
+kbd,
+pre,
+samp,
+.font-mono {
+  font-family:
+    'JetBrains Mono Variable',
+    'JetBrains Mono',
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  font-feature-settings: 'liga' on;
+}
+
+/* Subtle neon glow under panels for the synthwave vibe */
+.bg-base-100 {
+  box-shadow: 0 1px 0 0 oklch(100% 0 0 / 0.04) inset;
+}
+
+/* FlyonUI's `.input` wrapper is `inline-flex` but doesn't center its children,
+   so leading icons drift relative to the inner <input>. Force baseline-correct
+   vertical centering for the icon, the input, and any trailing button. */
+.input {
+  align-items: center;
+  gap: 0.5rem;
+}
+.input > svg,
+.input > .icon {
+  flex-shrink: 0;
+}
+.input > input,
+.input > textarea {
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  line-height: 1.25;
+  color: inherit;
+  font: inherit;
+}
+.input > input:focus,
+.input > textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+/* Scrollbar polish */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: oklch(40% 0.04 300);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: oklch(55% 0.06 300);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}

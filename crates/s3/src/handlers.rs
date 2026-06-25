@@ -413,6 +413,24 @@ pub async fn head_object(
     object_response(state, req, path, false).await
 }
 
+// ── HeadBucket — HEAD /{bucket} ───────────────────────────────────────────────
+
+pub async fn head_bucket(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    bucket: web::Path<String>,
+) -> HttpResponse {
+    let bucket = bucket.into_inner();
+    let resource = format!("/{}", bucket);
+    if bucket != BUCKET {
+        return HttpResponse::NotFound().finish();
+    }
+    if let Err(r) = verify(&state, &req, &empty_body_hash(), &resource) {
+        return r;
+    }
+    HttpResponse::Ok().finish()
+}
+
 async fn object_response(
     state: web::Data<AppState>,
     req: HttpRequest,

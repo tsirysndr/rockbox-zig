@@ -12,6 +12,7 @@
 //! pass `--checksum-algorithm CRC32` or `--no-verify-payload` for awscli over
 //! plain HTTP) or sign the full body hash.
 
+mod admin;
 mod handlers;
 mod sigv4;
 mod xml;
@@ -87,9 +88,12 @@ pub async fn start() -> anyhow::Result<()> {
         App::new()
             .app_data(state.clone())
             .app_data(web::PayloadConfig::new(MAX_BODY_BYTES))
+            .configure(admin::configure)
             .route("/", web::get().to(handlers::list_buckets))
             .route("/{bucket}", web::get().to(handlers::list_objects))
             .route("/{bucket}/", web::get().to(handlers::list_objects))
+            .route("/{bucket}", web::head().to(handlers::head_bucket))
+            .route("/{bucket}/", web::head().to(handlers::head_bucket))
             .route("/{bucket}/{key:.*}", web::put().to(handlers::put_object))
             .route(
                 "/{bucket}/{key:.*}",

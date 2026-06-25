@@ -50,6 +50,19 @@ jobs:
       - name: Build rockboxd (headless)
         run: bash scripts/build-headless.sh
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
 

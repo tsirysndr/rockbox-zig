@@ -1,0 +1,39 @@
+{
+  "name": "rockbox-s3-admin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsr generate && tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/s3-request-presigner": "^3.1075.0",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/roboto-mono": "^5.2.9",
+    "@tabler/icons-react": "^3.44.0",
+    "@tanstack/react-query": "^5.101.1",
+    "@tanstack/react-router": "^1.170.16",
+    "jotai": "^2.20.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "@tanstack/router-cli": "^1.167.17",
+    "@tanstack/router-devtools": "^1.167.0",
+    "@tanstack/router-plugin": "^1.168.18",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "flyonui": "^2.4.1",
+    "oxlint": "^1.69.0",
+    "tailwindcss": "^4.3.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.0"
+  }
+}
