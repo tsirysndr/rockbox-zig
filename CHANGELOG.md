@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.25]
+
+### Added
+- Embedded S3 admin web UI — new React + Vite SPA under `crates/s3/s3webui/` (TanStack Router/Query + Jotai + FlyonUI/Tailwind) embedded into `rockbox-s3` via `rust-embed` and served at `/admin/` on the S3 port; the dashboard signs requests with SigV4 directly via AWS SDK v3 in the browser, login validates against the configured `s3_access_key` / `s3_secret_key`, and the standard buckets / objects / upload / settings views are wired in; `HEAD /{bucket}` is now implemented so `HeadBucket` succeeds; the `Dockerfile` gains an in-container Bun builder stage and every CI workflow that compiles `rockbox-s3` runs the SPA build first so the binary always ships with an up-to-date UI
+
+### Changed
+- Renamed the user-facing product from "Rockbox Zig" to "Rockbox Daemon" and updated every reference to the GitHub repo URL, AUR package (`rockbox-zig-bin` → `rockboxd-bin`), macOS pkg identifier, Electron `appId`, and Gleam SDK metadata; the published npm scope `@rockbox-zig/sdk` and the `rockboxzig.mintlify.app` docs URL are intentionally unchanged
+
+### Fixed
+- `ci(gpui)`: force relink of `librockboxd.a` in the `release-gpui` workflow — the cache key only hashes `Cargo.lock`, so edits to `crates/embed` sources could leave a stale archive missing newer exports (e.g. `rb_daemon_start`), failing the gpui link step
+
 ## [2026.06.23]
 
 ### Added
