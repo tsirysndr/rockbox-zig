@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.06.26]
+
+### Added
+- `library`: periodic library rescan + delete reconciliation as a backstop for filesystem watcher events that get dropped silently — Linux inotify is a no-op on NFS/SMB/FUSE mounts, and the kqueue backend on BSDs (NetBSD) coalesces multi-file drops into a single `Vnode::Write` event and only surfaces one new file per coalesce; `start_watcher` now spawns a background tokio task that ticks every `ROCKBOX_RESCAN_INTERVAL_SECS` seconds (default `120`, set `0` to disable), runs `scan_audio_files` then the new `audio_scan::reconcile_deletions` which walks `repo::track::all` (already filters `is_remote = 0`) and calls `repo::track::delete_by_path` for any track whose path no longer exists on disk; overlapping ticks are skipped via `tokio::sync::Mutex::try_lock` so the periodic pass can never pile up behind a still-running initial scan on a large library
+- `ci`: Debian and Fedora package builds, published to GitHub Releases and Gemfury — new `.github/workflows/linux-x86_64-build.yml` builds `rockbox`, `rockboxd`, `librockboxd.a`, and `rockbox-gpui` (via `gpui/package.sh`, hard-fails if the Linux GPUI build breaks), downloads `typesense-server` v30.1 from `dl.typesense.org`, and packages a `.deb` and `.rpm` that ship all four binaries plus the `rockbox-gpui` desktop entry and PNG icon; the existing `linux-aarch64-build.yml` is extended with a `.deb` containing `rockbox` + `rockboxd` + `typesense-server` (no GPUI); `linux-armhf-build.yml` gains a `.deb` with just `rockboxd`; each workflow checks for `FURY_TOKEN` and `FURY_ACCOUNT` secrets and pushes its own packages to `push.fury.io`, mirroring the smolsonic release pipeline
+
 ## [2026.06.25]
 
 ### Added
