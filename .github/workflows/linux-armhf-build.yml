@@ -91,12 +91,58 @@ jobs:
           sha256sum rockbox_${VERSION}_armhf-linux.tar.gz \
             > rockbox_${VERSION}_armhf-linux.tar.gz.sha256
 
+      - name: Install dpkg-dev
+        run: sudo apt-get install -y dpkg-dev
+
+      - name: Build .deb (armhf)
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.vars.outputs.version }}"
+          pkg_root="dist/debian/armhf"
+          mkdir -p "$pkg_root/usr/local/bin"
+          install -m 0755 zig/zig-out/bin/rockboxd "$pkg_root/usr/local/bin/rockboxd"
+          sed -i "s/^Version: .*/Version: ${VERSION}/" "$pkg_root/DEBIAN/control"
+          dpkg-deb --build --root-owner-group "$pkg_root" "rockbox_${VERSION}_armhf.deb"
+          sha256sum "rockbox_${VERSION}_armhf.deb" > "rockbox_${VERSION}_armhf.deb.sha256"
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             rockbox_${{ steps.vars.outputs.version }}_armhf-linux.tar.gz
             rockbox_${{ steps.vars.outputs.version }}_armhf-linux.tar.gz.sha256
+            rockbox_${{ steps.vars.outputs.version }}_armhf.deb
+            rockbox_${{ steps.vars.outputs.version }}_armhf.deb.sha256
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Gemfury secrets
+        id: gemfury
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_ACCOUNT: ${{ secrets.FURY_ACCOUNT }}
+        run: |
+          if [ -n "${FURY_TOKEN:-}" ] && [ -n "${FURY_ACCOUNT:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Gemfury secrets not set; skipping push"
+          fi
+
+      - name: Push .deb to Gemfury
+        if: steps.gemfury.outputs.available == 'true'
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_ACCOUNT: ${{ secrets.FURY_ACCOUNT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for pkg in rockbox_*_armhf.deb; do
+            echo "Pushing $pkg to Gemfury (${FURY_ACCOUNT})"
+            curl -fsS -F package=@"${pkg}" \
+              "https://${FURY_TOKEN}@push.fury.io/${FURY_ACCOUNT}/"
+            echo
+          done

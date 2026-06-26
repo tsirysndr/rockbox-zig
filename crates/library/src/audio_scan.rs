@@ -14,7 +14,12 @@ use owo_colors::OwoColorize;
 use rockbox_sys as rb;
 use rockbox_sys::types::mp3_entry::Mp3Entry;
 use sqlx::{Pool, Sqlite};
-use std::{io::Write, path::PathBuf, sync::Arc, time::Duration};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+    sync::Arc,
+    time::Duration,
+};
 use tokio::{fs, sync::Semaphore};
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
@@ -84,6 +89,27 @@ fn scan_audio_files_inner(
 
         Ok(result)
     })
+}
+
+/// Remove tracks whose backing file no longer exists on disk.
+///
+/// Backstop for filesystem watcher events that get dropped silently
+/// (e.g. inotify on NFS/SMB/FUSE, kqueue coalescing on BSDs). Only
+/// touches local rows (is_remote = 0).
+pub async fn reconcile_deletions(pool: Pool<Sqlite>) -> Result<u64, Error> {
+    let tracks = repo::track::all(pool.clone()).await?;
+    let mut removed = 0u64;
+    for track in tracks {
+        if Path::new(&track.path).exists() {
+            continue;
+        }
+        match repo::track::delete_by_path(pool.clone(), &track.path).await {
+            Ok(Some(_)) => removed += 1,
+            Ok(None) => {}
+            Err(e) => tracing::warn!("reconcile delete {}: {}", track.path, e),
+        }
+    }
+    Ok(removed)
 }
 
 pub async fn save_audio_metadata(
