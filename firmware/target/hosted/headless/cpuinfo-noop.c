@@ -11,6 +11,15 @@ struct cpuusage;
 struct time_state;
 struct cpufreq_governor;
 
+/* On Linux non-Android, firmware/SOURCES already compiles the real
+ * cpuinfo-linux.c which provides these symbols. Defining the stubs here
+ * too would be benign while libfirmware.a is consumed via lazy archive
+ * pull-in (only one .o gets linked), but the flat librockboxd.a built
+ * for the embeddable lib drags both .o files in and the linker rejects
+ * the resulting duplicate definitions. Gate the CPU stubs out for that
+ * case — battery stubs below stay because they're not in cpuinfo-linux.c. */
+#if !(defined(__linux__) && !defined(__ANDROID__))
+
 bool current_scaling_governor(int cpu, char *g, int gsize)
 { (void)cpu; if (g && gsize > 0) g[0] = 0; return false; }
 
@@ -27,6 +36,8 @@ void cpufreq_available_governors(char *g, int gsize, int cpu)
 { (void)g; (void)gsize; (void)cpu; if (g && gsize > 0) g[0] = 0; }
 
 void cpufreq_set_governor(const char *g, int cpu) { (void)g; (void)cpu; }
+
+#endif /* !linux || android */
 
 /* Battery stubs — real desktop battery info not needed by the engine.
  * powermgmt.c provides stubs for measures it does not track (returning -1).
