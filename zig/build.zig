@@ -418,6 +418,16 @@ pub fn build(b: *std.Build) void {
             const repack = b.addSystemCommand(&.{ "libtool", "-static", "-o", lib_out, lib_out });
             repack.step.dependOn(&install_embed.step);
             lib_step.dependOn(&repack.step);
+        } else if (target.result.os.tag == .linux) {
+            // Zig packs each input archive as a member of librockboxd.a, so
+            // GNU/Linux linkers (including rust-lld) see nested .a / .so
+            // members and don't unpack them — symbols like rb_daemon_start
+            // end up undefined. Flatten with our helper, mirroring the macOS
+            // libtool repack above.
+            const lib_out = b.getInstallPath(.lib, "librockboxd.a");
+            const flatten = b.addSystemCommand(&.{ "bash", "../scripts/flatten-archive.sh", lib_out });
+            flatten.step.dependOn(&install_embed.step);
+            lib_step.dependOn(&flatten.step);
         } else {
             lib_step.dependOn(&install_embed.step);
         }
