@@ -1,5 +1,12 @@
+# Built packages
 *.deb
-amd64/usr/*
-arm64/usr/*
-armhf/usr/*
 
+# CI-staged binaries (rockbox, rockboxd, typesense-server land in usr/local/bin)
+amd64/usr/local/
+arm64/usr/local/
+armhf/usr/local/
+
+# CI-staged GPUI app (amd64 only — rockbox-gpui binary + .desktop + icon)
+amd64/usr/bin/
+amd64/usr/share/applications/
+amd64/usr/share/pixmaps/
