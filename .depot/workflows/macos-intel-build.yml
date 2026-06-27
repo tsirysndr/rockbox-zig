@@ -1,0 +1,88 @@
+# Depot CI Migration
+# Source: .github/workflows/macos-intel-build.yml
+#
+# Changes made:
+# - Changed runs-on from "macos-15-intel" to "depot-ubuntu-latest" in job "build"
+
+name: macos-intel-ci
+# Lightweight CI build on every master push — no release upload.
+# Release artifacts (tarball, pkg, DMG) are produced by macos-build.yml on tag push.
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version / tag label for the artifact (e.g. 2026.06.25)"
+        type: string
+        required: false
+jobs:
+  build:
+    runs-on: depot-ubuntu-latest # was: macos-15-intel. Nonstandard GitHub runner label detected, changed to default Depot runner.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+          key: macos-15-intel-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: macos-15-intel-cargo-
+      - name: Install LLVM@21
+        run: |
+          brew install llvm@21 cmake protobuf
+          echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: denoland/setup-deno@v2
+      - name: Rust flags
+        run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+      - name: Build admin UI
+        # Must run before any rockbox-server / rockbox-cli build:
+        # rust-embed in crates/s3/src/admin.rs reads crates/s3/s3webui/dist/
+        # at compile time. The directory is gitignored, so without this step
+        # the embedded admin UI is empty in the final binary.
+        working-directory: crates/s3/s3webui
+        run: bun run build
+      - name: Build rockboxd (headless)
+        run: bash scripts/build-headless.sh
+      - name: Build rockbox CLI
+        run: cargo build -p rockbox --release
+      - name: Clean build artifacts
+        run: |
+          mkdir -p /tmp/rb-bins
+          cp target/release/rockbox   /tmp/rb-bins/
+          cp zig/zig-out/bin/rockboxd /tmp/rb-bins/
+          rm -rf target build-lib build-headless zig/.zig-cache
+          mkdir -p target/release zig/zig-out/bin
+          mv /tmp/rb-bins/rockbox   target/release/rockbox
+          mv /tmp/rb-bins/rockboxd  zig/zig-out/bin/rockboxd
+      - name: Verify binaries
+        run: ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockbox-macos-intel${{ inputs.tag && format('-{0}', inputs.tag) || '' }}
+          path: |
+            target/release/rockbox
+            zig/zig-out/bin/rockboxd

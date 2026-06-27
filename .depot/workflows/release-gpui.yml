@@ -1,0 +1,113 @@
+# Depot CI Migration
+# Source: .github/workflows/release-gpui.yml
+#
+# Changes made:
+# - Removed unsupported trigger "release"
+
+name: release gpui app
+# Removed unsupported trigger: release. Release events are not supported.
+on:
+  push:
+    tags-ignore:
+      - "clojure-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to attach the DMG to"
+        type: string
+        required: true
+jobs:
+  build-dmg:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            arch: aarch64
+          - os: macos-15-intel
+            arch: x86_64
+            zig_cpu: "-Dcpu=x86_64"
+            rust_flags: "-C target-cpu=x86-64 -A warnings"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Resolve version
+        id: vars
+        run: |
+          VERSION="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "dmg=Rockbox-${VERSION}-gpui-${{ matrix.arch }}.dmg" >> "$GITHUB_OUTPUT"
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+            gpui/target
+          key: gpui-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: gpui-${{ matrix.os }}-
+      # llvm@22 crashes in setSymbolInRelocationInfo on Mach-O — use llvm@21
+      - name: Install macOS dependencies
+        run: |
+          brew install llvm@21 cmake protobuf
+          echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
+      - name: Set Rust flags
+        run: |
+          FLAGS="${{ matrix.rust_flags || '-A warnings' }}"
+          echo "RUSTFLAGS=$FLAGS" >> $GITHUB_ENV
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+      # ── Step 1-2: Headless firmware + rockbox-server ──────────────────────
+      - name: Build headless firmware
+        run: bash scripts/build-headless.sh
+      # ── Step 3: rockbox-embed Rust crate ──────────────────────────────────
+      - name: Build rockbox-embed
+        run: cargo build --release -p rockbox-embed
+      # ── Step 4: Fat static library ────────────────────────────────────────
+      # Remove the cached archive so the zig link step always re-runs — the
+      # cache key only hashes Cargo.lock, so changes to crates/embed sources
+      # would otherwise leave a stale librockboxd.a in place.
+      - name: Build librockboxd.a
+        run: |
+          rm -f zig/zig-out/lib/librockboxd.a
+          cd zig
+          zig build lib -Doptimize=ReleaseFast ${{ matrix.zig_cpu }}
+      # ── Step 5: GPUI app + DMG ────────────────────────────────────────────
+      - name: Build and package
+        run: bash package.sh
+        working-directory: gpui
+      - name: Rename DMG
+        run: mv gpui/dist/Rockbox.dmg "${{ steps.vars.outputs.dmg }}"
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.vars.outputs.dmg }}
+          tag_name: ${{ steps.vars.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
