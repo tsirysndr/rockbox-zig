@@ -769,7 +769,7 @@ are not yet implemented (cap per PUT: 2 GiB).
 Full guides, configuration reference, audio-output setup, API reference, and
 SDK docs are published at:
 
-**[👉 View full documentation](https://rockboxzig.mintlify.app)**
+**[👉 View full documentation](https://rockboxd.tsiry-sandratraina.com)**
 
 The Mintlify source lives in [`mintlify/`](./mintlify/). Topics covered:
 
