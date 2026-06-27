@@ -1,0 +1,221 @@
+# Depot CI Migration
+# Source: .github/workflows/linux-x86_64-build.yml
+#
+# Changes made:
+# - Changed GitHub runs-on labels to their Depot equivalents
+
+name: linux-x86_64-build
+on:
+  push:
+    tags-ignore:
+      - "clojure-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The existing tag to publish"
+        type: "string"
+        required: true
+env:
+  TYPESENSE_VERSION: "30.1"
+jobs:
+  publish:
+    runs-on: depot-ubuntu-latest # was: ubuntu-latest. Mapped standard GitHub runner to Depot equivalent.
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+            gpui/target
+          key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: linux-x86_64-cargo-
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libunwind-dev \
+            libasound2-dev \
+            libdbus-1-dev \
+            libfdk-aac-dev \
+            libfreetype6-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libxcb1-dev \
+            libxcb-render0-dev \
+            libxcb-shape0-dev \
+            libxcb-xfixes0-dev \
+            protobuf-compiler \
+            curl \
+            wget \
+            zip \
+            unzip \
+            cmake \
+            dpkg-dev \
+            rpm
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install admin UI dependencies
+        working-directory: crates/s3/s3webui
+        run: bun install --frozen-lockfile
+      - name: Build admin UI
+        working-directory: crates/s3/s3webui
+        run: bun run build
+      - name: Rust flags
+        run: echo "RUSTFLAGS=-C target-cpu=x86-64 -A warnings" >> $GITHUB_ENV
+      - name: Build rockboxd (headless)
+        run: bash scripts/build-headless.sh
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+      - name: Build rockbox CLI
+        run: cargo build -p rockbox --release
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+      - name: Build rockbox-embed
+        run: cargo build --release -p rockbox-embed
+      - name: Build librockboxd.a
+        run: cd zig && zig build lib -Doptimize=ReleaseFast
+      - name: Build rockbox-gpui (Linux)
+        # Fails hard if the GPUI Linux build is broken — we want loud feedback
+        # rather than silently shipping packages without the desktop app.
+        working-directory: gpui
+        run: bash package.sh
+      - name: Download typesense-server
+        run: |
+          set -euo pipefail
+          url="https://dl.typesense.org/releases/${TYPESENSE_VERSION}/typesense-server-${TYPESENSE_VERSION}-linux-amd64.tar.gz"
+          curl -fsSL "$url" -o /tmp/typesense.tar.gz
+          mkdir -p /tmp/typesense
+          tar -xzf /tmp/typesense.tar.gz -C /tmp/typesense
+          install -m 0755 /tmp/typesense/typesense-server /tmp/typesense-server
+      - name: Determine version
+        id: vars
+        run: |
+          echo "version=${{ inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Package tarball
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          cp target/release/rockbox .
+          cp zig/zig-out/bin/rockboxd .
+          tar czvf rockbox_${VERSION}_amd64-linux.tar.gz rockbox rockboxd
+          sha256sum rockbox_${VERSION}_amd64-linux.tar.gz \
+            > rockbox_${VERSION}_amd64-linux.tar.gz.sha256
+      - name: Package librockboxd.a
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          mkdir -p dist/lib dist/include
+          cp zig/zig-out/lib/librockboxd.a dist/lib/
+          cp include/rockboxd.h            dist/include/
+          ARCHIVE="librockboxd_${VERSION}_amd64-linux.tar.gz"
+          tar -C dist -czf "$ARCHIVE" lib include
+          sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+      - name: Build .deb (amd64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.vars.outputs.version }}"
+          pkg_root="dist/debian/amd64"
+          mkdir -p "$pkg_root/usr/local/bin" "$pkg_root/usr/bin" \
+                   "$pkg_root/usr/share/applications" "$pkg_root/usr/share/pixmaps"
+          install -m 0755 target/release/rockbox    "$pkg_root/usr/local/bin/rockbox"
+          install -m 0755 zig/zig-out/bin/rockboxd  "$pkg_root/usr/local/bin/rockboxd"
+          install -m 0755 /tmp/typesense-server     "$pkg_root/usr/local/bin/typesense-server"
+          # gpui/package.sh stages: gpui/dist/usr/bin/rockbox-gpui,
+          # gpui/dist/usr/share/applications/rockbox-gpui.desktop,
+          # gpui/dist/usr/share/pixmaps/rockbox-gpui.png
+          cp -r gpui/dist/usr/. "$pkg_root/usr/"
+          sed -i "s/^Version: .*/Version: ${VERSION}/" "$pkg_root/DEBIAN/control"
+          dpkg-deb --build --root-owner-group "$pkg_root" "rockbox_${VERSION}_amd64.deb"
+          sha256sum "rockbox_${VERSION}_amd64.deb" > "rockbox_${VERSION}_amd64.deb.sha256"
+      - name: Build .rpm (amd64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.vars.outputs.version }}"
+          src_root="dist/rpm/amd64"
+          mkdir -p "${src_root}/usr/local/bin" "${src_root}/usr/bin" \
+                   "${src_root}/usr/share/applications" "${src_root}/usr/share/pixmaps"
+          install -m 0755 target/release/rockbox    "${src_root}/usr/local/bin/rockbox"
+          install -m 0755 zig/zig-out/bin/rockboxd  "${src_root}/usr/local/bin/rockboxd"
+          install -m 0755 /tmp/typesense-server     "${src_root}/usr/local/bin/typesense-server"
+          cp -r gpui/dist/usr/. "${src_root}/usr/"
+          sed -i "s/^Version:        .*/Version:        ${VERSION}/" "${src_root}/rockbox.spec"
+
+          rpm_top="$(pwd)/rpmbuild"
+          mkdir -p "${rpm_top}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          cp -r "${src_root}" "${rpm_top}/SOURCES/amd64"
+          rpmbuild --define "_topdir ${rpm_top}" \
+                   --define "_sourcedir ${rpm_top}/SOURCES" \
+                   --target x86_64 \
+                   -bb "${src_root}/rockbox.spec"
+          find "${rpm_top}/RPMS" -name '*.rpm' -exec mv {} . \;
+          for rpm in rockbox-*.rpm; do
+            [ -e "$rpm" ] || continue
+            sha256sum "$rpm" > "${rpm}.sha256"
+          done
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            rockbox_${{ steps.vars.outputs.version }}_amd64-linux.tar.gz
+            rockbox_${{ steps.vars.outputs.version }}_amd64-linux.tar.gz.sha256
+            librockboxd_${{ steps.vars.outputs.version }}_amd64-linux.tar.gz
+            librockboxd_${{ steps.vars.outputs.version }}_amd64-linux.tar.gz.sha256
+            rockbox_${{ steps.vars.outputs.version }}_amd64.deb
+            rockbox_${{ steps.vars.outputs.version }}_amd64.deb.sha256
+            rockbox-*.rpm
+            rockbox-*.rpm.sha256
+          tag_name: ${{ steps.vars.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check Gemfury secrets
+        id: gemfury
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_ACCOUNT: ${{ secrets.FURY_ACCOUNT }}
+        run: |
+          if [ -n "${FURY_TOKEN:-}" ] && [ -n "${FURY_ACCOUNT:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Gemfury secrets not set; skipping push"
+          fi
+      - name: Push .deb and .rpm to Gemfury
+        if: steps.gemfury.outputs.available == 'true'
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_ACCOUNT: ${{ secrets.FURY_ACCOUNT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for pkg in rockbox_*.deb rockbox-*.rpm; do
+            echo "Pushing $pkg to Gemfury (${FURY_ACCOUNT})"
+            curl -fsS -F package=@"${pkg}" \
+              "https://${FURY_TOKEN}@push.fury.io/${FURY_ACCOUNT}/"
+            echo
+          done
