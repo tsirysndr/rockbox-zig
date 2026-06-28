@@ -63,6 +63,8 @@ jobs:
             ~/.cargo/git
             zig/.zig-cache
             target
+            build-lib
+            build-headless
           key: linux-aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-aarch64-cargo-
       - name: Rust flags
@@ -89,17 +91,6 @@ jobs:
         run: cargo build --release -p rockbox-embed
       - name: Build librockboxd.a
         run: cd zig && zig build lib -Doptimize=ReleaseFast
-      - name: Clean build artifacts
-        run: |
-          mkdir -p /tmp/rb-bins
-          cp target/release/rockbox        /tmp/rb-bins/
-          cp zig/zig-out/bin/rockboxd      /tmp/rb-bins/
-          cp zig/zig-out/lib/librockboxd.a /tmp/rb-bins/
-          rm -rf target build-lib build-headless zig/.zig-cache
-          mkdir -p target/release zig/zig-out/bin zig/zig-out/lib
-          mv /tmp/rb-bins/rockbox        target/release/rockbox
-          mv /tmp/rb-bins/rockboxd       zig/zig-out/bin/rockboxd
-          mv /tmp/rb-bins/librockboxd.a  zig/zig-out/lib/librockboxd.a
       - name: Determine version
         id: vars
         run: |

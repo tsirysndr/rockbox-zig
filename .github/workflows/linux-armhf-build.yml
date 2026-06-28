@@ -43,6 +43,10 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            zig/.zig-cache
+            target
+            build-lib
+            build-headless
           key: linux-armhf-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-armhf-cargo-
 

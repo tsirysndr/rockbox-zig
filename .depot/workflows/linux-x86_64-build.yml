@@ -40,6 +40,8 @@ jobs:
             zig/.zig-cache
             target
             gpui/target
+            build-lib
+            build-headless
           key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-x86_64-cargo-
       - name: Install dependencies

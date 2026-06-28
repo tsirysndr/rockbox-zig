@@ -39,6 +39,8 @@ jobs:
             ~/.cargo/git
             zig/.zig-cache
             target
+            build-lib
+            build-headless
           key: linux-aarch64-check-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-aarch64-check-cargo-
       - uses: denoland/setup-deno@v2
@@ -65,15 +67,6 @@ jobs:
         run: bash scripts/build-headless.sh
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
-      - name: Clean build artifacts
-        run: |
-          mkdir -p /tmp/rb-bins
-          cp target/release/rockbox   /tmp/rb-bins/
-          cp zig/zig-out/bin/rockboxd /tmp/rb-bins/
-          rm -rf target build-lib build-headless zig/.zig-cache
-          mkdir -p target/release zig/zig-out/bin
-          mv /tmp/rb-bins/rockbox   target/release/rockbox
-          mv /tmp/rb-bins/rockboxd  zig/zig-out/bin/rockboxd
       - name: Show artifacts
         run: ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
       - name: Upload artifact
