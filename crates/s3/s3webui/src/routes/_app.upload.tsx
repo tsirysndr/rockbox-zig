@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useRef, useState, type DragEvent } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 import { uploadObject } from '../lib/s3'
 import { formatBytes } from '../lib/format'
 
@@ -55,7 +56,7 @@ function UploadPage() {
       setItems((prev) => [
         ...prev,
         ...files.map((f) => ({
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           file: f.file,
           relPath: f.relPath,
           key: normalized + f.relPath,

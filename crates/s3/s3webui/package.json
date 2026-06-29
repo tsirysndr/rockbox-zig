@@ -19,7 +19,8 @@
     "@tanstack/react-router": "^1.170.16",
     "jotai": "^2.20.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.1",
