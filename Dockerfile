@@ -119,5 +119,7 @@ EXPOSE 1705
 EXPOSE 1780
 # navidrome
 EXPOSE 4533
+# jellyfin
+EXPOSE 8096
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
