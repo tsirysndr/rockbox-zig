@@ -8,7 +8,7 @@ ENV DENO_INSTALL="/root/.deno"
 ENV PATH="${DENO_INSTALL}/bin:${PATH}"
 
 WORKDIR /app/webui/rockbox
-COPY webui/rockbox/package.json webui/rockbox/package-lock.json ./
+COPY webui/rockbox/package.json ./
 RUN deno install --allow-scripts
 COPY webui/rockbox/ ./
 RUN deno task build
