@@ -9,6 +9,29 @@ repository.workspace = true
 [lib]
 crate-type = ["rlib"]
 
+[features]
+default = []
+# Optional Jellyfin-compatible HTTP API server. Off by default — clients of
+# this crate only get the discovery/auth client unless they opt in.
+server = [
+  "actix-web",
+  "actix-rt",
+  "actix-cors",
+  "sqlx",
+  "rockbox-library",
+  "rockbox-settings",
+  "uuid",
+  "chrono",
+  "futures",
+  "hex",
+  "mime_guess",
+  "sha2",
+  "urlencoding",
+  "md-5",
+  "if-addrs",
+  "mdns-sd",
+]
+
 [dependencies]
 anyhow = { workspace = true }
 tokio = { workspace = true }
@@ -16,3 +39,19 @@ tracing = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+actix-web = { version = "4", optional = true }
+actix-rt = { version = "2", optional = true }
+actix-cors = { version = "0.7", optional = true }
+sqlx = { version = "0.8.2", optional = true, features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"] }
+rockbox-library = { path = "../library", optional = true }
+rockbox-settings = { path = "../settings", optional = true }
+uuid = { version = "1.3.0", optional = true, features = ["v4"] }
+chrono = { version = "0.4", optional = true, default-features = false, features = ["clock", "serde"] }
+futures = { version = "0.3", optional = true }
+hex = { version = "0.4", optional = true }
+mime_guess = { version = "2", optional = true }
+sha2 = { version = "0.10", optional = true }
+urlencoding = { version = "2", optional = true }
+md-5 = { version = "0.10", optional = true }
+if-addrs = { version = "0.13", optional = true }
+mdns-sd = { version = "0.13", optional = true }

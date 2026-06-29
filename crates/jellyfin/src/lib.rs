@@ -3,6 +3,10 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
+/// Jellyfin-compatible HTTP API server. Opt in via the `server` feature.
+#[cfg(feature = "server")]
+pub mod server;
+
 #[derive(Debug, Clone)]
 pub struct JellyfinServer {
     pub name: String,

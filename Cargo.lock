@@ -6254,6 +6254,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "if-addrs"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69b2eeee38fef3aa9b4cc5f1beea8a2444fc00e7377cafae396de3f5c2065e24"
+dependencies = [
+ "libc",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "if_chain"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7195,6 +7205,20 @@ dependencies = [
  "log",
  "polling 2.8.0",
  "socket2 0.4.10",
+]
+
+[[package]]
+name = "mdns-sd"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "400c6168c6a7d2cd936365dc51e0ee4159830876aac224b5e3e042605dcb73f3"
+dependencies = [
+ "fastrand",
+ "flume 0.11.0",
+ "if-addrs 0.13.4",
+ "log",
+ "mio 1.0.2",
+ "socket2 0.5.7",
 ]
 
 [[package]]
@@ -9584,7 +9608,7 @@ dependencies = [
  "futures-util",
  "libmdns",
  "mdns",
- "mdns-sd",
+ "mdns-sd 0.5.10",
  "rand 0.8.5",
  "tokio",
  "tracing",
@@ -9747,12 +9771,28 @@ dependencies = [
 name = "rockbox-jellyfin"
 version = "0.1.0"
 dependencies = [
+ "actix-cors",
+ "actix-rt",
+ "actix-web",
  "anyhow",
+ "chrono",
+ "futures",
+ "hex",
+ "if-addrs 0.13.4",
+ "md-5",
+ "mdns-sd 0.13.3",
+ "mime_guess",
  "reqwest",
+ "rockbox-library",
+ "rockbox-settings",
  "serde",
  "serde_json",
+ "sha2",
+ "sqlx",
  "tokio",
  "tracing",
+ "urlencoding",
+ "uuid",
 ]
 
 [[package]]
@@ -9760,7 +9800,7 @@ name = "rockbox-kodi"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "mdns-sd",
+ "mdns-sd 0.5.10",
  "reqwest",
  "serde",
  "serde_json",
@@ -9883,7 +9923,7 @@ name = "rockbox-plex"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "mdns-sd",
+ "mdns-sd 0.5.10",
  "reqwest",
  "tokio",
  "tracing",
@@ -9998,6 +10038,7 @@ dependencies = [
  "rockbox-discovery",
  "rockbox-fts5",
  "rockbox-graphql",
+ "rockbox-jellyfin",
  "rockbox-library",
  "rockbox-mpd",
  "rockbox-mpris",
@@ -10074,7 +10115,7 @@ name = "rockbox-types"
 version = "0.1.0"
 dependencies = [
  "local-ip-addr",
- "mdns-sd",
+ "mdns-sd 0.5.10",
  "rockbox-traits",
  "rockbox-typesense",
  "serde",

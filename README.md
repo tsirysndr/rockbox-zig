@@ -45,6 +45,7 @@ and Squeezelite.
 - [x] [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server — compatible with all MPD clients
 - [x] [MPRIS](https://specifications.freedesktop.org/mpris-spec/) — desktop media key and taskbar integration
 - [x] Subsonic/Navidrome API — compatible with Cassette, Symfonium, DSub, Ultrasonic and more
+- [x] Jellyfin-compatible API — works with native Jellyfin clients (Finamp, Findroid, Streamyfin, Amcfy Music, Symfonium); reuses the Subsonic credentials, opt-in by setting `jellyfin_port` (conventionally `8096`) in `settings.toml`, with mDNS + UDP 7359 discovery
 - [x] S3-compatible API — upload / delete audio files from `awscli`, `mc`, `rclone`; the library DB stays in sync automatically
 - [x] Fast search powered by [Typesense](https://typesense.org)
 - [x] Navigate by folders or tag database

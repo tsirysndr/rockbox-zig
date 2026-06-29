@@ -23,6 +23,20 @@ Keys not listed here are ignored.
 | `subsonic_password`   | string | —        | Password; server is **disabled** when this is empty    |
 | `subsonic_port`       | int    | `4533`   | TCP port the Subsonic API listens on                   |
 
+## Jellyfin-compatible API server
+
+| Key             | Type | Default | Description                                                                  |
+| --------------- | ---- | ------- | ---------------------------------------------------------------------------- |
+| `jellyfin_port` | int  | —       | TCP port the Jellyfin-compatible API listens on. **Omit to disable the server.** Conventional value: `8096`. |
+
+The Jellyfin server activates only when `jellyfin_port` is set. It
+reuses `subsonic_username` / `subsonic_password` as its credentials and
+is additionally **disabled** when the password is empty. On startup it
+also binds `udp/7359` for client auto-discovery (`"Who is JellyfinServer?"`)
+and advertises `_jellyfin._tcp.local.` over mDNS. See
+[API reference › Jellyfin](/api-reference/jellyfin/overview) for the
+endpoint surface and the list of tested native clients.
+
 ## S3-compatible API server
 
 | Key               | Type   | Default     | Description                                                    |

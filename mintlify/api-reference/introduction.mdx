@@ -16,6 +16,9 @@ HTTP and MPD.
 | **GraphQL**    | 6062         | Best fit for UIs. Subscriptions for real-time events.|
 | **gRPC**       | 6061         | Strongly-typed, multi-language. gRPC-Web supported.  |
 | **MPD**        | 6600         | Existing MPD clients (`mpc`, `ncmpcpp`, MALP, …).    |
+| **Subsonic**   | 4533         | Cassette, Symfonium, DSub, Ultrasonic, play:sub, …  |
+| **Jellyfin**   | 8096 (opt-in)| Finamp, Findroid, Streamyfin, Amcfy Music, Symfonium.|
+| **S3**         | 9000 (opt-in)| Upload / delete tracks with `awscli`, `mc`, `rclone`.|
 
 <CardGroup cols={2}>
   <Card title="HTTP REST" icon="bolt" href="/api-reference/rest/overview">
@@ -29,6 +32,12 @@ HTTP and MPD.
   </Card>
   <Card title="MPD" icon="terminal" href="/api-reference/mpd/overview">
     Anything that speaks MPD on `localhost:6600`.
+  </Card>
+  <Card title="Jellyfin" icon="film" href="/api-reference/jellyfin/overview">
+    Native Jellyfin clients on `localhost:8096`.
+  </Card>
+  <Card title="S3" icon="cloud-arrow-up" href="/api-reference/s3/overview">
+    Upload tracks via the S3 protocol on `localhost:9000`.
   </Card>
 </CardGroup>
 

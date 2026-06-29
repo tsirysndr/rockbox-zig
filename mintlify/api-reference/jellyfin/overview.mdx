@@ -1,0 +1,111 @@
+---
+title: "Jellyfin-compatible API"
+description: "Optional sidecar HTTP server that speaks the Jellyfin protocol so native Jellyfin clients can browse and stream your library."
+icon: 'film'
+---
+
+Rockbox can act as a Jellyfin server for native Jellyfin clients on your
+LAN. Internally it's a thin actix-web shim over the same `rockbox-library`
+SQLite database the Subsonic API reads from — there's no separate scan,
+no separate user store, and no extra daemon to manage.
+
+## Enabling
+
+Set `jellyfin_port` in `~/.config/rockbox.org/settings.toml`:
+
+```toml
+subsonic_username = "admin"
+subsonic_password = "changeme"
+jellyfin_port     = 8096      # conventional Jellyfin port; pick any free port
+```
+
+Then `rockbox restart`. The server is **disabled** when `jellyfin_port`
+is missing or when `subsonic_password` is empty — credentials are shared
+with the Subsonic side.
+
+## Discovery
+
+When enabled, two discovery mechanisms run alongside the HTTP server:
+
+- **mDNS**: `_jellyfin._tcp.local.` is advertised on the configured port,
+  with a `ID=…` TXT record matching the server's stable Jellyfin id.
+- **UDP 7359**: the server binds the standard Jellyfin client-discovery
+  port and answers the literal probe `"Who is JellyfinServer?"` with a
+  JSON response containing the server's LAN URL.
+
+Both run automatically; nothing to configure.
+
+## Tested clients
+
+| Client       | Platform    | Notes                                                          |
+|--------------|-------------|----------------------------------------------------------------|
+| Finamp       | Android/iOS | Best-tested music client. Full browse + stream + scrobble.     |
+| Symfonium    | Android     | Paid. Works against the Jellyfin API.                          |
+| Amcfy Music  | Android     | Triggers library refresh on `ScheduledTasks/Running`.          |
+| Findroid     | Android     | Video-focused; will show empty libraries because Rockbox is audio-only. |
+| Streamyfin   | Android     | Polls `/Sessions`; works.                                      |
+| Official app | Android     | Not supported — the official app is a WebView around the Jellyfin web UI, which Rockbox doesn't ship. |
+
+For music, use **Finamp** (or Amcfy / Symfonium).
+
+## Endpoint surface
+
+The server implements enough of the [Jellyfin OpenAPI](https://api.jellyfin.org/)
+to satisfy the native music clients above. All authenticated routes accept
+the token via `X-Emby-Token` header, `Authorization: MediaBrowser Token="…"`,
+or `?api_key=…` on streaming URLs. Query parameters work in both
+camelCase (`?parentId=…`) and PascalCase (`?ParentId=…`); repeated keys
+(`?includeItemTypes=Audio&includeItemTypes=MusicAlbum`) are concatenated.
+
+| Group       | Endpoints                                                                 |
+| ----------- | ------------------------------------------------------------------------- |
+| System      | `GET /System/Info`, `GET /System/Info/Public`, `GET /System/Endpoint`     |
+| Auth        | `POST /Users/AuthenticateByName` (+ `authenticatebyname` lowercase alias) |
+| Users       | `GET /Users`, `GET /Users/Public`, `GET /Users/Me`, `GET /Users/{id}`     |
+| Views       | `GET /Users/{id}/Views`, `GET /UserViews`, `GET /Library/MediaFolders`    |
+| Items       | `GET /Items`, `GET /Users/{id}/Items`, `GET /Items/{id}`, `GET /Items/Latest`, `GET /Items/Suggestions`, `GET /Items/{id}/File`, `GET /Items/{id}/Download`, `GET /Items/{id}/Images/{kind}` |
+| Audio       | `GET /Audio/{id}/stream`, `/stream.{ext}`, `/universal` (Range-aware)     |
+| Artists     | `GET /Artists`, `GET /Artists/AlbumArtists`, `GET /Artists/{name}`        |
+| Search      | `GET /Search/Hints`, `GET /Items?searchTerm=…`                            |
+| Playback    | `GET POST /Items/{id}/PlaybackInfo`                                       |
+| Sessions    | `GET /Sessions`, `POST /Sessions/Capabilities/Full`, `POST /Sessions/Playing{,/Progress,/Stopped}` |
+| Tasks       | `POST /ScheduledTasks/Running/{id}`, `POST /Library/Refresh`              |
+| Discovery   | UDP `7359` probe responder, mDNS `_jellyfin._tcp.local.` advertisement    |
+
+Item IDs are deterministic dashed UUIDs derived from the native
+`Artist/Album/Track` ids, and round-tripped via a `jf_guids` lookup
+table so subsequent requests resolve back to the right row.
+
+## Quick test
+
+```sh
+# Discover the server (or just `curl http://<host>:8096/System/Info/Public`)
+echo -n 'Who is JellyfinServer?' | nc -u -w1 -b 255.255.255.255 7359
+
+# Authenticate
+TOKEN=$(curl -s -X POST http://localhost:8096/Users/AuthenticateByName \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: MediaBrowser Client="curl", Device="d", DeviceId="i", Version="0.1"' \
+  -d '{"Username":"admin","Pw":"changeme"}' \
+  | jq -r .AccessToken)
+
+# List libraries (returns the synthetic "Music" CollectionFolder)
+curl -s -H "X-Emby-Token: $TOKEN" "http://localhost:8096/Users/me/Views" | jq
+
+# List all artists
+curl -s -H "X-Emby-Token: $TOKEN" \
+  "http://localhost:8096/Items?includeItemTypes=MusicArtist" | jq '.Items[].Name'
+```
+
+## What's not supported
+
+- **Video** — Rockbox is an audio-only player. Video libraries and the
+  `/Videos/{id}/stream` endpoint family are not implemented.
+- **Transcoding** — only direct play. `MediaSource.SupportsTranscoding`
+  is `false`; clients must support the container natively.
+- **WebSocket notifications** (`/socket`) — clients fall back to polling
+  `/Sessions`, which is supported.
+- **Multi-user** — there is a single synthetic user matching
+  `subsonic_username`. Token storage is real (persisted in
+  `jellyfin_tokens`), but every token belongs to the same user.
+- **Playlists, lyrics, parental ratings, sync, live TV** — out of scope.

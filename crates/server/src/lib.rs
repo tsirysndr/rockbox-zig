@@ -606,6 +606,19 @@ pub extern "C" fn start_servers() {
             .enable_all()
             .build()
             .unwrap();
+        match runtime.block_on(rockbox_jellyfin::server::start()) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error starting Jellyfin API server: {}", e);
+            }
+        }
+    });
+
+    thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         match runtime.block_on(rockbox_s3::start()) {
             Ok(_) => {}
             Err(e) => {

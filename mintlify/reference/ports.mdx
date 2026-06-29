@@ -12,6 +12,8 @@ icon: 'plug'
 | MPD server                             | 6600  | MPD protocol       | `ROCKBOX_MPD_PORT`          |
 | Subsonic / Navidrome API               | 4533  | HTTP               | `subsonic_port`             |
 | S3-compatible API                      | 9000  | HTTP               | `s3_port`                   |
+| Jellyfin-compatible API (opt-in)       | 8096  | HTTP               | `jellyfin_port` — omit to disable |
+| Jellyfin client discovery              | 7359  | UDP                | (fixed — bound when Jellyfin is enabled) |
 | CMAF (HLS + DASH)                      | 7882  | HTTP               | `cmaf_http_port`            |
 | Slim Protocol (squeezelite)            | 3483  | TCP                | `squeezelite_port`          |
 | HTTP PCM stream (squeezelite)          | 9999  | HTTP               | `squeezelite_http_port`     |
@@ -28,6 +30,7 @@ Rockbox both **advertises** and **scans for** the following on the LAN:
 | Service                       | Service type                    | Direction          |
 |-------------------------------|---------------------------------|--------------------|
 | Rockbox itself                | `_rockbox._tcp.local.`          | advertise          |
+| Jellyfin server (this one)    | `_jellyfin._tcp.local.`         | advertise          |
 | Chromecast                    | `_googlecast._tcp.local.`       | scan               |
 | AirPlay (RAOP)                | `_raop._tcp.local.`             | scan               |
 | Squeezelite players           | `_slim._tcp.local.`             | scan               |
@@ -44,6 +47,7 @@ inbound on these is needed:
 - `6063/tcp` — for the REST API
 - `6600/tcp` — for MPD clients
 - `4533/tcp` — for Subsonic/Navidrome clients (Cassette, Symfonium, DSub, …)
+- `8096/tcp` — for Jellyfin clients (Finamp, Findroid, Streamyfin, Amcfy, Symfonium); also `7359/udp` if you want client auto-discovery
 - `9000/tcp` — for the S3-compatible API (awscli, mc, rclone) when `s3_enabled = true`
 - `7882/tcp` — for HLS / DASH in-browser playback (when `audio_output = "cmaf"`)
 - `5353/udp` — mDNS (multicast)

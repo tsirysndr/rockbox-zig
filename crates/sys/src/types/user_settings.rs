@@ -743,6 +743,10 @@ pub struct NewGlobalSettings {
     pub subsonic_password: Option<String>,
     /// Port for the Subsonic-compatible API server (default: 4533).
     pub subsonic_port: Option<u16>,
+    /// Port for the Jellyfin-compatible API server (default: 8096). The
+    /// server reuses `subsonic_username` / `subsonic_password` as the
+    /// Jellyfin credentials, so it activates whenever those are set.
+    pub jellyfin_port: Option<u16>,
     /// HTTP port for the CMAF sink (HLS + DASH manifests + fMP4 segments). Default: 7882.
     pub cmaf_http_port: Option<u16>,
     /// AAC-LC bitrate for the CMAF sink, in bits/sec. Default: 128000.
@@ -830,6 +834,7 @@ impl From<UserSettings> for NewGlobalSettings {
             subsonic_username: None,
             subsonic_password: None,
             subsonic_port: None,
+            jellyfin_port: None,
             cmaf_http_port: None,
             cmaf_bitrate: None,
             cmaf_segment_dir: None,

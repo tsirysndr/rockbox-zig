@@ -99,6 +99,7 @@
               "api-reference/graphql/overview",
               "api-reference/grpc/overview",
               "api-reference/mpd/overview",
+              "api-reference/jellyfin/overview",
               "api-reference/s3/overview"
             ]
           },
