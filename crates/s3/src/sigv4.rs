@@ -228,6 +228,10 @@ fn canonical_query(query: &str) -> String {
     if query.is_empty() {
         return String::new();
     }
+    // X-Amz-Signature is excluded: for presigned URLs the signature is appended
+    // AFTER the canonical query string is built, so including it here would
+    // never match the client's signature (browsers using the AWS SDK produce
+    // 403 SignatureDoesNotMatch on PUT without this skip).
     let mut pairs: Vec<(String, String)> = query
         .split('&')
         .filter(|p| !p.is_empty())
@@ -237,6 +241,7 @@ fn canonical_query(query: &str) -> String {
             let v = it.next().unwrap_or("");
             (decode(k), decode(v))
         })
+        .filter(|(k, _)| k != "X-Amz-Signature")
         .collect();
     pairs.sort();
     pairs

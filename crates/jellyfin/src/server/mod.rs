@@ -8,7 +8,7 @@ pub mod handlers;
 pub mod mapping;
 
 use actix_cors::Cors;
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
 use rockbox_library::create_connection_pool;
 use rockbox_settings::read_settings;
 use sqlx::{Executor, Pool, Sqlite};
@@ -96,12 +96,30 @@ pub async fn start() -> anyhow::Result<()> {
             .app_data(state.clone())
             .wrap(Cors::permissive())
             .configure(configure_routes)
+            .default_service(web::to(log_unrouted))
     })
     .bind(&addr)?
     .run()
     .await?;
 
     Ok(())
+}
+
+/// Log every request that no registered route matched. Lets us see exactly
+/// what URL a client (Moonfin, Findroid, etc.) hits when something appears
+/// missing — `tracing::warn!` so it shows up at default RUST_LOG level.
+async fn log_unrouted(req: HttpRequest) -> HttpResponse {
+    tracing::warn!(
+        "jellyfin: 404 {} {}{}",
+        req.method(),
+        req.path(),
+        if req.query_string().is_empty() {
+            String::new()
+        } else {
+            format!("?{}", req.query_string())
+        },
+    );
+    HttpResponse::NotFound().finish()
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
@@ -164,6 +182,24 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route("/Items/Suggestions", web::get().to(handlers::empty_items))
         .route("/Items/Resume", web::get().to(handlers::empty_items))
         .route("/Items/Latest", web::get().to(handlers::items_latest))
+        .route("/Items/Prefixes", web::get().to(handlers::items_prefixes))
+        // Item-detail rails that clients probe. We have no extras / similar /
+        // intros / chapter markers, so empty results are correct — but they
+        // must be ROUTED so they don't show up in the unrouted-404 log.
+        .route(
+            "/Items/{id}/SpecialFeatures",
+            web::get().to(handlers::empty_array),
+        )
+        .route(
+            "/Items/{id}/Ancestors",
+            web::get().to(handlers::empty_array),
+        )
+        .route("/Items/{id}/Similar", web::get().to(handlers::empty_items))
+        .route(
+            "/Users/{uid}/Items/{id}/Intros",
+            web::get().to(handlers::empty_items),
+        )
+        .route("/MediaSegments/{id}", web::get().to(handlers::empty_items))
         .route(
             "/Items/{id}/File",
             web::get().to(handlers::item_file_stream),
@@ -201,6 +237,12 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         // Artists
         .route("/Artists", web::get().to(handlers::artists))
         .route("/Artists/AlbumArtists", web::get().to(handlers::artists))
+        // Some clients ask for the artist alpha-jump rail via `/Artists/Prefixes`
+        // instead of `/Items/Prefixes?IncludeItemTypes=MusicArtist`. Same data.
+        .route(
+            "/Artists/Prefixes",
+            web::get().to(handlers::artists_prefixes),
+        )
         .route("/Artists/{name}", web::get().to(handlers::artist_by_name))
         // Images — register both Items and items (lowercase used by Findroid).
         .route(
@@ -293,5 +335,18 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         )
         .route("/Playlists", web::get().to(handlers::empty_items))
         .route("/Genres", web::get().to(handlers::empty_items))
-        .route("/MusicGenres", web::get().to(handlers::empty_items));
+        .route("/MusicGenres", web::get().to(handlers::empty_items))
+        // /System/Ping is the canonical Jellyfin heartbeat — plain text body.
+        .route("/System/Ping", web::get().to(handlers::system_ping))
+        .route("/System/Ping", web::head().to(handlers::system_ping))
+        // Endpoints we deliberately 404 but want routed (no log noise):
+        //  - /socket: WebSocket live updates; clients fall back to polling
+        //  - /Moonfin/Ping: Moonfin's own client-side probe (not in spec)
+        //  - /Users/{id}/Images/*: no user avatars stored
+        .route("/socket", web::get().to(handlers::not_found))
+        .route("/Moonfin/Ping", web::get().to(handlers::not_found))
+        .route(
+            "/Users/{id}/Images/{kind}",
+            web::get().to(handlers::not_found),
+        );
 }

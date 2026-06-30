@@ -5,6 +5,7 @@ pub mod artist_tracks;
 pub mod favourites;
 pub mod folder;
 pub mod genre;
+pub(crate) mod name_filter;
 pub mod playlist;
 pub mod playlist_tracks;
 pub mod track;

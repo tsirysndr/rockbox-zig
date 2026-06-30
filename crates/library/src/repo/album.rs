@@ -176,6 +176,83 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
     }
 }
 
+/// Paginated album list narrowed by Jellyfin's alpha-jump filter params —
+/// see [`super::artist::filtered`] for the parameter semantics.
+pub async fn filtered(
+    pool: Pool<Sqlite>,
+    name_starts_with: Option<&str>,
+    name_starts_with_or_greater: Option<&str>,
+    name_less_than: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<Album>, sqlx::Error> {
+    let (where_sql, binds) = super::name_filter::sql(
+        "title",
+        name_starts_with,
+        name_starts_with_or_greater,
+        name_less_than,
+    );
+    let limit_idx = binds.len() + 1;
+    let offset_idx = binds.len() + 2;
+    let sql = format!(
+        "SELECT * FROM album WHERE EXISTS (
+           SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+         ) {extra}
+         ORDER BY title COLLATE NOCASE LIMIT ?{limit_idx} OFFSET ?{offset_idx}",
+        extra = if where_sql.is_empty() {
+            String::new()
+        } else {
+            format!("AND {}", where_sql.trim_start_matches("WHERE "))
+        }
+    );
+    let mut q = sqlx::query_as::<_, Album>(&sql);
+    for b in &binds {
+        q = q.bind(b);
+    }
+    q.bind(limit).bind(offset).fetch_all(&pool).await
+}
+
+pub async fn count_filtered(
+    pool: Pool<Sqlite>,
+    name_starts_with: Option<&str>,
+    name_starts_with_or_greater: Option<&str>,
+    name_less_than: Option<&str>,
+) -> Result<i64, sqlx::Error> {
+    let (where_sql, binds) = super::name_filter::sql(
+        "title",
+        name_starts_with,
+        name_starts_with_or_greater,
+        name_less_than,
+    );
+    let sql = format!(
+        "SELECT COUNT(*) FROM album WHERE EXISTS (
+           SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+         ) {extra}",
+        extra = if where_sql.is_empty() {
+            String::new()
+        } else {
+            format!("AND {}", where_sql.trim_start_matches("WHERE "))
+        }
+    );
+    let mut q = sqlx::query_scalar::<_, i64>(&sql);
+    for b in &binds {
+        q = q.bind(b);
+    }
+    q.fetch_one(&pool).await
+}
+
+pub async fn name_prefixes(pool: Pool<Sqlite>) -> Result<Vec<String>, sqlx::Error> {
+    super::name_filter::prefixes(
+        &pool,
+        "album",
+        "title",
+        Some(
+            "EXISTS (SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0)",
+        ),
+    )
+    .await
+}
+
 pub async fn update_album_art(
     pool: Pool<Sqlite>,
     id: &str,

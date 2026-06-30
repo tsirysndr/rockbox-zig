@@ -327,6 +327,10 @@ pub async fn library_virtual_folders(
 pub struct ItemsQuery {
     pub parent_id: Option<String>,
     pub include_item_types: Option<String>,
+    pub media_types: Option<String>,
+    pub name_starts_with: Option<String>,
+    pub name_starts_with_or_greater: Option<String>,
+    pub name_less_than: Option<String>,
     pub recursive: Option<bool>,
     pub search_term: Option<String>,
     pub ids: Option<String>,
@@ -367,6 +371,11 @@ fn parse_items_query(req: &HttpRequest) -> ItemsQuery {
     ItemsQuery {
         parent_id: one("parentId").or_else(|| one("ParentId")),
         include_item_types: csv("includeItemTypes").or_else(|| csv("IncludeItemTypes")),
+        media_types: csv("mediaTypes").or_else(|| csv("MediaTypes")),
+        name_starts_with: one("nameStartsWith").or_else(|| one("NameStartsWith")),
+        name_starts_with_or_greater: one("nameStartsWithOrGreater")
+            .or_else(|| one("NameStartsWithOrGreater")),
+        name_less_than: one("nameLessThan").or_else(|| one("NameLessThan")),
         recursive: parse_bool("recursive"),
         search_term: one("searchTerm").or_else(|| one("SearchTerm")),
         ids: csv("ids").or_else(|| csv("Ids")),
@@ -616,6 +625,7 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
         && q.ids.is_none()
         && q.search_term.is_none()
         && q.include_item_types.is_none()
+        && q.media_types.is_none()
         && q.album_artist_ids.is_none()
         && q.artist_ids.is_none()
         && q.album_ids.is_none()
@@ -810,20 +820,19 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
 }
 
 async fn list_artists_or_albums_or_tracks(state: &JellyfinState, q: &ItemsQuery) -> HttpResponse {
-    let limit = q.limit.unwrap_or(100).max(1) as usize;
-    let offset = q.start_index.unwrap_or(0).max(0) as usize;
+    let limit = q.limit.unwrap_or(100).max(1);
+    let offset = q.start_index.unwrap_or(0).max(0);
+    let starts = q.name_starts_with.as_deref();
+    let geq = q.name_starts_with_or_greater.as_deref();
+    let lt = q.name_less_than.as_deref();
 
     if includes(&q.include_item_types, "Audio") {
-        let mut tracks = repo::track::all(state.pool.clone())
+        let tracks = repo::track::filtered(state.pool.clone(), starts, geq, lt, limit, offset)
             .await
             .unwrap_or_default();
-        let total = tracks.len() as i32;
-        if offset < tracks.len() {
-            tracks = tracks.split_off(offset);
-        } else {
-            tracks.clear();
-        }
-        tracks.truncate(limit);
+        let total = repo::track::count_filtered(state.pool.clone(), starts, geq, lt)
+            .await
+            .unwrap_or(0) as i32;
         let mut dtos = Vec::with_capacity(tracks.len());
         for t in &tracks {
             dtos.push(track_to_dto(state, t).await);
@@ -835,16 +844,12 @@ async fn list_artists_or_albums_or_tracks(state: &JellyfinState, q: &ItemsQuery)
         });
     }
     if includes(&q.include_item_types, "MusicAlbum") {
-        let mut albums = repo::album::all(state.pool.clone())
+        let albums = repo::album::filtered(state.pool.clone(), starts, geq, lt, limit, offset)
             .await
             .unwrap_or_default();
-        let total = albums.len() as i32;
-        if offset < albums.len() {
-            albums = albums.split_off(offset);
-        } else {
-            albums.clear();
-        }
-        albums.truncate(limit);
+        let total = repo::album::count_filtered(state.pool.clone(), starts, geq, lt)
+            .await
+            .unwrap_or(0) as i32;
         let mut dtos = Vec::with_capacity(albums.len());
         for a in &albums {
             dtos.push(album_to_dto(state, a).await);
@@ -855,18 +860,20 @@ async fn list_artists_or_albums_or_tracks(state: &JellyfinState, q: &ItemsQuery)
             start_index: offset as i32,
         });
     }
-    let artists = repo::artist::all(state.pool.clone())
+    let artists = repo::artist::filtered(state.pool.clone(), starts, geq, lt, limit, offset)
         .await
         .unwrap_or_default();
+    let total = repo::artist::count_filtered(state.pool.clone(), starts, geq, lt)
+        .await
+        .unwrap_or(0) as i32;
     let mut dtos = Vec::with_capacity(artists.len());
     for a in &artists {
         dtos.push(artist_to_dto(state, a).await);
     }
-    let total = dtos.len() as i32;
     HttpResponse::Ok().json(ItemsResult {
         items: dtos,
         total_record_count: total,
-        start_index: 0,
+        start_index: offset as i32,
     })
 }
 
@@ -875,12 +882,27 @@ fn like_pattern(term: &str) -> String {
     format!("%{}%", escaped)
 }
 
+/// If `guid` matches the music library's virtual GUID, return its
+/// CollectionFolder DTO. Some clients (e.g. Moonfin) first fetch the library
+/// item itself when you tap its tile; without this early-return they got 404
+/// and the whole library page failed to render.
+fn library_view_for(state: &JellyfinState, guid: &str) -> Option<BaseItemDto> {
+    if guid == mapping::library_guid() {
+        Some(music_library_view(state))
+    } else {
+        None
+    }
+}
+
 pub async fn item_by_id(
     _user: AuthedUser,
     state: web::Data<JellyfinState>,
     path: web::Path<String>,
 ) -> HttpResponse {
     let g = mapping::normalize_guid(&path.into_inner());
+    if let Some(view) = library_view_for(&state, &g) {
+        return HttpResponse::Ok().json(view);
+    }
     let Some((kind, native)) = resolve_native(&state, &g).await else {
         return HttpResponse::NotFound().finish();
     };
@@ -908,6 +930,9 @@ pub async fn user_item_by_id(
 ) -> HttpResponse {
     let (_user_id, item_id) = path.into_inner();
     let g = mapping::normalize_guid(&item_id);
+    if let Some(view) = library_view_for(&state, &g) {
+        return HttpResponse::Ok().json(view);
+    }
     let Some((kind, native)) = resolve_native(&state, &g).await else {
         return HttpResponse::NotFound().finish();
     };
@@ -933,21 +958,77 @@ pub async fn user_item_by_id(
 pub async fn artists(
     _user: AuthedUser,
     state: web::Data<JellyfinState>,
-    _req: HttpRequest,
+    req: HttpRequest,
 ) -> HttpResponse {
-    let artists = repo::artist::all(state.pool.clone())
+    let q = parse_items_query(&req);
+    let limit = q.limit.unwrap_or(500).max(1);
+    let offset = q.start_index.unwrap_or(0).max(0);
+    let starts = q.name_starts_with.as_deref();
+    let geq = q.name_starts_with_or_greater.as_deref();
+    let lt = q.name_less_than.as_deref();
+    let artists = repo::artist::filtered(state.pool.clone(), starts, geq, lt, limit, offset)
         .await
         .unwrap_or_default();
+    let total = repo::artist::count_filtered(state.pool.clone(), starts, geq, lt)
+        .await
+        .unwrap_or(0) as i32;
     let mut dtos = Vec::with_capacity(artists.len());
     for a in &artists {
         dtos.push(artist_to_dto(&state, a).await);
     }
-    let total = dtos.len() as i32;
     HttpResponse::Ok().json(ItemsResult {
         items: dtos,
         total_record_count: total,
-        start_index: 0,
+        start_index: offset as i32,
     })
+}
+
+/// `/Items/Prefixes?ParentId=<lib>&IncludeItemTypes=...` — populates a
+/// client's alpha-jump rail. Returns the distinct uppercase first letters
+/// that actually exist for the requested item type, with "#" for non-alpha
+/// names. Response shape: `[{"Name":"A"}, …]`.
+pub async fn items_prefixes(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let q = parse_items_query(&req);
+    let parent_is_music = q
+        .parent_id
+        .as_deref()
+        .map(mapping::normalize_guid)
+        .map(|g| g == mapping::library_guid())
+        .unwrap_or(false);
+
+    let letters = if includes(&q.include_item_types, "MusicAlbum") {
+        repo::album::name_prefixes(state.pool.clone()).await
+    } else if includes(&q.include_item_types, "Audio") {
+        repo::track::name_prefixes(state.pool.clone()).await
+    } else if includes(&q.include_item_types, "MusicArtist")
+        || includes(&q.include_item_types, "AlbumArtist")
+        || parent_is_music
+    {
+        repo::artist::name_prefixes(state.pool.clone()).await
+    } else {
+        Ok(Vec::new())
+    };
+
+    let items: Vec<Value> = letters
+        .unwrap_or_default()
+        .into_iter()
+        .map(|n| json!({ "Name": n }))
+        .collect();
+    HttpResponse::Ok().json(items)
+}
+
+/// `/Artists/Prefixes` — same as `/Items/Prefixes?IncludeItemTypes=MusicArtist`
+/// but the URL itself implies the type, so no query-string hints are needed.
+pub async fn artists_prefixes(_user: AuthedUser, state: web::Data<JellyfinState>) -> HttpResponse {
+    let letters = repo::artist::name_prefixes(state.pool.clone())
+        .await
+        .unwrap_or_default();
+    let items: Vec<Value> = letters.into_iter().map(|n| json!({ "Name": n })).collect();
+    HttpResponse::Ok().json(items)
 }
 
 pub async fn artist_by_name(
@@ -1287,6 +1368,23 @@ pub async fn empty_items() -> HttpResponse {
 
 pub async fn no_content() -> HttpResponse {
     HttpResponse::NoContent().finish()
+}
+
+/// Routed 404 — same wire result as the default service, but bypasses the
+/// `log_unrouted` warning. Use for endpoints that *should* respond 404
+/// (no user avatar, unsupported WebSocket upgrade) so the log stays
+/// focused on genuinely missing paths.
+pub async fn not_found() -> HttpResponse {
+    HttpResponse::NotFound().finish()
+}
+
+/// `GET/HEAD /System/Ping` — Jellyfin's heartbeat. Reference server returns
+/// plain text "Jellyfin Server"; some clients (Moonfin, official web) use
+/// this to decide if the server is reachable.
+pub async fn system_ping() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body("Jellyfin Server")
 }
 
 pub async fn branding_config() -> HttpResponse {
