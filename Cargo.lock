@@ -9784,6 +9784,7 @@ dependencies = [
  "mime_guess",
  "reqwest",
  "rockbox-library",
+ "rockbox-playlists",
  "rockbox-settings",
  "serde",
  "serde_json",

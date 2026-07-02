@@ -8,6 +8,7 @@ use sqlx::{Pool, Sqlite};
 pub const KIND_ARTIST: &str = "artist";
 pub const KIND_ALBUM: &str = "album";
 pub const KIND_TRACK: &str = "track";
+pub const KIND_PLAYLIST: &str = "playlist";
 pub const KIND_LIBRARY: &str = "library";
 pub const KIND_USER: &str = "user";
 
@@ -96,6 +97,24 @@ pub fn library_guid() -> String {
     guid(KIND_LIBRARY, "music")
 }
 
+pub fn playlists_library_guid() -> String {
+    guid(KIND_LIBRARY, "playlists")
+}
+
 pub fn user_guid(username: &str) -> String {
     guid(KIND_USER, username)
+}
+
+pub async fn remember_playlist(pool: &Pool<Sqlite>, native_id: &str) -> anyhow::Result<String> {
+    remember(pool, KIND_PLAYLIST, native_id).await
+}
+
+/// Deterministic per-entry GUID for `PlaylistItemId`. Emby / Jellyfin clients
+/// pass this back in `EntryIds` when removing or moving items. Reversible on
+/// the server side by iterating the playlist once and matching the GUID.
+pub fn playlist_entry_guid(playlist_native_id: &str, position: i64) -> String {
+    guid(
+        "playlist_entry",
+        &format!("{playlist_native_id}:{position}"),
+    )
 }

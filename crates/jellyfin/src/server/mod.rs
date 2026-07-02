@@ -4,12 +4,14 @@
 pub mod auth;
 pub mod discovery;
 pub mod dto;
+pub mod favorites;
 pub mod handlers;
 pub mod mapping;
 
 use actix_cors::Cors;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
 use rockbox_library::create_connection_pool;
+use rockbox_playlists::PlaylistStore;
 use rockbox_settings::read_settings;
 use sqlx::{Executor, Pool, Sqlite};
 use std::path::PathBuf;
@@ -24,6 +26,9 @@ pub struct JellyfinState {
     pub server_name: String,
     pub user_id: Arc<String>,
     pub port: u16,
+    /// Playlists CRUD backend — same store the Subsonic bridge uses so the
+    /// two APIs see one another's writes.
+    pub playlist_store: PlaylistStore,
 }
 
 pub async fn start() -> anyhow::Result<()> {
@@ -63,10 +68,15 @@ pub async fn start() -> anyhow::Result<()> {
         "../../migrations/20260629000000_jellyfin_tables.sql"
     ))
     .await?;
+    pool.execute(include_str!(
+        "../../migrations/20260702000000_add_jf_favorites.sql"
+    ))
+    .await?;
 
     let server_id = auth::ensure_server_id(&pool).await?;
     let user_id = mapping::user_guid(&username);
     let addr = format!("0.0.0.0:{port}");
+    let playlist_store = PlaylistStore::new(pool.clone());
 
     let state = web::Data::new(JellyfinState {
         pool,
@@ -77,6 +87,7 @@ pub async fn start() -> anyhow::Result<()> {
         server_name: server_name.clone(),
         user_id: Arc::new(user_id),
         port,
+        playlist_store,
     });
 
     tracing::info!("Jellyfin API server listening on {addr} (id={server_id})");
@@ -213,6 +224,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             web::get().to(handlers::item_file_stream),
         )
         .route("/Items/{id}", web::get().to(handlers::item_by_id))
+        // DELETE /Items/{id} — Jellyfin uses this to delete playlists (they
+        // are `BaseItem`s). Tracks/albums/artists are read-only over this API
+        // and get 403 here.
+        .route("/Items/{id}", web::delete().to(handlers::delete_item))
         .route("/Users/{id}/Items", web::get().to(handlers::user_items))
         .route(
             "/Users/{id}/Items/Resume",
@@ -292,6 +307,25 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/Audio/{id}/universal",
             web::head().to(handlers::audio_universal),
         )
+        // Favorites — spec-modern + legacy (pre-10.9) paths. Both accept
+        // the same set of item kinds (Audio/MusicAlbum/MusicArtist/Playlist)
+        // and return the freshly-updated UserItemDataDto.
+        .route(
+            "/UserFavoriteItems/{id}",
+            web::post().to(handlers::mark_favorite),
+        )
+        .route(
+            "/UserFavoriteItems/{id}",
+            web::delete().to(handlers::unmark_favorite),
+        )
+        .route(
+            "/Users/{uid}/FavoriteItems/{id}",
+            web::post().to(handlers::mark_favorite_legacy),
+        )
+        .route(
+            "/Users/{uid}/FavoriteItems/{id}",
+            web::delete().to(handlers::unmark_favorite_legacy),
+        )
         // Sessions / scrobble
         .route("/Sessions", web::get().to(handlers::sessions_list))
         .route(
@@ -333,7 +367,42 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/DisplayPreferences/{id}",
             web::get().to(handlers::displaypreferences),
         )
-        .route("/Playlists", web::get().to(handlers::empty_items))
+        // Playlists — modelled after the Jellyfin OpenAPI Playlists tag.
+        // Order matters: specific `/Playlists/{id}/…` paths must precede the
+        // catch-all `/Playlists/{id}` GET.
+        .route("/Playlists", web::get().to(handlers::playlists_list))
+        .route(
+            "/Playlists",
+            web::post().to(handlers::create_playlist_endpoint),
+        )
+        .route(
+            "/Playlists/{id}/Items",
+            web::get().to(handlers::playlist_items),
+        )
+        .route(
+            "/Playlists/{id}/Items",
+            web::post().to(handlers::add_playlist_items),
+        )
+        .route(
+            "/Playlists/{id}/Items",
+            web::delete().to(handlers::remove_playlist_items),
+        )
+        .route(
+            "/Playlists/{id}/Items/{item_id}/Move/{new_index}",
+            web::post().to(handlers::move_playlist_item),
+        )
+        .route(
+            "/Playlists/{id}/Users",
+            web::get().to(handlers::playlist_users),
+        )
+        .route(
+            "/Playlists/{id}",
+            web::get().to(handlers::get_playlist_endpoint),
+        )
+        .route(
+            "/Playlists/{id}",
+            web::post().to(handlers::update_playlist_endpoint),
+        )
         .route("/Genres", web::get().to(handlers::empty_items))
         .route("/MusicGenres", web::get().to(handlers::empty_items))
         // /System/Ping is the canonical Jellyfin heartbeat — plain text body.

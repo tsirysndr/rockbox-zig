@@ -5,6 +5,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::Utc;
 use rockbox_library::entity::{album::Album, artist::Artist, track::Track};
 use rockbox_library::repo;
+use rockbox_playlists::Playlist;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::path::PathBuf;
@@ -12,8 +13,9 @@ use std::path::PathBuf;
 use super::auth::{self, AuthedUser, EmbyAuth};
 use super::dto::{
     AuthenticationResult, BaseItemDto, ImageBlurHashes, ImageTags, ItemsResult, MediaSource,
-    MediaStream, NameGuidPair, PlaybackInfoResponse, PublicSystemInfo, SessionInfoDto, SystemInfo,
-    UserConfiguration, UserDto, UserItemDataDto, UserPolicy, ViewsResult, JELLYFIN_API_VERSION,
+    MediaStream, NameGuidPair, PlaybackInfoResponse, PlaylistCreationResult, PublicSystemInfo,
+    SessionInfoDto, SystemInfo, UserConfiguration, UserDto, UserItemDataDto, UserPolicy,
+    ViewsResult, JELLYFIN_API_VERSION,
 };
 use super::mapping;
 use super::JellyfinState;
@@ -270,8 +272,26 @@ fn music_library_view(state: &JellyfinState) -> BaseItemDto {
     }
 }
 
+/// Virtual "Playlists" library. Jellyfin's reference server auto-creates
+/// this view so clients (Moonfin, Findroid, official web) render playlists
+/// as a top-level tile alongside Music. `CollectionType` is the spec enum
+/// value `"playlists"` (plural).
+fn playlists_library_view(state: &JellyfinState) -> BaseItemDto {
+    BaseItemDto {
+        id: mapping::playlists_library_guid(),
+        server_id: Some(state.server_id.clone()),
+        name: Some("Playlists".to_string()),
+        item_type: "CollectionFolder",
+        media_type: "Unknown",
+        is_folder: Some(true),
+        collection_type: Some("playlists"),
+        location_type: Some("FileSystem"),
+        ..Default::default()
+    }
+}
+
 fn all_library_views(state: &JellyfinState) -> Vec<BaseItemDto> {
-    vec![music_library_view(state)]
+    vec![music_library_view(state), playlists_library_view(state)]
 }
 
 pub async fn user_views(
@@ -312,12 +332,20 @@ pub async fn library_virtual_folders(
     _user: AuthedUser,
     state: web::Data<JellyfinState>,
 ) -> HttpResponse {
-    HttpResponse::Ok().json(vec![json!({
-        "Name": "Music",
-        "Locations": [state.music_dir.to_string_lossy()],
-        "CollectionType": "music",
-        "ItemId": mapping::library_guid(),
-    })])
+    HttpResponse::Ok().json(vec![
+        json!({
+            "Name": "Music",
+            "Locations": [state.music_dir.to_string_lossy()],
+            "CollectionType": "music",
+            "ItemId": mapping::library_guid(),
+        }),
+        json!({
+            "Name": "Playlists",
+            "Locations": [],
+            "CollectionType": "playlists",
+            "ItemId": mapping::playlists_library_guid(),
+        }),
+    ])
 }
 
 // ── Items query (custom parser — handles repeated keys + Pascal/camelCase) ──
@@ -346,6 +374,9 @@ pub struct ItemsQuery {
     pub enable_total_record_count: Option<bool>,
     pub enable_images: Option<bool>,
     pub fields: Option<String>,
+    /// `IsFavorite=true|false` OR `Filters=IsFavorite,IsLiked,…` — both
+    /// mean "restrict to favorited items". `None` = no filter applied.
+    pub is_favorite: Option<bool>,
 }
 
 fn collect_query(req: &HttpRequest) -> std::collections::HashMap<String, Vec<String>> {
@@ -391,15 +422,57 @@ fn parse_items_query(req: &HttpRequest) -> ItemsQuery {
         enable_total_record_count: parse_bool("enableTotalRecordCount"),
         enable_images: parse_bool("enableImages"),
         fields: csv("fields").or_else(|| csv("Fields")),
+        is_favorite: {
+            // Prefer explicit IsFavorite=…; fall back to Filters=IsFavorite.
+            let direct = parse_bool("isFavorite").or_else(|| parse_bool("IsFavorite"));
+            direct.or_else(|| {
+                let filters = csv("filters").or_else(|| csv("Filters"))?;
+                if filters
+                    .split(',')
+                    .any(|f| f.trim().eq_ignore_ascii_case("IsFavorite"))
+                {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+        },
     }
 }
 
 // ── Track/album/artist → BaseItemDto ────────────────────────────────────────
 
+/// Build a `UserItemDataDto` for a given (kind, native_id). Fills in
+/// `IsFavorite` from the favorites store; all other fields are the
+/// spec-required zero-defaults since rockbox doesn't track per-user
+/// playback progress.
+async fn user_data_for(
+    state: &JellyfinState,
+    kind: &str,
+    native_id: &str,
+    item_guid: &str,
+) -> UserItemDataDto {
+    let is_favorite = super::favorites::is_favorite(&state.pool, kind, native_id).await;
+    UserItemDataDto {
+        rating: None,
+        played_percentage: None,
+        unplayed_item_count: None,
+        playback_position_ticks: 0,
+        play_count: 0,
+        is_favorite,
+        likes: None,
+        last_played_date: None,
+        played: false,
+        key: item_guid.to_string(),
+        item_id: item_guid.to_string(),
+    }
+}
+
 async fn artist_to_dto(state: &JellyfinState, a: &Artist) -> BaseItemDto {
     let id = mapping::remember_artist(&state.pool, a)
         .await
         .unwrap_or_else(|_| mapping::guid(mapping::KIND_ARTIST, &a.id));
+    let user_data = user_data_for(state, mapping::KIND_ARTIST, &a.id, &id).await;
     BaseItemDto {
         id,
         server_id: Some(state.server_id.clone()),
@@ -412,6 +485,7 @@ async fn artist_to_dto(state: &JellyfinState, a: &Artist) -> BaseItemDto {
         image_tags: Some(ImageTags {
             primary: a.image.clone().map(|_| a.id.clone()),
         }),
+        user_data: Some(user_data),
         ..Default::default()
     }
 }
@@ -426,6 +500,7 @@ async fn album_to_dto(state: &JellyfinState, al: &Album) -> BaseItemDto {
         .unwrap_or_default();
     let song_count = tracks.len() as i32;
     let duration_ms: i64 = tracks.iter().map(|t| t.length as i64).sum();
+    let user_data = user_data_for(state, mapping::KIND_ALBUM, &al.id, &id).await;
     BaseItemDto {
         id: id.clone(),
         server_id: Some(state.server_id.clone()),
@@ -464,6 +539,7 @@ async fn album_to_dto(state: &JellyfinState, al: &Album) -> BaseItemDto {
         image_tags: Some(ImageTags {
             primary: al.album_art.clone().map(|_| al.id.clone()),
         }),
+        user_data: Some(user_data),
         ..Default::default()
     }
 }
@@ -502,6 +578,8 @@ async fn track_to_dto(state: &JellyfinState, t: &Track) -> BaseItemDto {
         supports_external_stream: false,
         ..Default::default()
     };
+
+    let user_data = user_data_for(state, mapping::KIND_TRACK, &t.id, &id).await;
 
     let media_source = MediaSource {
         protocol: "File",
@@ -570,19 +648,47 @@ async fn track_to_dto(state: &JellyfinState, t: &Track) -> BaseItemDto {
             primary: t.album_art.clone().map(|_| t.album_id.clone()),
         }),
         image_blur_hashes: Some(ImageBlurHashes::default()),
-        user_data: Some(UserItemDataDto {
-            rating: None,
-            played_percentage: None,
-            unplayed_item_count: None,
-            playback_position_ticks: 0,
-            play_count: 0,
-            is_favorite: false,
-            likes: None,
-            last_played_date: None,
-            played: false,
-            key: id.clone(),
-            item_id: id,
-        }),
+        user_data: Some(user_data),
+        ..Default::default()
+    }
+}
+
+async fn playlist_to_dto(state: &JellyfinState, p: &Playlist) -> BaseItemDto {
+    let id = mapping::remember_playlist(&state.pool, &p.id)
+        .await
+        .unwrap_or_else(|_| mapping::guid(mapping::KIND_PLAYLIST, &p.id));
+    // Sum durations by walking the track list — small O(n) per playlist,
+    // which is fine given typical playlist sizes.
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(&p.id)
+        .await
+        .unwrap_or_default();
+    let mut run_time_ticks: i64 = 0;
+    for tid in &track_ids {
+        if let Ok(Some(t)) = repo::track::find(state.pool.clone(), tid).await {
+            run_time_ticks += (t.length as i64) * TICKS_PER_MS;
+        }
+    }
+    let child_count = track_ids.len() as i32;
+    let user_data = user_data_for(state, mapping::KIND_PLAYLIST, &p.id, &id).await;
+    BaseItemDto {
+        id: id.clone(),
+        server_id: Some(state.server_id.clone()),
+        name: Some(p.name.clone()),
+        item_type: "Playlist",
+        media_type: "Audio",
+        is_folder: Some(true),
+        collection_type: Some("playlist"),
+        location_type: Some("FileSystem"),
+        sort_name: Some(p.name.clone()),
+        date_created: Some(now_iso()),
+        overview: p.description.clone(),
+        child_count: Some(child_count),
+        song_count: Some(child_count),
+        run_time_ticks: Some(run_time_ticks),
+        parent_id: Some(mapping::playlists_library_guid()),
+        user_data: Some(user_data),
         ..Default::default()
     }
 }
@@ -619,6 +725,14 @@ pub async fn user_items(
 
 async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpResponse {
     let library_id = mapping::library_guid();
+    let playlists_id = mapping::playlists_library_guid();
+
+    // `?IsFavorite=true` / `Filters=IsFavorite` — return the union of
+    // favorited items across the requested kinds. Honours
+    // `IncludeItemTypes`; without one, returns favorites of all kinds.
+    if q.is_favorite == Some(true) {
+        return list_favorites(&state, &q).await;
+    }
 
     // `/Items?userId=X` with no filters = list libraries.
     if q.parent_id.is_none()
@@ -699,6 +813,11 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
                             out.push(artist_to_dto(&state, &a).await);
                         }
                     }
+                    "playlist" => {
+                        if let Ok(Some(p)) = state.playlist_store.get(&native).await {
+                            out.push(playlist_to_dto(&state, &p).await);
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -716,6 +835,9 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
         let g = mapping::normalize_guid(parent);
         if g == library_id {
             return list_artists_or_albums_or_tracks(&state, &q).await;
+        }
+        if g == playlists_id {
+            return list_playlists(&state, &q).await;
         }
         if let Some((kind, native)) = resolve_native(&state, &g).await {
             match kind.as_str() {
@@ -749,6 +871,11 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
                         start_index: 0,
                     });
                 }
+                "playlist" => {
+                    // Tapping a playlist tile: return its tracks. Delegates
+                    // to playlist_items via a direct build to avoid re-lookup.
+                    return playlist_items_json(&state, &native, &q).await;
+                }
                 _ => {}
             }
         }
@@ -757,6 +884,11 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
             total_record_count: 0,
             start_index: 0,
         });
+    }
+
+    // No parent: `?IncludeItemTypes=Playlist` returns the flat playlists list.
+    if includes(&q.include_item_types, "Playlist") {
+        return list_playlists(&state, &q).await;
     }
 
     // No parent: filter by artistIds / albumArtistIds.
@@ -889,6 +1021,8 @@ fn like_pattern(term: &str) -> String {
 fn library_view_for(state: &JellyfinState, guid: &str) -> Option<BaseItemDto> {
     if guid == mapping::library_guid() {
         Some(music_library_view(state))
+    } else if guid == mapping::playlists_library_guid() {
+        Some(playlists_library_view(state))
     } else {
         None
     }
@@ -917,6 +1051,10 @@ pub async fn item_by_id(
         },
         "artist" => match repo::artist::find(state.pool.clone(), &native).await {
             Ok(Some(a)) => HttpResponse::Ok().json(artist_to_dto(&state, &a).await),
+            _ => HttpResponse::NotFound().finish(),
+        },
+        "playlist" => match state.playlist_store.get(&native).await {
+            Ok(Some(p)) => HttpResponse::Ok().json(playlist_to_dto(&state, &p).await),
             _ => HttpResponse::NotFound().finish(),
         },
         _ => HttpResponse::NotFound().finish(),
@@ -949,8 +1087,678 @@ pub async fn user_item_by_id(
             Ok(Some(a)) => HttpResponse::Ok().json(artist_to_dto(&state, &a).await),
             _ => HttpResponse::NotFound().finish(),
         },
+        "playlist" => match state.playlist_store.get(&native).await {
+            Ok(Some(p)) => HttpResponse::Ok().json(playlist_to_dto(&state, &p).await),
+            _ => HttpResponse::NotFound().finish(),
+        },
         _ => HttpResponse::NotFound().finish(),
     }
+}
+
+// ── Playlists ───────────────────────────────────────────────────────────────
+
+fn filter_playlists_by_query(playlists: Vec<Playlist>, q: &ItemsQuery) -> Vec<Playlist> {
+    playlists
+        .into_iter()
+        .filter(|p| {
+            let name = p.name.to_lowercase();
+            if let Some(s) = q.name_starts_with.as_deref() {
+                if !name.starts_with(&s.to_lowercase()) {
+                    return false;
+                }
+            }
+            if let Some(s) = q.name_starts_with_or_greater.as_deref() {
+                if name.as_str() < s.to_lowercase().as_str() {
+                    return false;
+                }
+            }
+            if let Some(s) = q.name_less_than.as_deref() {
+                if name.as_str() >= s.to_lowercase().as_str() {
+                    return false;
+                }
+            }
+            true
+        })
+        .collect()
+}
+
+/// `?IsFavorite=true` — return the union of favorited items across
+/// tracks/albums/artists/playlists. `IncludeItemTypes` narrows the set
+/// (defaults to all four); `NameStartsWith*` and pagination are honoured
+/// on the merged list.
+async fn list_favorites(state: &JellyfinState, q: &ItemsQuery) -> HttpResponse {
+    let no_types = q.include_item_types.is_none();
+    let want_track = no_types
+        || includes(&q.include_item_types, "Audio")
+        || includes(&q.include_item_types, "Track");
+    let want_album = no_types || includes(&q.include_item_types, "MusicAlbum");
+    let want_artist = no_types
+        || includes(&q.include_item_types, "MusicArtist")
+        || includes(&q.include_item_types, "AlbumArtist");
+    let want_playlist = no_types || includes(&q.include_item_types, "Playlist");
+
+    let mut dtos: Vec<BaseItemDto> = Vec::new();
+
+    if want_track {
+        for tid in super::favorites::favorite_native_ids(&state.pool, mapping::KIND_TRACK).await {
+            if let Ok(Some(t)) = repo::track::find(state.pool.clone(), &tid).await {
+                dtos.push(track_to_dto(state, &t).await);
+            }
+        }
+    }
+    if want_album {
+        for aid in super::favorites::favorite_native_ids(&state.pool, mapping::KIND_ALBUM).await {
+            if let Ok(Some(a)) = repo::album::find(state.pool.clone(), &aid).await {
+                dtos.push(album_to_dto(state, &a).await);
+            }
+        }
+    }
+    if want_artist {
+        for aid in super::favorites::favorite_native_ids(&state.pool, mapping::KIND_ARTIST).await {
+            if let Ok(Some(a)) = repo::artist::find(state.pool.clone(), &aid).await {
+                dtos.push(artist_to_dto(state, &a).await);
+            }
+        }
+    }
+    if want_playlist {
+        for pid in super::favorites::favorite_native_ids(&state.pool, mapping::KIND_PLAYLIST).await
+        {
+            if let Ok(Some(p)) = state.playlist_store.get(&pid).await {
+                dtos.push(playlist_to_dto(state, &p).await);
+            }
+        }
+    }
+
+    // NameStartsWith*/NameLessThan filtering — apply post-hoc since the
+    // dtos come from four different tables.
+    let matches = |name: &str| -> bool {
+        let lower = name.to_lowercase();
+        if let Some(s) = q.name_starts_with.as_deref() {
+            if !lower.starts_with(&s.to_lowercase()) {
+                return false;
+            }
+        }
+        if let Some(s) = q.name_starts_with_or_greater.as_deref() {
+            if lower.as_str() < s.to_lowercase().as_str() {
+                return false;
+            }
+        }
+        if let Some(s) = q.name_less_than.as_deref() {
+            if lower.as_str() >= s.to_lowercase().as_str() {
+                return false;
+            }
+        }
+        true
+    };
+    dtos.retain(|d| d.name.as_deref().map(matches).unwrap_or(true));
+
+    let total = dtos.len() as i32;
+    let start = q.start_index.unwrap_or(0).max(0) as usize;
+    let limit = q.limit.unwrap_or(500).max(1) as usize;
+    let page: Vec<BaseItemDto> = dtos.into_iter().skip(start).take(limit).collect();
+    HttpResponse::Ok().json(ItemsResult {
+        items: page,
+        total_record_count: total,
+        start_index: start as i32,
+    })
+}
+
+async fn list_playlists(state: &JellyfinState, q: &ItemsQuery) -> HttpResponse {
+    let playlists = state.playlist_store.list().await.unwrap_or_default();
+    let playlists = filter_playlists_by_query(playlists, q);
+    let total = playlists.len() as i32;
+    let start = q.start_index.unwrap_or(0).max(0) as usize;
+    let limit = q.limit.unwrap_or(500).max(1) as usize;
+    let slice: Vec<&Playlist> = playlists.iter().skip(start).take(limit).collect();
+    let mut dtos = Vec::with_capacity(slice.len());
+    for p in slice {
+        dtos.push(playlist_to_dto(state, p).await);
+    }
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: start as i32,
+    })
+}
+
+async fn playlist_items_json(
+    state: &JellyfinState,
+    playlist_native: &str,
+    q: &ItemsQuery,
+) -> HttpResponse {
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(playlist_native)
+        .await
+        .unwrap_or_default();
+    let total = track_ids.len() as i32;
+    let start = q.start_index.unwrap_or(0).max(0) as usize;
+    let limit = q.limit.unwrap_or(500).max(1) as usize;
+
+    let mut dtos: Vec<BaseItemDto> = Vec::new();
+    for (pos, tid) in track_ids.iter().enumerate().skip(start).take(limit) {
+        if let Ok(Some(t)) = repo::track::find(state.pool.clone(), tid).await {
+            let mut dto = track_to_dto(state, &t).await;
+            dto.playlist_item_id = Some(mapping::playlist_entry_guid(playlist_native, pos as i64));
+            dtos.push(dto);
+        }
+    }
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: start as i32,
+    })
+}
+
+/// Convert a `PlaylistItemId` (our synthesized entry GUID) back to a
+/// 0-based position inside the playlist. Falls back to accepting a raw
+/// integer position or a plain track GUID.
+async fn entry_id_to_position(
+    state: &JellyfinState,
+    playlist_native: &str,
+    entry_id: &str,
+) -> Option<i64> {
+    let normalized = mapping::normalize_guid(entry_id);
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(playlist_native)
+        .await
+        .ok()?;
+    for (pos, tid) in track_ids.iter().enumerate() {
+        let expected = mapping::playlist_entry_guid(playlist_native, pos as i64);
+        if mapping::normalize_guid(&expected) == normalized {
+            return Some(pos as i64);
+        }
+        let track_guid = mapping::guid(mapping::KIND_TRACK, tid);
+        if mapping::normalize_guid(&track_guid) == normalized {
+            return Some(pos as i64);
+        }
+    }
+    entry_id.parse::<i64>().ok()
+}
+
+async fn resolve_track_native_ids(state: &JellyfinState, ids_csv: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for raw in ids_csv.split(',') {
+        let trimmed = raw.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let g = mapping::normalize_guid(trimmed);
+        if let Some((kind, native)) = resolve_native(state, &g).await {
+            if kind == "track" {
+                out.push(native);
+            }
+        }
+    }
+    out
+}
+
+/// `GET /Playlists` — extension over the spec; some clients probe this to
+/// enumerate playlists in the same shape as `/Items`.
+pub async fn playlists_list(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let q = parse_items_query(&req);
+    list_playlists(&state, &q).await
+}
+
+/// `POST /Playlists` — `CreatePlaylistDto` body OR query params. Response is
+/// `PlaylistCreationResult { Id }`.
+pub async fn create_playlist_endpoint(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    req: HttpRequest,
+    body: Option<web::Json<Value>>,
+) -> HttpResponse {
+    let query = collect_query(&req);
+    let q_one = |k: &str| {
+        query
+            .get(k)
+            .and_then(|v| v.first())
+            .cloned()
+            .filter(|s| !s.is_empty())
+    };
+    let q_ids = || -> Vec<String> {
+        query
+            .get("ids")
+            .or_else(|| query.get("Ids"))
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .flat_map(|s| {
+                s.split(',')
+                    .map(|p| p.trim().to_string())
+                    .collect::<Vec<_>>()
+            })
+            .filter(|s| !s.is_empty())
+            .collect()
+    };
+
+    let body_val = body.map(|b| b.into_inner());
+    let name = body_val
+        .as_ref()
+        .and_then(|v| v.get("Name").and_then(|n| n.as_str()).map(String::from))
+        .or_else(|| q_one("name"))
+        .or_else(|| q_one("Name"))
+        .unwrap_or_else(|| "New Playlist".to_string());
+
+    let body_ids: Vec<String> = body_val
+        .as_ref()
+        .and_then(|v| v.get("Ids").and_then(|a| a.as_array()))
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
+    let all_ids: Vec<String> = if body_ids.is_empty() {
+        q_ids()
+    } else {
+        body_ids
+    };
+    let track_ids = resolve_track_native_ids(&state, &all_ids.join(",")).await;
+
+    let playlist = match state.playlist_store.create(&name, None, None, None).await {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::error!("jellyfin: create_playlist: {e}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+    if !track_ids.is_empty() {
+        if let Err(e) = state
+            .playlist_store
+            .add_tracks(&playlist.id, &track_ids)
+            .await
+        {
+            tracing::error!("jellyfin: add_tracks: {e}");
+        }
+    }
+    let _ = mapping::remember_playlist(&state.pool, &playlist.id).await;
+    let guid = mapping::guid(mapping::KIND_PLAYLIST, &playlist.id);
+    HttpResponse::Ok().json(PlaylistCreationResult { id: guid })
+}
+
+/// `GET /Playlists/{id}` — playlist metadata as a `BaseItemDto`.
+pub async fn get_playlist_endpoint(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    match state.playlist_store.get(&native).await {
+        Ok(Some(p)) => HttpResponse::Ok().json(playlist_to_dto(&state, &p).await),
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+/// `POST /Playlists/{id}` — `UpdatePlaylistDto` body. Supports rename and
+/// full-replace of the item list; other spec fields (Users, IsPublic) are
+/// accepted and ignored because rockbox has a single-user model.
+pub async fn update_playlist_endpoint(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    body: Option<web::Json<Value>>,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    let body = match body {
+        Some(b) => b.into_inner(),
+        None => return HttpResponse::NoContent().finish(),
+    };
+    let existing = match state.playlist_store.get(&native).await {
+        Ok(Some(p)) => p,
+        _ => return HttpResponse::NotFound().finish(),
+    };
+    let new_name = body
+        .get("Name")
+        .and_then(|n| n.as_str())
+        .filter(|s| !s.is_empty())
+        .unwrap_or(&existing.name);
+    if let Err(e) = state
+        .playlist_store
+        .update(
+            &native,
+            new_name,
+            existing.description.as_deref(),
+            existing.image.as_deref(),
+            existing.folder_id.as_deref(),
+        )
+        .await
+    {
+        tracing::error!("jellyfin: update_playlist: {e}");
+        return HttpResponse::InternalServerError().finish();
+    }
+    if let Some(ids) = body.get("Ids").and_then(|a| a.as_array()) {
+        let csv: String = ids
+            .iter()
+            .filter_map(|v| v.as_str())
+            .collect::<Vec<_>>()
+            .join(",");
+        let track_ids = resolve_track_native_ids(&state, &csv).await;
+        // No native "replace tracks" — clear then re-add.
+        for tid in state
+            .playlist_store
+            .get_track_ids(&native)
+            .await
+            .unwrap_or_default()
+        {
+            let _ = state.playlist_store.remove_track(&native, &tid).await;
+        }
+        let _ = state.playlist_store.add_tracks(&native, &track_ids).await;
+    }
+    HttpResponse::NoContent().finish()
+}
+
+/// `GET /Playlists/{id}/Items` — `BaseItemDtoQueryResult` of the playlist's
+/// tracks in order. Each track DTO carries a `PlaylistItemId` so clients can
+/// reference specific entries for remove/move.
+pub async fn playlist_items(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    let q = parse_items_query(&req);
+    playlist_items_json(&state, &native, &q).await
+}
+
+/// `POST /Playlists/{id}/Items?ids=…` — append tracks at the end.
+pub async fn add_playlist_items(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    let query = collect_query(&req);
+    let ids_csv = query
+        .get("ids")
+        .or_else(|| query.get("Ids"))
+        .cloned()
+        .unwrap_or_default()
+        .join(",");
+    let track_ids = resolve_track_native_ids(&state, &ids_csv).await;
+    if !track_ids.is_empty() {
+        let _ = state.playlist_store.add_tracks(&native, &track_ids).await;
+    }
+    HttpResponse::NoContent().finish()
+}
+
+/// `DELETE /Playlists/{id}/Items?entryIds=…` — remove one or more entries.
+/// EntryIds can be our synthesized `PlaylistItemId`, a raw track GUID, or a
+/// 0-based position number.
+pub async fn remove_playlist_items(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    let query = collect_query(&req);
+    let entry_ids: Vec<String> = query
+        .get("entryIds")
+        .or_else(|| query.get("EntryIds"))
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .flat_map(|s| {
+            s.split(',')
+                .map(|p| p.trim().to_string())
+                .collect::<Vec<_>>()
+        })
+        .filter(|s| !s.is_empty())
+        .collect();
+    if entry_ids.is_empty() {
+        return HttpResponse::NoContent().finish();
+    }
+    let current = state
+        .playlist_store
+        .get_track_ids(&native)
+        .await
+        .unwrap_or_default();
+    let mut positions_to_remove: std::collections::BTreeSet<i64> =
+        std::collections::BTreeSet::new();
+    for eid in &entry_ids {
+        if let Some(pos) = entry_id_to_position(&state, &native, eid).await {
+            positions_to_remove.insert(pos);
+        }
+    }
+    let kept: Vec<String> = current
+        .into_iter()
+        .enumerate()
+        .filter(|(i, _)| !positions_to_remove.contains(&(*i as i64)))
+        .map(|(_, tid)| tid)
+        .collect();
+    // Rebuild the playlist to preserve position order deterministically —
+    // remove_track collapses duplicates so we can't use it for arbitrary
+    // position deletes.
+    for tid in state
+        .playlist_store
+        .get_track_ids(&native)
+        .await
+        .unwrap_or_default()
+    {
+        let _ = state.playlist_store.remove_track(&native, &tid).await;
+    }
+    let _ = state.playlist_store.add_tracks(&native, &kept).await;
+    HttpResponse::NoContent().finish()
+}
+
+/// `POST /Playlists/{id}/Items/{itemId}/Move/{newIndex}` — move `itemId`
+/// (a `PlaylistItemId`) to `newIndex`.
+pub async fn move_playlist_item(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String, i64)>,
+) -> HttpResponse {
+    let (playlist_id, item_id, new_index) = path.into_inner();
+    let g = mapping::normalize_guid(&playlist_id);
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    let Some(from) = entry_id_to_position(&state, &native, &item_id).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let mut current = state
+        .playlist_store
+        .get_track_ids(&native)
+        .await
+        .unwrap_or_default();
+    if from < 0 || (from as usize) >= current.len() {
+        return HttpResponse::BadRequest().finish();
+    }
+    let target = new_index.max(0).min(current.len() as i64 - 1) as usize;
+    let track = current.remove(from as usize);
+    current.insert(target, track);
+    for tid in state
+        .playlist_store
+        .get_track_ids(&native)
+        .await
+        .unwrap_or_default()
+    {
+        let _ = state.playlist_store.remove_track(&native, &tid).await;
+    }
+    let _ = state.playlist_store.add_tracks(&native, &current).await;
+    HttpResponse::NoContent().finish()
+}
+
+/// `GET /Playlists/{id}/Users` — rockbox is single-user, so this is always
+/// an empty list.
+pub async fn playlist_users(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, _native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::NotFound().finish();
+    }
+    HttpResponse::Ok().json(Vec::<Value>::new())
+}
+
+/// `DELETE /Items/{id}` — Jellyfin's canonical playlist-delete path.
+/// Tracks/albums/artists are read-only over this API.
+pub async fn delete_item(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let g = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_native(&state, &g).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if kind != "playlist" {
+        return HttpResponse::Forbidden().finish();
+    }
+    match state.playlist_store.delete(&native).await {
+        Ok(_) => HttpResponse::NoContent().finish(),
+        Err(e) => {
+            tracing::error!("jellyfin: delete_playlist: {e}");
+            HttpResponse::InternalServerError().finish()
+        }
+    }
+}
+
+// ── Favorites ───────────────────────────────────────────────────────────────
+
+/// Resolve an item GUID to a `(kind, native_id)` pair; only the four
+/// kinds Jellyfin models per spec (`Audio`/`MusicAlbum`/`MusicArtist`/
+/// `Playlist`) are accepted. Everything else returns `None` so the
+/// handler can 404.
+async fn resolve_favorite_target(
+    state: &JellyfinState,
+    guid: &str,
+) -> Option<(&'static str, String)> {
+    let g = mapping::normalize_guid(guid);
+    let (kind, native) = resolve_native(state, &g).await?;
+    let kind_static: &'static str = match kind.as_str() {
+        "track" => mapping::KIND_TRACK,
+        "album" => mapping::KIND_ALBUM,
+        "artist" => mapping::KIND_ARTIST,
+        "playlist" => mapping::KIND_PLAYLIST,
+        _ => return None,
+    };
+    Some((kind_static, native))
+}
+
+fn user_data_dto(item_guid: String, is_favorite: bool) -> UserItemDataDto {
+    UserItemDataDto {
+        rating: None,
+        played_percentage: None,
+        unplayed_item_count: None,
+        playback_position_ticks: 0,
+        play_count: 0,
+        is_favorite,
+        likes: None,
+        last_played_date: None,
+        played: false,
+        key: item_guid.clone(),
+        item_id: item_guid,
+    }
+}
+
+/// `POST /UserFavoriteItems/{itemId}` (Jellyfin 10.9+) and the legacy
+/// `POST /Users/{userId}/FavoriteItems/{itemId}` — mark as favorite.
+/// Returns the updated `UserItemDataDto`.
+pub async fn mark_favorite(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    mark_favorite_impl(&state, path.into_inner()).await
+}
+
+pub async fn mark_favorite_legacy(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (_user_id, item_id) = path.into_inner();
+    mark_favorite_impl(&state, item_id).await
+}
+
+async fn mark_favorite_impl(state: &JellyfinState, item_id: String) -> HttpResponse {
+    let guid = mapping::normalize_guid(&item_id);
+    let Some((kind, native)) = resolve_favorite_target(state, &guid).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if let Err(e) = super::favorites::mark(&state.pool, kind, &native).await {
+        tracing::error!("jellyfin: mark_favorite {kind}/{native}: {e}");
+        return HttpResponse::InternalServerError().finish();
+    }
+    HttpResponse::Ok().json(user_data_dto(guid, true))
+}
+
+/// `DELETE /UserFavoriteItems/{itemId}` and the legacy
+/// `DELETE /Users/{userId}/FavoriteItems/{itemId}` — unmark.
+pub async fn unmark_favorite(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    unmark_favorite_impl(&state, path.into_inner()).await
+}
+
+pub async fn unmark_favorite_legacy(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (_user_id, item_id) = path.into_inner();
+    unmark_favorite_impl(&state, item_id).await
+}
+
+async fn unmark_favorite_impl(state: &JellyfinState, item_id: String) -> HttpResponse {
+    let guid = mapping::normalize_guid(&item_id);
+    let Some((kind, native)) = resolve_favorite_target(state, &guid).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    if let Err(e) = super::favorites::unmark(&state.pool, kind, &native).await {
+        tracing::error!("jellyfin: unmark_favorite {kind}/{native}: {e}");
+        return HttpResponse::InternalServerError().finish();
+    }
+    HttpResponse::Ok().json(user_data_dto(guid, false))
 }
 
 // ── Artists endpoints ───────────────────────────────────────────────────────
@@ -993,12 +1801,31 @@ pub async fn items_prefixes(
     req: HttpRequest,
 ) -> HttpResponse {
     let q = parse_items_query(&req);
-    let parent_is_music = q
-        .parent_id
+    let parent_norm = q.parent_id.as_deref().map(mapping::normalize_guid);
+    let parent_is_music = parent_norm
         .as_deref()
-        .map(mapping::normalize_guid)
         .map(|g| g == mapping::library_guid())
         .unwrap_or(false);
+    let parent_is_playlists = parent_norm
+        .as_deref()
+        .map(|g| g == mapping::playlists_library_guid())
+        .unwrap_or(false);
+
+    if parent_is_playlists || includes(&q.include_item_types, "Playlist") {
+        let playlists = state.playlist_store.list().await.unwrap_or_default();
+        let mut letters: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        for p in &playlists {
+            if let Some(c) = p.name.chars().next() {
+                if c.is_ascii_alphabetic() {
+                    letters.insert(c.to_ascii_uppercase().to_string());
+                } else {
+                    letters.insert("#".to_string());
+                }
+            }
+        }
+        let items: Vec<Value> = letters.into_iter().map(|n| json!({ "Name": n })).collect();
+        return HttpResponse::Ok().json(items);
+    }
 
     let letters = if includes(&q.include_item_types, "MusicAlbum") {
         repo::album::name_prefixes(state.pool.clone()).await
@@ -1423,6 +2250,22 @@ pub async fn items_latest(
 ) -> HttpResponse {
     let q = parse_items_query(&req);
     let limit = q.limit.unwrap_or(16).max(1) as usize;
+
+    // The "Latest" rail on the Playlists library page shows the newest
+    // playlists, not albums.
+    if let Some(parent) = q.parent_id.as_ref() {
+        let g = mapping::normalize_guid(parent);
+        if g == mapping::playlists_library_guid() {
+            let playlists = state.playlist_store.list().await.unwrap_or_default();
+            let take = limit.min(playlists.len());
+            let mut dtos = Vec::with_capacity(take);
+            for p in playlists.iter().take(take) {
+                dtos.push(playlist_to_dto(&state, p).await);
+            }
+            return HttpResponse::Ok().json(dtos);
+        }
+    }
+
     let mut albums = repo::album::all(state.pool.clone())
         .await
         .unwrap_or_default();
