@@ -577,3 +577,26 @@ pub struct QueryFilters {
     pub official_ratings: Vec<String>,
     pub years: Vec<i32>,
 }
+
+// ── Item counts ─────────────────────────────────────────────────────────────
+
+/// `ItemCounts` — `GET /Items/Counts`. Clients render this as the
+/// library-summary strip ("N songs · M albums · K artists"). Every
+/// field is required per spec; unsupported kinds (movies, series,
+/// live TV) stay at 0 rather than dropping out.
+#[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub struct ItemCounts {
+    pub movie_count: i32,
+    pub series_count: i32,
+    pub episode_count: i32,
+    pub artist_count: i32,
+    pub program_count: i32,
+    pub trailer_count: i32,
+    pub song_count: i32,
+    pub album_count: i32,
+    pub music_video_count: i32,
+    pub box_set_count: i32,
+    pub book_count: i32,
+    pub item_count: i32,
+}

@@ -36,6 +36,17 @@ pub struct SimilarTrack {
     pub score: f64,
 }
 
+/// Enrichment data pulled from `artist.getInfo` — bio, tags, and the
+/// largest available image URL. All fields optional per Last.fm's
+/// (frequently sparse) responses.
+#[derive(Debug, Clone, Default)]
+pub struct ArtistInfo {
+    pub mbid: Option<String>,
+    pub bio: Option<String>,
+    pub tags: Vec<String>,
+    pub image_url: Option<String>,
+}
+
 /// Handle to the Last.fm API. Cheap to clone — the underlying
 /// `reqwest::Client` uses an `Arc` for connection reuse.
 #[derive(Clone)]
@@ -82,6 +93,49 @@ impl LastFm {
             ));
         }
         Ok(serde_json::from_slice::<T>(&body)?)
+    }
+
+    /// `artist.getInfo` — bio, tags, and the largest available image
+    /// URL. Prefers MBID over name when both are provided, and asks
+    /// Last.fm to autocorrect misspellings so a fuzzy hit still
+    /// returns a bio.
+    pub async fn artist_info(
+        &self,
+        name: Option<&str>,
+        mbid: Option<&str>,
+    ) -> anyhow::Result<ArtistInfo> {
+        let mut extra: Vec<(&str, &str)> = vec![("autocorrect", "1")];
+        if let Some(m) = mbid {
+            extra.push(("mbid", m));
+        } else if let Some(n) = name {
+            extra.push(("artist", n));
+        } else {
+            return Ok(ArtistInfo::default());
+        }
+        let body: ArtistInfoBody = self.call("artist.getInfo", &extra).await?;
+        let mut info = ArtistInfo::default();
+        let Some(artist) = body.artist else {
+            return Ok(info);
+        };
+        info.mbid = artist.mbid.filter(|s| !s.is_empty());
+        info.bio = artist
+            .bio
+            .and_then(|b| b.content.or(b.summary))
+            .map(|s| clean_bio(&s));
+        info.tags = artist
+            .tags
+            .map(|t| t.tag.into_iter().map(|row| row.name).collect())
+            .unwrap_or_default();
+        // Last.fm's image list is ordered small → mega; pick the
+        // largest non-empty entry so clients get a hero-sized image.
+        info.image_url = artist
+            .image
+            .unwrap_or_default()
+            .into_iter()
+            .rev()
+            .find(|img| !img.text.is_empty())
+            .map(|img| img.text);
+        Ok(info)
     }
 
     /// `artist.getsimilar` — seeds with either an MBID (preferred, more
@@ -213,4 +267,57 @@ struct TrackArtist {
     name: String,
     #[serde(default)]
     mbid: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ArtistInfoBody {
+    #[serde(default)]
+    artist: Option<ArtistInfoRow>,
+}
+
+#[derive(Deserialize)]
+struct ArtistInfoRow {
+    #[serde(default)]
+    mbid: Option<String>,
+    #[serde(default)]
+    bio: Option<ArtistBioRow>,
+    #[serde(default)]
+    tags: Option<ArtistTagsRow>,
+    #[serde(default)]
+    image: Option<Vec<ArtistImageRow>>,
+}
+
+#[derive(Deserialize)]
+struct ArtistBioRow {
+    #[serde(default)]
+    content: Option<String>,
+    #[serde(default)]
+    summary: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ArtistTagsRow {
+    #[serde(default)]
+    tag: Vec<ArtistTagEntry>,
+}
+
+#[derive(Deserialize)]
+struct ArtistTagEntry {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct ArtistImageRow {
+    #[serde(default, rename = "#text")]
+    text: String,
+}
+
+/// Strip the trailing `<a href="https://www.last.fm/…">Read more on Last.fm</a>`
+/// suffix Last.fm bakes into every bio. Leaves regular whitespace and
+/// paragraph breaks alone so the client-side renderer still sees them.
+fn clean_bio(input: &str) -> String {
+    let cutoff = input
+        .find("<a href=\"https://www.last.fm")
+        .unwrap_or(input.len());
+    input[..cutoff].trim().to_string()
 }

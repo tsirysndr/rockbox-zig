@@ -5,6 +5,7 @@ pub mod auth;
 pub mod cover_art_archive;
 pub mod discovery;
 pub mod dto;
+pub mod enrichment;
 pub mod favorites;
 pub mod handlers;
 pub mod instant_mix;
@@ -92,6 +93,10 @@ pub async fn start() -> anyhow::Result<()> {
     .await?;
     pool.execute(include_str!(
         "../../migrations/20260702000001_add_jf_user_data.sql"
+    ))
+    .await?;
+    pool.execute(include_str!(
+        "../../migrations/20260702000002_add_jf_artist_enrichment.sql"
     ))
     .await?;
 
@@ -567,6 +572,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/Users/{uid}/Items/Filters",
             web::get().to(handlers::user_items_filters),
         )
+        // Library-summary counts — audio-only server so only song /
+        // album / artist counts are populated.
+        .route("/Items/Counts", web::get().to(handlers::item_counts))
         // /System/Ping is the canonical Jellyfin heartbeat — plain text body.
         .route("/System/Ping", web::get().to(handlers::system_ping))
         .route("/System/Ping", web::head().to(handlers::system_ping))

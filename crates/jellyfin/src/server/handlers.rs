@@ -474,6 +474,15 @@ async fn artist_to_dto(state: &JellyfinState, a: &Artist) -> BaseItemDto {
         .await
         .unwrap_or_else(|_| mapping::guid(mapping::KIND_ARTIST, &a.id));
     let user_data = user_data_for(state, mapping::KIND_ARTIST, &a.id, &id).await;
+    // Cache-only enrichment on the list path: overview + tag genres come
+    // straight from `jf_artist_enrichment`. Fresh fetches happen only in
+    // the detail handlers so lists stay fast.
+    let enrichment = super::enrichment::get_artist(&state.pool, &a.id).await;
+    let overview = enrichment.as_ref().and_then(|e| e.bio.clone());
+    let genres = enrichment
+        .as_ref()
+        .filter(|e| !e.tags.is_empty())
+        .map(|e| e.tags.clone());
     BaseItemDto {
         id,
         server_id: Some(state.server_id.clone()),
@@ -486,6 +495,8 @@ async fn artist_to_dto(state: &JellyfinState, a: &Artist) -> BaseItemDto {
         image_tags: Some(ImageTags {
             primary: a.image.clone().map(|_| a.id.clone()),
         }),
+        overview,
+        genres,
         user_data: Some(user_data),
         ..Default::default()
     }
@@ -1061,7 +1072,18 @@ pub async fn item_by_id(
             _ => HttpResponse::NotFound().finish(),
         },
         "artist" => match repo::artist::find(state.pool.clone(), &native).await {
-            Ok(Some(a)) => HttpResponse::Ok().json(artist_to_dto(&state, &a).await),
+            Ok(Some(a)) => {
+                // Detail view: refresh the enrichment cache from Last.fm
+                // first so the DTO carries a fresh bio + tags.
+                let _ = super::enrichment::refresh_artist(
+                    &state.pool,
+                    state.lastfm.as_ref(),
+                    &a.id,
+                    &a.name,
+                )
+                .await;
+                HttpResponse::Ok().json(artist_to_dto(&state, &a).await)
+            }
             _ => HttpResponse::NotFound().finish(),
         },
         "playlist" => match state.playlist_store.get(&native).await {
@@ -1099,7 +1121,18 @@ pub async fn user_item_by_id(
             _ => HttpResponse::NotFound().finish(),
         },
         "artist" => match repo::artist::find(state.pool.clone(), &native).await {
-            Ok(Some(a)) => HttpResponse::Ok().json(artist_to_dto(&state, &a).await),
+            Ok(Some(a)) => {
+                // Detail view: refresh the enrichment cache from Last.fm
+                // first so the DTO carries a fresh bio + tags.
+                let _ = super::enrichment::refresh_artist(
+                    &state.pool,
+                    state.lastfm.as_ref(),
+                    &a.id,
+                    &a.name,
+                )
+                .await;
+                HttpResponse::Ok().json(artist_to_dto(&state, &a).await)
+            }
             _ => HttpResponse::NotFound().finish(),
         },
         "playlist" => match state.playlist_store.get(&native).await {
@@ -2770,6 +2803,30 @@ pub async fn user_items_filters(
     })
 }
 
+// ── Item counts ─────────────────────────────────────────────────────────────
+
+/// `GET /Items/Counts` — library-summary strip. Rockbox is audio-only
+/// so movie / series / episode / trailer / book / boxset counts stay
+/// at 0. `ItemCount` sums the three audio kinds we do surface.
+pub async fn item_counts(_user: AuthedUser, state: web::Data<JellyfinState>) -> HttpResponse {
+    let song_count = repo::track::count_filtered(state.pool.clone(), None, None, None)
+        .await
+        .unwrap_or(0) as i32;
+    let album_count = repo::album::count_filtered(state.pool.clone(), None, None, None)
+        .await
+        .unwrap_or(0) as i32;
+    let artist_count = repo::artist::count_filtered(state.pool.clone(), None, None, None)
+        .await
+        .unwrap_or(0) as i32;
+    HttpResponse::Ok().json(super::dto::ItemCounts {
+        song_count,
+        album_count,
+        artist_count,
+        item_count: song_count + album_count + artist_count,
+        ..Default::default()
+    })
+}
+
 // ── Artists endpoints ───────────────────────────────────────────────────────
 
 pub async fn artists(
@@ -2874,6 +2931,9 @@ pub async fn artist_by_name(
 ) -> HttpResponse {
     let name = path.into_inner();
     if let Ok(Some(a)) = repo::artist::find_by_name(state.pool.clone(), &name).await {
+        let _ =
+            super::enrichment::refresh_artist(&state.pool, state.lastfm.as_ref(), &a.id, &a.name)
+                .await;
         HttpResponse::Ok().json(artist_to_dto(&state, &a).await)
     } else {
         HttpResponse::NotFound().finish()
