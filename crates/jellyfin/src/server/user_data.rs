@@ -44,8 +44,12 @@ fn row_to_user_data(row: &sqlx::sqlite::SqliteRow) -> UserData {
     UserData {
         played: row.try_get::<i64, _>("played").unwrap_or(0) != 0,
         play_count: row.try_get::<i64, _>("play_count").unwrap_or(0) as i32,
-        playback_position_ticks: row.try_get::<i64, _>("playback_position_ticks").unwrap_or(0),
-        last_played_date: row.try_get::<Option<String>, _>("last_played_at").unwrap_or(None),
+        playback_position_ticks: row
+            .try_get::<i64, _>("playback_position_ticks")
+            .unwrap_or(0),
+        last_played_date: row
+            .try_get::<Option<String>, _>("last_played_at")
+            .unwrap_or(None),
         likes: row
             .try_get::<Option<i64>, _>("likes")
             .unwrap_or(None)
@@ -75,12 +79,11 @@ pub async fn get(pool: &Pool<Sqlite>, kind: &str, native_id: &str) -> UserData {
 
     // Merge with rockbox-playlists' track_stats for tracks.
     if kind == KIND_TRACK {
-        if let Ok(Some(row)) = sqlx::query(
-            "SELECT play_count, last_played FROM track_stats WHERE track_id = ?1",
-        )
-        .bind(native_id)
-        .fetch_optional(pool)
-        .await
+        if let Ok(Some(row)) =
+            sqlx::query("SELECT play_count, last_played FROM track_stats WHERE track_id = ?1")
+                .bind(native_id)
+                .fetch_optional(pool)
+                .await
         {
             let ts_play_count = row.try_get::<i64, _>("play_count").unwrap_or(0) as i32;
             let ts_last_played = row.try_get::<Option<i64>, _>("last_played").unwrap_or(None);
