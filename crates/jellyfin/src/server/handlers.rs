@@ -2068,6 +2068,110 @@ pub async fn instant_mix_music_genre(
     })
 }
 
+// ── Lyrics ──────────────────────────────────────────────────────────────────
+
+async fn resolve_audio_track(state: &JellyfinState, guid: &str) -> Option<Track> {
+    let g = mapping::normalize_guid(guid);
+    let (kind, native) = resolve_native(state, &g).await?;
+    if kind != "track" {
+        return None;
+    }
+    repo::track::find(state.pool.clone(), &native).await.ok()?
+}
+
+/// `GET /Audio/{itemId}/Lyrics` — returns the parsed `LyricDto` for the
+/// audio item, or 404 if no sidecar is on disk.
+pub async fn get_lyrics(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let Some(track) = resolve_audio_track(&state, &path.into_inner()).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let track_path = PathBuf::from(&track.path);
+    let Some(sidecar) = super::lyrics::find_sidecar(&track_path) else {
+        return HttpResponse::NotFound().finish();
+    };
+    match super::lyrics::parse_sidecar(&sidecar) {
+        Some(dto) => HttpResponse::Ok().json(dto),
+        None => HttpResponse::NotFound().finish(),
+    }
+}
+
+/// `POST /Audio/{itemId}/Lyrics` — write the request body to a `.lrc`
+/// sidecar next to the audio file. Accepts either raw LRC / plain text
+/// or a `LyricDto` JSON body (distinguished by `Content-Type`).
+pub async fn upload_lyrics(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+    body: web::Bytes,
+) -> HttpResponse {
+    let Some(track) = resolve_audio_track(&state, &path.into_inner()).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let ct = req
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("text/plain")
+        .to_string();
+    let track_path = PathBuf::from(&track.path);
+    if let Err(e) = super::lyrics::write_sidecar(&track_path, &body, &ct) {
+        tracing::error!("jellyfin: upload_lyrics {}: {e}", track.id);
+        return HttpResponse::InternalServerError().finish();
+    }
+    // Return the freshly-parsed lyrics so clients don't need a follow-up GET.
+    let Some(sidecar) = super::lyrics::find_sidecar(&track_path) else {
+        return HttpResponse::NoContent().finish();
+    };
+    match super::lyrics::parse_sidecar(&sidecar) {
+        Some(dto) => HttpResponse::Ok().json(dto),
+        None => HttpResponse::NoContent().finish(),
+    }
+}
+
+/// `DELETE /Audio/{itemId}/Lyrics` — remove sidecars. Idempotent.
+pub async fn delete_lyrics(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let Some(track) = resolve_audio_track(&state, &path.into_inner()).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let track_path = PathBuf::from(&track.path);
+    super::lyrics::delete_sidecar(&track_path);
+    HttpResponse::NoContent().finish()
+}
+
+/// `GET /Audio/{itemId}/RemoteSearch/Lyrics` — no remote providers
+/// wired; returns an empty result so clients stop retrying.
+pub async fn remote_search_lyrics(
+    _user: AuthedUser,
+    _state: web::Data<JellyfinState>,
+    _path: web::Path<String>,
+) -> HttpResponse {
+    HttpResponse::Ok().json(Vec::<Value>::new())
+}
+
+/// `POST /Audio/{itemId}/RemoteSearch/Lyrics/{lyricId}` — no remote
+/// providers, so a download attempt always 404s.
+pub async fn remote_download_lyrics(
+    _user: AuthedUser,
+    _state: web::Data<JellyfinState>,
+    _path: web::Path<(String, String)>,
+) -> HttpResponse {
+    HttpResponse::NotFound().finish()
+}
+
+/// `GET /Providers/Lyrics` — no remote providers configured.
+pub async fn lyric_providers(_user: AuthedUser) -> HttpResponse {
+    HttpResponse::Ok().json(Vec::<Value>::new())
+}
+
 // ── Artists endpoints ───────────────────────────────────────────────────────
 
 pub async fn artists(

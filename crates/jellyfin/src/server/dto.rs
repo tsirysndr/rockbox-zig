@@ -8,7 +8,7 @@
 //! - **Optional non-nullable** uses `#[serde(skip_serializing_if =
 //!   "Option::is_none")]`.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// Version string we report to Jellyfin clients. The official Android app
@@ -454,4 +454,52 @@ pub struct PlaybackInfoResponse {
 #[serde(rename_all = "PascalCase")]
 pub struct PlaylistCreationResult {
     pub id: String,
+}
+
+// ── Lyrics ──────────────────────────────────────────────────────────────────
+
+/// `LyricLine` — a single line of lyrics with an optional start time.
+/// `Start` is 100-ns ticks per spec; `None` = unsynced.
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct LyricLine {
+    pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start: Option<i64>,
+}
+
+/// `LyricMetadata` — the header block LRC files carry (artist/album/title
+/// plus timing tweaks). All fields nullable per spec.
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct LyricMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub artist: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub album: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub length: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub creator: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_synced: Option<bool>,
+}
+
+/// `LyricDto` — response body for `GET /Audio/{itemId}/Lyrics`.
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct LyricDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<LyricMetadata>,
+    pub lyrics: Vec<LyricLine>,
 }

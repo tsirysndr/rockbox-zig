@@ -7,6 +7,7 @@ pub mod dto;
 pub mod favorites;
 pub mod handlers;
 pub mod instant_mix;
+pub mod lyrics;
 pub mod mapping;
 pub mod user_data;
 
@@ -343,6 +344,30 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route(
             "/Audio/{id}/universal",
             web::head().to(handlers::audio_universal),
+        )
+        // Lyrics — sidecar .lrc/.txt next to the audio file. Registered
+        // alongside the other /Audio/{id}/… routes; the specific suffix
+        // means no risk of shadowing stream/universal.
+        .route("/Audio/{id}/Lyrics", web::get().to(handlers::get_lyrics))
+        .route(
+            "/Audio/{id}/Lyrics",
+            web::post().to(handlers::upload_lyrics),
+        )
+        .route(
+            "/Audio/{id}/Lyrics",
+            web::delete().to(handlers::delete_lyrics),
+        )
+        .route(
+            "/Audio/{id}/RemoteSearch/Lyrics",
+            web::get().to(handlers::remote_search_lyrics),
+        )
+        .route(
+            "/Audio/{id}/RemoteSearch/Lyrics/{lyricId}",
+            web::post().to(handlers::remote_download_lyrics),
+        )
+        .route(
+            "/Providers/Lyrics",
+            web::get().to(handlers::lyric_providers),
         )
         // Favorites — spec-modern + legacy (pre-10.9) paths. Both accept
         // the same set of item kinds (Audio/MusicAlbum/MusicArtist/Playlist)
