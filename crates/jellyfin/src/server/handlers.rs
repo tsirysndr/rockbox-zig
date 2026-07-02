@@ -877,6 +877,11 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
                     // to playlist_items via a direct build to avoid re-lookup.
                     return playlist_items_json(&state, &native, &q).await;
                 }
+                "genre" => {
+                    // Tapping a genre tile: return its tracks (default) or
+                    // albums / artists when the client asks for that kind.
+                    return list_by_genre(&state, &q, &native).await;
+                }
                 _ => {}
             }
         }
@@ -890,6 +895,11 @@ async fn items_impl(state: web::Data<JellyfinState>, q: ItemsQuery) -> HttpRespo
     // No parent: `?IncludeItemTypes=Playlist` returns the flat playlists list.
     if includes(&q.include_item_types, "Playlist") {
         return list_playlists(&state, &q).await;
+    }
+
+    // No parent: `?IncludeItemTypes=MusicGenre` returns the flat genre list.
+    if includes(&q.include_item_types, "MusicGenre") || includes(&q.include_item_types, "Genre") {
+        return list_genres_q(&state, &q).await;
     }
 
     // No parent: filter by artistIds / albumArtistIds.
@@ -1058,6 +1068,10 @@ pub async fn item_by_id(
             Ok(Some(p)) => HttpResponse::Ok().json(playlist_to_dto(&state, &p).await),
             _ => HttpResponse::NotFound().finish(),
         },
+        "genre" => match repo::genre::find(state.pool.clone(), &native).await {
+            Ok(Some(g)) => HttpResponse::Ok().json(genre_to_dto(&state, &g).await),
+            _ => HttpResponse::NotFound().finish(),
+        },
         _ => HttpResponse::NotFound().finish(),
     }
 }
@@ -1090,6 +1104,10 @@ pub async fn user_item_by_id(
         },
         "playlist" => match state.playlist_store.get(&native).await {
             Ok(Some(p)) => HttpResponse::Ok().json(playlist_to_dto(&state, &p).await),
+            _ => HttpResponse::NotFound().finish(),
+        },
+        "genre" => match repo::genre::find(state.pool.clone(), &native).await {
+            Ok(Some(g)) => HttpResponse::Ok().json(genre_to_dto(&state, &g).await),
             _ => HttpResponse::NotFound().finish(),
         },
         _ => HttpResponse::NotFound().finish(),
@@ -2488,6 +2506,268 @@ fn album_key_hash(album_id: &str) -> String {
     let mut hasher = Md5::new();
     hasher.update(album_id.as_bytes());
     hex::encode(hasher.finalize())
+}
+
+// ── Genres ──────────────────────────────────────────────────────────────────
+
+use rockbox_library::entity::genre::Genre;
+
+/// Build a `MusicGenre` `BaseItemDto`. Reuses `remember_genre` so the
+/// GUID sticks between requests and can be resolved through
+/// `/Items/{id}`.
+async fn genre_to_dto(state: &JellyfinState, g: &Genre) -> BaseItemDto {
+    let id = mapping::remember_genre(&state.pool, &g.id)
+        .await
+        .unwrap_or_else(|_| mapping::guid(mapping::KIND_GENRE, &g.id));
+    let track_count = repo::genre::find_tracks(state.pool.clone(), &g.id)
+        .await
+        .map(|v| v.len() as i32)
+        .unwrap_or(0);
+    let album_count = repo::genre::find_albums(state.pool.clone(), &g.id)
+        .await
+        .map(|v| v.len() as i32)
+        .unwrap_or(0);
+    BaseItemDto {
+        id,
+        server_id: Some(state.server_id.clone()),
+        name: Some(g.name.clone()),
+        item_type: "MusicGenre",
+        media_type: "Unknown",
+        is_folder: Some(true),
+        sort_name: Some(g.name.clone()),
+        location_type: Some("FileSystem"),
+        overview: g.description.clone(),
+        song_count: Some(track_count),
+        album_count: Some(album_count),
+        child_count: Some(track_count),
+        ..Default::default()
+    }
+}
+
+fn matches_name_range(
+    name: &str,
+    starts: Option<&str>,
+    geq: Option<&str>,
+    lt: Option<&str>,
+) -> bool {
+    let lower = name.to_lowercase();
+    if let Some(s) = starts {
+        if !lower.starts_with(&s.to_lowercase()) {
+            return false;
+        }
+    }
+    if let Some(s) = geq {
+        if lower.as_str() < s.to_lowercase().as_str() {
+            return false;
+        }
+    }
+    if let Some(s) = lt {
+        if lower.as_str() >= s.to_lowercase().as_str() {
+            return false;
+        }
+    }
+    true
+}
+
+async fn list_genres_q(state: &JellyfinState, q: &ItemsQuery) -> HttpResponse {
+    let mut genres = repo::genre::all(state.pool.clone())
+        .await
+        .unwrap_or_default();
+
+    if let Some(term) = q.search_term.as_deref().filter(|s| !s.is_empty()) {
+        let needle = term.to_lowercase();
+        genres.retain(|g| g.name.to_lowercase().contains(&needle));
+    }
+    let starts = q.name_starts_with.as_deref();
+    let geq = q.name_starts_with_or_greater.as_deref();
+    let lt = q.name_less_than.as_deref();
+    if starts.is_some() || geq.is_some() || lt.is_some() {
+        genres.retain(|g| matches_name_range(&g.name, starts, geq, lt));
+    }
+    genres.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+
+    let total = genres.len() as i32;
+    let start = q.start_index.unwrap_or(0).max(0) as usize;
+    let limit = q.limit.unwrap_or(500).max(1) as usize;
+    let slice: Vec<&Genre> = genres.iter().skip(start).take(limit).collect();
+    let mut dtos = Vec::with_capacity(slice.len());
+    for g in slice {
+        dtos.push(genre_to_dto(state, g).await);
+    }
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: start as i32,
+    })
+}
+
+/// `GET /Genres` / `GET /MusicGenres` — sorted list of genres with
+/// child counts. Rockbox is audio-only so both routes share a body.
+pub async fn genres(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let q = parse_items_query(&req);
+    list_genres_q(&state, &q).await
+}
+
+async fn list_by_genre(state: &JellyfinState, q: &ItemsQuery, genre_native: &str) -> HttpResponse {
+    if includes(&q.include_item_types, "MusicAlbum") {
+        let albums = repo::genre::find_albums(state.pool.clone(), genre_native)
+            .await
+            .unwrap_or_default();
+        let mut dtos = Vec::with_capacity(albums.len());
+        for a in &albums {
+            dtos.push(album_to_dto(state, a).await);
+        }
+        let total = dtos.len() as i32;
+        return HttpResponse::Ok().json(ItemsResult {
+            items: dtos,
+            total_record_count: total,
+            start_index: 0,
+        });
+    }
+    if includes(&q.include_item_types, "MusicArtist")
+        || includes(&q.include_item_types, "AlbumArtist")
+    {
+        let artists = repo::genre::find_artists(state.pool.clone(), genre_native)
+            .await
+            .unwrap_or_default();
+        let mut dtos = Vec::with_capacity(artists.len());
+        for a in &artists {
+            dtos.push(artist_to_dto(state, a).await);
+        }
+        let total = dtos.len() as i32;
+        return HttpResponse::Ok().json(ItemsResult {
+            items: dtos,
+            total_record_count: total,
+            start_index: 0,
+        });
+    }
+    // Default (Audio or unspecified): tracks in the genre.
+    let tracks = repo::genre::find_tracks(state.pool.clone(), genre_native)
+        .await
+        .unwrap_or_default();
+    let mut dtos = Vec::with_capacity(tracks.len());
+    for t in &tracks {
+        dtos.push(track_to_dto(state, t).await);
+    }
+    let total = dtos.len() as i32;
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: 0,
+    })
+}
+
+async fn resolve_genre_by_name(state: &JellyfinState, name: &str) -> Option<Genre> {
+    if let Ok(Some(g)) = repo::genre::find_by_name(state.pool.clone(), name).await {
+        return Some(g);
+    }
+    let all = repo::genre::all(state.pool.clone()).await.ok()?;
+    all.into_iter().find(|g| g.name.eq_ignore_ascii_case(name))
+}
+
+/// `GET /Genres/{name}` / `GET /MusicGenres/{name}` — resolve a genre
+/// by name (with a case-insensitive fallback) and return the DTO.
+pub async fn genre_by_name(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let name = path.into_inner();
+    match resolve_genre_by_name(&state, &name).await {
+        Some(g) => HttpResponse::Ok().json(genre_to_dto(&state, &g).await),
+        None => HttpResponse::NotFound().finish(),
+    }
+}
+
+/// `GET /Users/{userId}/Genres/{name}` — legacy pre-10.9 alias.
+pub async fn user_genre_by_name(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (_uid, name) = path.into_inner();
+    match resolve_genre_by_name(&state, &name).await {
+        Some(g) => HttpResponse::Ok().json(genre_to_dto(&state, &g).await),
+        None => HttpResponse::NotFound().finish(),
+    }
+}
+
+// ── Filters ─────────────────────────────────────────────────────────────────
+
+async fn compute_filters(state: &JellyfinState) -> (Vec<Genre>, Vec<i32>) {
+    let mut genres = repo::genre::all(state.pool.clone())
+        .await
+        .unwrap_or_default();
+    genres.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+
+    // Years — distinct non-zero album years, ascending.
+    let year_rows: Vec<(i64,)> = sqlx::query_as(
+        "SELECT DISTINCT year FROM album WHERE year IS NOT NULL AND year > 0 ORDER BY year",
+    )
+    .fetch_all(&state.pool)
+    .await
+    .unwrap_or_default();
+    let years = year_rows.into_iter().map(|(y,)| y as i32).collect();
+    (genres, years)
+}
+
+/// `GET /Items/Filters` — legacy filter dump. Genres are flat strings;
+/// tags / official ratings stay empty because rockbox doesn't track
+/// them today (the fields still need to be present arrays per spec).
+pub async fn items_filters_legacy(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+) -> HttpResponse {
+    let (genres, years) = compute_filters(&state).await;
+    HttpResponse::Ok().json(super::dto::QueryFiltersLegacy {
+        genres: genres.into_iter().map(|g| g.name).collect(),
+        tags: vec![],
+        official_ratings: vec![],
+        years,
+    })
+}
+
+/// `GET /Items/Filters2` — 10.9+ variant. Genres come back as
+/// `NameGuidPair`s so clients can round-trip a chip through
+/// `?genreIds=<guid>` without a second name→guid lookup.
+pub async fn items_filters2(_user: AuthedUser, state: web::Data<JellyfinState>) -> HttpResponse {
+    let (genres, years) = compute_filters(&state).await;
+    let mut genre_pairs: Vec<NameGuidPair> = Vec::with_capacity(genres.len());
+    for g in &genres {
+        let id = mapping::remember_genre(&state.pool, &g.id)
+            .await
+            .unwrap_or_else(|_| mapping::guid(mapping::KIND_GENRE, &g.id));
+        genre_pairs.push(NameGuidPair {
+            name: Some(g.name.clone()),
+            id,
+        });
+    }
+    HttpResponse::Ok().json(super::dto::QueryFilters {
+        genres: genre_pairs,
+        tags: vec![],
+        official_ratings: vec![],
+        years,
+    })
+}
+
+/// `GET /Users/{userId}/Items/Filters` — legacy alias, same body as
+/// [`items_filters_legacy`].
+pub async fn user_items_filters(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    _path: web::Path<String>,
+) -> HttpResponse {
+    let (genres, years) = compute_filters(&state).await;
+    HttpResponse::Ok().json(super::dto::QueryFiltersLegacy {
+        genres: genres.into_iter().map(|g| g.name).collect(),
+        tags: vec![],
+        official_ratings: vec![],
+        years,
+    })
 }
 
 // ── Artists endpoints ───────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ pub const KIND_ARTIST: &str = "artist";
 pub const KIND_ALBUM: &str = "album";
 pub const KIND_TRACK: &str = "track";
 pub const KIND_PLAYLIST: &str = "playlist";
+pub const KIND_GENRE: &str = "genre";
 pub const KIND_LIBRARY: &str = "library";
 pub const KIND_USER: &str = "user";
 
@@ -103,6 +104,10 @@ pub fn playlists_library_guid() -> String {
 
 pub fn user_guid(username: &str) -> String {
     guid(KIND_USER, username)
+}
+
+pub async fn remember_genre(pool: &Pool<Sqlite>, native_id: &str) -> anyhow::Result<String> {
+    remember(pool, KIND_GENRE, native_id).await
 }
 
 pub async fn remember_playlist(pool: &Pool<Sqlite>, native_id: &str) -> anyhow::Result<String> {

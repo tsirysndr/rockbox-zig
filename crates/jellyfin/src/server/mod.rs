@@ -542,8 +542,31 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/Playlists/{id}",
             web::post().to(handlers::update_playlist_endpoint),
         )
-        .route("/Genres", web::get().to(handlers::empty_items))
-        .route("/MusicGenres", web::get().to(handlers::empty_items))
+        // Genres — sorted list + per-name lookup + legacy user-scoped
+        // variant. Both /Genres and /MusicGenres share the same body
+        // since rockbox is audio-only.
+        .route("/Genres", web::get().to(handlers::genres))
+        .route("/MusicGenres", web::get().to(handlers::genres))
+        .route("/Genres/{name}", web::get().to(handlers::genre_by_name))
+        .route(
+            "/MusicGenres/{name}",
+            web::get().to(handlers::genre_by_name),
+        )
+        .route(
+            "/Users/{uid}/Genres/{name}",
+            web::get().to(handlers::user_genre_by_name),
+        )
+        // Filters — clients call these to populate genre / year
+        // dropdowns before firing a filtered /Items request.
+        .route(
+            "/Items/Filters",
+            web::get().to(handlers::items_filters_legacy),
+        )
+        .route("/Items/Filters2", web::get().to(handlers::items_filters2))
+        .route(
+            "/Users/{uid}/Items/Filters",
+            web::get().to(handlers::user_items_filters),
+        )
         // /System/Ping is the canonical Jellyfin heartbeat — plain text body.
         .route("/System/Ping", web::get().to(handlers::system_ping))
         .route("/System/Ping", web::head().to(handlers::system_ping))

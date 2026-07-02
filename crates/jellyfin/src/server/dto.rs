@@ -551,3 +551,29 @@ pub struct ImageProviderInfo {
     pub name: String,
     pub supported_images: Vec<&'static str>,
 }
+
+// ── Filters ─────────────────────────────────────────────────────────────────
+
+/// `QueryFiltersLegacy` — the pre-10.9 filter list clients use to
+/// populate filter dropdowns. All four fields are required arrays per
+/// spec (empty is fine, `null` breaks jellyfin-sdk-kotlin).
+#[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub struct QueryFiltersLegacy {
+    pub genres: Vec<String>,
+    pub tags: Vec<String>,
+    pub official_ratings: Vec<String>,
+    pub years: Vec<i32>,
+}
+
+/// `QueryFilters` — the 10.9+ variant. Adds a `NameGuidPair` list of
+/// genres (client can render as chips referring to the genre item) on
+/// top of the flat name list.
+#[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub struct QueryFilters {
+    pub genres: Vec<NameGuidPair>,
+    pub tags: Vec<String>,
+    pub official_ratings: Vec<String>,
+    pub years: Vec<i32>,
+}
