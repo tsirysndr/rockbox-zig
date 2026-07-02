@@ -7,6 +7,7 @@ pub mod dto;
 pub mod favorites;
 pub mod handlers;
 pub mod mapping;
+pub mod user_data;
 
 use actix_cors::Cors;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
@@ -70,6 +71,10 @@ pub async fn start() -> anyhow::Result<()> {
     .await?;
     pool.execute(include_str!(
         "../../migrations/20260702000000_add_jf_favorites.sql"
+    ))
+    .await?;
+    pool.execute(include_str!(
+        "../../migrations/20260702000001_add_jf_user_data.sql"
     ))
     .await?;
 
@@ -325,6 +330,25 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route(
             "/Users/{uid}/FavoriteItems/{id}",
             web::delete().to(handlers::unmark_favorite_legacy),
+        )
+        // UserData — GET rolls up IsFavorite + play stats + rating + likes;
+        // POST accepts UpdateUserItemDataDto (partial patch — unset fields
+        // preserve stored state per spec).
+        .route(
+            "/UserItems/{id}/UserData",
+            web::get().to(handlers::get_user_data),
+        )
+        .route(
+            "/UserItems/{id}/UserData",
+            web::post().to(handlers::update_user_data),
+        )
+        .route(
+            "/Users/{uid}/Items/{id}/UserData",
+            web::get().to(handlers::get_user_data_legacy),
+        )
+        .route(
+            "/Users/{uid}/Items/{id}/UserData",
+            web::post().to(handlers::update_user_data_legacy),
         )
         // Sessions / scrobble
         .route("/Sessions", web::get().to(handlers::sessions_list))

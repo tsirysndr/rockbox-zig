@@ -442,10 +442,10 @@ fn parse_items_query(req: &HttpRequest) -> ItemsQuery {
 
 // ── Track/album/artist → BaseItemDto ────────────────────────────────────────
 
-/// Build a `UserItemDataDto` for a given (kind, native_id). Fills in
-/// `IsFavorite` from the favorites store; all other fields are the
-/// spec-required zero-defaults since rockbox doesn't track per-user
-/// playback progress.
+/// Build a `UserItemDataDto` for a given (kind, native_id). Merges
+/// `IsFavorite` from [`super::favorites`] with playback / rating /
+/// likes from [`super::user_data`]; for tracks the latter also folds
+/// in rockbox-engine playback counters via `track_stats`.
 async fn user_data_for(
     state: &JellyfinState,
     kind: &str,
@@ -453,16 +453,17 @@ async fn user_data_for(
     item_guid: &str,
 ) -> UserItemDataDto {
     let is_favorite = super::favorites::is_favorite(&state.pool, kind, native_id).await;
+    let ud = super::user_data::get(&state.pool, kind, native_id).await;
     UserItemDataDto {
-        rating: None,
+        rating: ud.rating,
         played_percentage: None,
         unplayed_item_count: None,
-        playback_position_ticks: 0,
-        play_count: 0,
+        playback_position_ticks: ud.playback_position_ticks,
+        play_count: ud.play_count,
         is_favorite,
-        likes: None,
-        last_played_date: None,
-        played: false,
+        likes: ud.likes,
+        last_played_date: ud.last_played_date,
+        played: ud.played,
         key: item_guid.to_string(),
         item_id: item_guid.to_string(),
     }
@@ -1759,6 +1760,134 @@ async fn unmark_favorite_impl(state: &JellyfinState, item_id: String) -> HttpRes
         return HttpResponse::InternalServerError().finish();
     }
     HttpResponse::Ok().json(user_data_dto(guid, false))
+}
+
+// ── UserData ────────────────────────────────────────────────────────────────
+
+fn user_data_dto_from(
+    item_guid: String,
+    is_favorite: bool,
+    ud: super::user_data::UserData,
+) -> UserItemDataDto {
+    UserItemDataDto {
+        rating: ud.rating,
+        played_percentage: None,
+        unplayed_item_count: None,
+        playback_position_ticks: ud.playback_position_ticks,
+        play_count: ud.play_count,
+        is_favorite,
+        likes: ud.likes,
+        last_played_date: ud.last_played_date,
+        played: ud.played,
+        key: item_guid.clone(),
+        item_id: item_guid,
+    }
+}
+
+/// `GET /UserItems/{itemId}/UserData` (10.9+) and legacy
+/// `GET /Users/{userId}/Items/{itemId}/UserData` — return the rolled-up
+/// `UserItemDataDto` for `itemId`.
+pub async fn get_user_data(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    get_user_data_impl(&state, path.into_inner()).await
+}
+
+pub async fn get_user_data_legacy(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (_user_id, item_id) = path.into_inner();
+    get_user_data_impl(&state, item_id).await
+}
+
+async fn get_user_data_impl(state: &JellyfinState, item_id: String) -> HttpResponse {
+    let guid = mapping::normalize_guid(&item_id);
+    let Some((kind, native)) = resolve_favorite_target(state, &guid).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let is_favorite = super::favorites::is_favorite(&state.pool, kind, &native).await;
+    let ud = super::user_data::get(&state.pool, kind, &native).await;
+    HttpResponse::Ok().json(user_data_dto_from(guid, is_favorite, ud))
+}
+
+/// `POST /UserItems/{itemId}/UserData` and legacy variant — apply
+/// `UpdateUserItemDataDto`. Unset fields on the request are preserved
+/// (Jellyfin's spec — only present fields overwrite).
+///
+/// `IsFavorite` is honoured here as a shortcut so clients can toggle
+/// the favorite flag through this endpoint instead of
+/// `/UserFavoriteItems/{id}`.
+pub async fn update_user_data(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    body: Option<web::Json<Value>>,
+) -> HttpResponse {
+    update_user_data_impl(&state, path.into_inner(), body).await
+}
+
+pub async fn update_user_data_legacy(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<(String, String)>,
+    body: Option<web::Json<Value>>,
+) -> HttpResponse {
+    let (_user_id, item_id) = path.into_inner();
+    update_user_data_impl(&state, item_id, body).await
+}
+
+async fn update_user_data_impl(
+    state: &JellyfinState,
+    item_id: String,
+    body: Option<web::Json<Value>>,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&item_id);
+    let Some((kind, native)) = resolve_favorite_target(state, &guid).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let body = body.map(|b| b.into_inner()).unwrap_or(Value::Null);
+
+    // IsFavorite handled through the favorites store so both surfaces
+    // (jf_favorites + shared favourites table) stay in sync.
+    if let Some(is_fav) = body.get("IsFavorite").and_then(|v| v.as_bool()) {
+        let result = if is_fav {
+            super::favorites::mark(&state.pool, kind, &native).await
+        } else {
+            super::favorites::unmark(&state.pool, kind, &native).await
+        };
+        if let Err(e) = result {
+            tracing::error!("jellyfin: update_user_data favorite: {e}");
+        }
+    }
+
+    let patch = super::user_data::UserDataPatch {
+        played: body.get("Played").and_then(|v| v.as_bool()),
+        play_count: body
+            .get("PlayCount")
+            .and_then(|v| v.as_i64())
+            .map(|n| n as i32),
+        playback_position_ticks: body.get("PlaybackPositionTicks").and_then(|v| v.as_i64()),
+        last_played_date: body
+            .get("LastPlayedDate")
+            .and_then(|v| v.as_str())
+            .map(String::from),
+        likes: body.get("Likes").and_then(|v| v.as_bool()),
+        rating: body.get("Rating").and_then(|v| v.as_f64()),
+    };
+
+    let ud = match super::user_data::update(&state.pool, kind, &native, patch).await {
+        Ok(ud) => ud,
+        Err(e) => {
+            tracing::error!("jellyfin: update_user_data {kind}/{native}: {e}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+    let is_favorite = super::favorites::is_favorite(&state.pool, kind, &native).await;
+    HttpResponse::Ok().json(user_data_dto_from(guid, is_favorite, ud))
 }
 
 // ── Artists endpoints ───────────────────────────────────────────────────────
