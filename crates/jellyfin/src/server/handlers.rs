@@ -2172,6 +2172,112 @@ pub async fn lyric_providers(_user: AuthedUser) -> HttpResponse {
     HttpResponse::Ok().json(Vec::<Value>::new())
 }
 
+// ── Similar ─────────────────────────────────────────────────────────────────
+
+fn similar_limit(req: &HttpRequest) -> usize {
+    let query = collect_query(req);
+    query
+        .get("limit")
+        .or_else(|| query.get("Limit"))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(20)
+}
+
+async fn build_similar_response(
+    state: &JellyfinState,
+    kind: &'static str,
+    native: String,
+    limit: usize,
+) -> HttpResponse {
+    let result = super::similar::similar(
+        &state.pool,
+        state.lastfm.as_ref(),
+        state.musicbrainz.as_ref(),
+        kind,
+        &native,
+        limit,
+    )
+    .await;
+
+    let mut dtos: Vec<BaseItemDto> = Vec::new();
+    for a in &result.artists {
+        dtos.push(artist_to_dto(state, a).await);
+    }
+    for a in &result.albums {
+        dtos.push(album_to_dto(state, a).await);
+    }
+    for t in &result.tracks {
+        dtos.push(track_to_dto(state, t).await);
+    }
+    let total = dtos.len() as i32;
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: 0,
+    })
+}
+
+/// `GET /Items/{itemId}/Similar` — the OpenAPI spec's generic
+/// dispatcher. Peeks at the item kind and calls into the plugin
+/// orchestrator; returns an empty `ItemsResult` when Last.fm is not
+/// configured or when the kind isn't one the orchestrator supports.
+pub async fn similar_items(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ARTIST, native)) => {
+            build_similar_response(&state, mapping::KIND_ARTIST, native, similar_limit(&req)).await
+        }
+        Some((mapping::KIND_ALBUM, native)) => {
+            build_similar_response(&state, mapping::KIND_ALBUM, native, similar_limit(&req)).await
+        }
+        Some((mapping::KIND_TRACK, native)) => {
+            build_similar_response(&state, mapping::KIND_TRACK, native, similar_limit(&req)).await
+        }
+        // Anything else (playlists, unknown ids) → empty.
+        _ => HttpResponse::Ok().json(ItemsResult {
+            items: vec![],
+            total_record_count: 0,
+            start_index: 0,
+        }),
+    }
+}
+
+pub async fn similar_artists_endpoint(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ARTIST, native)) => {
+            build_similar_response(&state, mapping::KIND_ARTIST, native, similar_limit(&req)).await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+pub async fn similar_albums_endpoint(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ALBUM, native)) => {
+            build_similar_response(&state, mapping::KIND_ALBUM, native, similar_limit(&req)).await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
 // ── Artists endpoints ───────────────────────────────────────────────────────
 
 pub async fn artists(

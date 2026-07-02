@@ -992,6 +992,8 @@ pub mod api {
                     s3_port: None,
                     s3_access_key: None,
                     s3_secret_key: None,
+                    lastfm_api_key: None,
+                    musicbrainz_user_agent: None,
                 }
             }
         }

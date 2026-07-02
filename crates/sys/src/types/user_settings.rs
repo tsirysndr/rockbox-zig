@@ -767,6 +767,18 @@ pub struct NewGlobalSettings {
     pub s3_access_key: Option<String>,
     /// AWS secret access key for SigV4 auth.
     pub s3_secret_key: Option<String>,
+    /// Last.fm API key. When set, the Jellyfin /Items/{id}/Similar
+    /// endpoints (and legacy `/Artists`/`/Albums` variants) call Last.fm
+    /// to expand seed items into a similar-item list. Absent → the
+    /// Similar endpoints return an empty result.
+    pub lastfm_api_key: Option<String>,
+    /// MusicBrainz `User-Agent` string, e.g.
+    /// `"rockbox-zig/0.1 ( contact@example.com )"`. When set, MBIDs
+    /// returned by Last.fm are cross-referenced against MusicBrainz to
+    /// canonicalize artist/album names before matching them back to
+    /// the local library. Absent → we fall back to Last.fm's name-only
+    /// output.
+    pub musicbrainz_user_agent: Option<String>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -843,6 +855,8 @@ impl From<UserSettings> for NewGlobalSettings {
             s3_port: None,
             s3_access_key: None,
             s3_secret_key: None,
+            lastfm_api_key: None,
+            musicbrainz_user_agent: None,
         }
     }
 }

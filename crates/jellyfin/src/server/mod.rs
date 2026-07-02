@@ -7,8 +7,11 @@ pub mod dto;
 pub mod favorites;
 pub mod handlers;
 pub mod instant_mix;
+pub mod lastfm;
 pub mod lyrics;
 pub mod mapping;
+pub mod musicbrainz;
+pub mod similar;
 pub mod user_data;
 
 use actix_cors::Cors;
@@ -32,6 +35,14 @@ pub struct JellyfinState {
     /// Playlists CRUD backend — same store the Subsonic bridge uses so the
     /// two APIs see one another's writes.
     pub playlist_store: PlaylistStore,
+    /// Last.fm client — populated only when `lastfm_api_key` is set in
+    /// `settings.toml`. Similar endpoints short-circuit to empty when
+    /// this is `None`.
+    pub lastfm: Option<lastfm::LastFm>,
+    /// MusicBrainz client — populated only when
+    /// `musicbrainz_user_agent` is set. Used to canonicalize MBIDs
+    /// coming back from Last.fm before local library matching.
+    pub musicbrainz: Option<musicbrainz::MusicBrainz>,
 }
 
 pub async fn start() -> anyhow::Result<()> {
@@ -84,6 +95,14 @@ pub async fn start() -> anyhow::Result<()> {
     let user_id = mapping::user_guid(&username);
     let addr = format!("0.0.0.0:{port}");
     let playlist_store = PlaylistStore::new(pool.clone());
+    let lastfm = lastfm::LastFm::from_key(settings.lastfm_api_key.clone());
+    let musicbrainz = musicbrainz::MusicBrainz::from_ua(settings.musicbrainz_user_agent.clone());
+    if lastfm.is_some() {
+        tracing::info!("Jellyfin server: Last.fm Similar plugin enabled");
+    }
+    if musicbrainz.is_some() {
+        tracing::info!("Jellyfin server: MusicBrainz canonicalization enabled");
+    }
 
     let state = web::Data::new(JellyfinState {
         pool,
@@ -95,6 +114,8 @@ pub async fn start() -> anyhow::Result<()> {
         user_id: Arc::new(user_id),
         port,
         playlist_store,
+        lastfm,
+        musicbrainz,
     });
 
     tracing::info!("Jellyfin API server listening on {addr} (id={server_id})");
@@ -212,7 +233,21 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/Items/{id}/Ancestors",
             web::get().to(handlers::empty_array),
         )
-        .route("/Items/{id}/Similar", web::get().to(handlers::empty_items))
+        // Similar — Last.fm-backed when configured, empty otherwise.
+        // Registered here so the specific /Items/{id}/Similar path beats
+        // the catch-all /Items/{id} GET below.
+        .route(
+            "/Items/{id}/Similar",
+            web::get().to(handlers::similar_items),
+        )
+        .route(
+            "/Artists/{id}/Similar",
+            web::get().to(handlers::similar_artists_endpoint),
+        )
+        .route(
+            "/Albums/{id}/Similar",
+            web::get().to(handlers::similar_albums_endpoint),
+        )
         .route(
             "/Users/{uid}/Items/{id}/Intros",
             web::get().to(handlers::empty_items),
