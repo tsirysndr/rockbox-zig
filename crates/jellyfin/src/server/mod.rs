@@ -2,6 +2,7 @@
 //! Streamyfin / Amcfy / Symfonium hit, audio-only.
 
 pub mod auth;
+pub mod cover_art_archive;
 pub mod discovery;
 pub mod dto;
 pub mod favorites;
@@ -43,6 +44,9 @@ pub struct JellyfinState {
     /// `musicbrainz_user_agent` is set. Used to canonicalize MBIDs
     /// coming back from Last.fm before local library matching.
     pub musicbrainz: Option<musicbrainz::MusicBrainz>,
+    /// Cover Art Archive client — same UA gate as MusicBrainz.
+    /// Backs the RemoteImage endpoints.
+    pub caa: Option<cover_art_archive::CoverArtArchive>,
 }
 
 pub async fn start() -> anyhow::Result<()> {
@@ -97,11 +101,15 @@ pub async fn start() -> anyhow::Result<()> {
     let playlist_store = PlaylistStore::new(pool.clone());
     let lastfm = lastfm::LastFm::from_key(settings.lastfm_api_key.clone());
     let musicbrainz = musicbrainz::MusicBrainz::from_ua(settings.musicbrainz_user_agent.clone());
+    let caa = cover_art_archive::CoverArtArchive::from_ua(settings.musicbrainz_user_agent.clone());
     if lastfm.is_some() {
         tracing::info!("Jellyfin server: Last.fm Similar plugin enabled");
     }
     if musicbrainz.is_some() {
         tracing::info!("Jellyfin server: MusicBrainz canonicalization enabled");
+    }
+    if caa.is_some() {
+        tracing::info!("Jellyfin server: Cover Art Archive plugin enabled");
     }
 
     let state = web::Data::new(JellyfinState {
@@ -116,6 +124,7 @@ pub async fn start() -> anyhow::Result<()> {
         playlist_store,
         lastfm,
         musicbrainz,
+        caa,
     });
 
     tracing::info!("Jellyfin API server listening on {addr} (id={server_id})");
@@ -232,6 +241,20 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route(
             "/Items/{id}/Ancestors",
             web::get().to(handlers::empty_array),
+        )
+        // RemoteImages — Cover Art Archive-backed when the MB UA is
+        // configured. Empty otherwise. Registered before /Items/{id}.
+        .route(
+            "/Items/{id}/RemoteImages",
+            web::get().to(handlers::remote_images),
+        )
+        .route(
+            "/Items/{id}/RemoteImages/Providers",
+            web::get().to(handlers::remote_image_providers),
+        )
+        .route(
+            "/Items/{id}/RemoteImages/Download",
+            web::post().to(handlers::download_remote_image),
         )
         // Similar — Last.fm-backed when configured, empty otherwise.
         // Registered here so the specific /Items/{id}/Similar path beats

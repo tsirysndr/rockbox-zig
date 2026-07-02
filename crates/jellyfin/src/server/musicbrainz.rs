@@ -62,6 +62,35 @@ impl MusicBrainz {
         })
     }
 
+    /// `search release-group?query=…` — resolve `(artist, album)` to a
+    /// release-group MBID. The first match wins; MB's own scoring keeps
+    /// this good enough for RemoteImage lookups where a mediocre match
+    /// still surfaces reasonable candidates.
+    pub async fn search_release_group(&self, artist: &str, album: &str) -> Option<String> {
+        if artist.trim().is_empty() || album.trim().is_empty() {
+            return None;
+        }
+        // Escape Lucene syntax the query language uses.
+        let query = format!(
+            "release:\"{}\" AND artist:\"{}\"",
+            escape_lucene(album),
+            escape_lucene(artist),
+        );
+        let url = format!("{MB_ROOT}/release-group");
+        let resp = self
+            .http
+            .get(&url)
+            .query(&[("query", query.as_str()), ("fmt", "json"), ("limit", "1")])
+            .send()
+            .await
+            .ok()?;
+        if !resp.status().is_success() {
+            return None;
+        }
+        let body: ReleaseGroupSearchBody = resp.json().await.ok()?;
+        body.release_groups.into_iter().next().map(|r| r.id)
+    }
+
     /// `lookup /release-group/{mbid}` — canonical release / album name.
     /// Useful when Last.fm's track suggestion carries a release-group
     /// MBID we want to map to a local album.
@@ -108,4 +137,32 @@ struct ArtistBody {
 #[derive(Deserialize)]
 struct ReleaseBody {
     title: String,
+}
+
+#[derive(Deserialize)]
+struct ReleaseGroupSearchBody {
+    #[serde(rename = "release-groups", default)]
+    release_groups: Vec<ReleaseGroupRow>,
+}
+
+#[derive(Deserialize)]
+struct ReleaseGroupRow {
+    id: String,
+}
+
+/// Escape the Lucene reserved chars so a rogue quote / bracket in an
+/// album name doesn't blow up the query.
+fn escape_lucene(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for c in input.chars() {
+        match c {
+            '\\' | '+' | '-' | '&' | '|' | '!' | '(' | ')' | '{' | '}' | '[' | ']' | '^' | '"'
+            | '~' | '*' | '?' | ':' | '/' => {
+                out.push('\\');
+                out.push(c);
+            }
+            _ => out.push(c),
+        }
+    }
+    out
 }

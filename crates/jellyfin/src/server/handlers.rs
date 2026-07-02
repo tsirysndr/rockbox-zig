@@ -12,10 +12,10 @@ use std::path::PathBuf;
 
 use super::auth::{self, AuthedUser, EmbyAuth};
 use super::dto::{
-    AuthenticationResult, BaseItemDto, ImageBlurHashes, ImageTags, ItemsResult, MediaSource,
-    MediaStream, NameGuidPair, PlaybackInfoResponse, PlaylistCreationResult, PublicSystemInfo,
-    SessionInfoDto, SystemInfo, UserConfiguration, UserDto, UserItemDataDto, UserPolicy,
-    ViewsResult, JELLYFIN_API_VERSION,
+    AuthenticationResult, BaseItemDto, ImageBlurHashes, ImageProviderInfo, ImageTags, ItemsResult,
+    MediaSource, MediaStream, NameGuidPair, PlaybackInfoResponse, PlaylistCreationResult,
+    PublicSystemInfo, RemoteImageInfo, RemoteImageResult, SessionInfoDto, SystemInfo,
+    UserConfiguration, UserDto, UserItemDataDto, UserPolicy, ViewsResult, JELLYFIN_API_VERSION,
 };
 use super::mapping;
 use super::JellyfinState;
@@ -2276,6 +2276,218 @@ pub async fn similar_albums_endpoint(
         }
         _ => HttpResponse::NotFound().finish(),
     }
+}
+
+// ── RemoteImages ────────────────────────────────────────────────────────────
+
+/// Resolve `itemId` to an album — the only kind rockbox currently
+/// surfaces remote images for. Track ids fall back to their parent
+/// album so clients can "change cover art" from a now-playing view.
+async fn resolve_remote_image_album(state: &JellyfinState, guid: &str) -> Option<Album> {
+    let g = mapping::normalize_guid(guid);
+    let (kind, native) = resolve_native(state, &g).await?;
+    match kind.as_str() {
+        "album" => repo::album::find(state.pool.clone(), &native).await.ok()?,
+        "track" => {
+            let track = repo::track::find(state.pool.clone(), &native)
+                .await
+                .ok()??;
+            repo::album::find(state.pool.clone(), &track.album_id)
+                .await
+                .ok()?
+        }
+        _ => None,
+    }
+}
+
+async fn find_remote_images_for_album(
+    state: &JellyfinState,
+    album: &Album,
+) -> Vec<RemoteImageInfo> {
+    let (Some(mb), Some(caa)) = (state.musicbrainz.as_ref(), state.caa.as_ref()) else {
+        return Vec::new();
+    };
+    let Some(mbid) = mb.search_release_group(&album.artist, &album.title).await else {
+        return Vec::new();
+    };
+    let images = caa.release_group_images(&mbid).await;
+    let mut out = Vec::with_capacity(images.len());
+    for img in images {
+        let image_type = if img.is_front || img.image_types.iter().any(|t| t == "Front") {
+            "Primary"
+        } else if img.image_types.iter().any(|t| t == "Back") {
+            "Backdrop"
+        } else if img.image_types.iter().any(|t| t == "Booklet") {
+            "Thumb"
+        } else {
+            "Primary"
+        };
+        out.push(RemoteImageInfo {
+            provider_name: super::cover_art_archive::PROVIDER_NAME.to_string(),
+            url: img.url,
+            thumbnail_url: img.thumbnail_url,
+            image_type: image_type.to_string(),
+            rating_type: "Score",
+            ..Default::default()
+        });
+    }
+    out
+}
+
+/// `GET /Items/{itemId}/RemoteImages` — returns candidate remote
+/// images for the item. Empty result when either MB or CAA is
+/// unconfigured, or when the seed isn't an album/track.
+pub async fn remote_images(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let Some(album) = resolve_remote_image_album(&state, &path.into_inner()).await else {
+        return HttpResponse::Ok().json(RemoteImageResult::default());
+    };
+    let query = collect_query(&req);
+    let want_type = query
+        .get("type")
+        .or_else(|| query.get("Type"))
+        .and_then(|v| v.first())
+        .cloned();
+    let start = query
+        .get("startIndex")
+        .or_else(|| query.get("StartIndex"))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(0);
+    let limit = query
+        .get("limit")
+        .or_else(|| query.get("Limit"))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse::<usize>().ok());
+
+    let mut images = find_remote_images_for_album(&state, &album).await;
+    if let Some(t) = want_type.as_deref() {
+        images.retain(|img| img.image_type.eq_ignore_ascii_case(t));
+    }
+    let total = images.len() as i32;
+    let providers = if state.caa.is_some() {
+        vec![super::cover_art_archive::PROVIDER_NAME.to_string()]
+    } else {
+        vec![]
+    };
+    let mut page: Vec<RemoteImageInfo> = images.into_iter().skip(start).collect();
+    if let Some(n) = limit {
+        page.truncate(n);
+    }
+    HttpResponse::Ok().json(RemoteImageResult {
+        images: page,
+        total_record_count: total,
+        providers,
+    })
+}
+
+/// `GET /Items/{itemId}/RemoteImages/Providers` — enumerate providers
+/// active for this item.
+pub async fn remote_image_providers(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let Some(_album) = resolve_remote_image_album(&state, &path.into_inner()).await else {
+        return HttpResponse::Ok().json(Vec::<ImageProviderInfo>::new());
+    };
+    let mut providers = Vec::new();
+    if state.caa.is_some() {
+        providers.push(ImageProviderInfo {
+            name: super::cover_art_archive::PROVIDER_NAME.to_string(),
+            supported_images: vec!["Primary", "Backdrop", "Thumb"],
+        });
+    }
+    HttpResponse::Ok().json(providers)
+}
+
+/// `POST /Items/{itemId}/RemoteImages/Download?type=…&imageUrl=…&providerName=…`
+/// — fetch the image bytes, save under the covers directory, and
+/// point the album's `album_art` at the new file.
+pub async fn download_remote_image(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let Some(album) = resolve_remote_image_album(&state, &path.into_inner()).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    let query = collect_query(&req);
+    let Some(url) = query
+        .get("imageUrl")
+        .or_else(|| query.get("ImageUrl"))
+        .and_then(|v| v.first())
+        .cloned()
+    else {
+        return HttpResponse::BadRequest().finish();
+    };
+
+    // Reuse the CAA HTTP client (same UA / TLS stack) when configured;
+    // fall back to a raw reqwest for spec compliance if not.
+    let bytes = match state.caa.as_ref() {
+        Some(_) => reqwest::get(&url).await,
+        None => reqwest::get(&url).await,
+    };
+    let response = match bytes {
+        Ok(r) if r.status().is_success() => r,
+        _ => return HttpResponse::BadGateway().finish(),
+    };
+    let content_type = response
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("image/jpeg")
+        .to_string();
+    let ext = match content_type.as_str() {
+        "image/png" => "png",
+        "image/webp" => "webp",
+        "image/gif" => "gif",
+        _ => "jpg",
+    };
+    let body = match response.bytes().await {
+        Ok(b) => b,
+        Err(_) => return HttpResponse::BadGateway().finish(),
+    };
+
+    let filename = format!("{}.{ext}", album_key_hash(&album.id));
+    let covers_dir = covers_directory();
+    if let Err(e) = std::fs::create_dir_all(&covers_dir) {
+        tracing::error!("jellyfin: create covers dir {covers_dir:?}: {e}");
+        return HttpResponse::InternalServerError().finish();
+    }
+    let out_path = covers_dir.join(&filename);
+    if let Err(e) = std::fs::write(&out_path, &body) {
+        tracing::error!("jellyfin: write cover {out_path:?}: {e}");
+        return HttpResponse::InternalServerError().finish();
+    }
+    if let Err(e) = repo::album::update_album_art(state.pool.clone(), &album.id, &filename).await {
+        tracing::error!("jellyfin: update album_art for {}: {e}", album.id);
+        return HttpResponse::InternalServerError().finish();
+    }
+    HttpResponse::NoContent().finish()
+}
+
+/// Reuse the same on-disk covers path the audio scanner writes to so
+/// external tools already pointing at `~/.config/rockbox.org/covers`
+/// keep working.
+fn covers_directory() -> std::path::PathBuf {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    std::path::PathBuf::from(format!("{home}/.config/rockbox.org/covers"))
+}
+
+/// Stable per-album key using MD5, matching the naming scheme
+/// `library/album_art.rs` uses so the scanner and Jellyfin write to
+/// the same filename for the same album.
+fn album_key_hash(album_id: &str) -> String {
+    use md5::{Digest, Md5};
+    let mut hasher = Md5::new();
+    hasher.update(album_id.as_bytes());
+    hex::encode(hasher.finalize())
 }
 
 // ── Artists endpoints ───────────────────────────────────────────────────────

@@ -503,3 +503,51 @@ pub struct LyricDto {
     pub metadata: Option<LyricMetadata>,
     pub lyrics: Vec<LyricLine>,
 }
+
+// ── Remote images ───────────────────────────────────────────────────────────
+
+/// `RemoteImageInfo` — a single candidate image returned by a remote
+/// provider (Cover Art Archive, etc.). `ProviderName`, `Url`, and
+/// `Type` are the fields clients (Findroid, official web) require.
+#[derive(Debug, Serialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct RemoteImageInfo {
+    pub provider_name: String,
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub height: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub width: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub community_rating: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vote_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    /// `ImageType` enum: `Primary | Backdrop | Logo | Thumb | Banner | …`
+    #[serde(rename = "Type")]
+    pub image_type: String,
+    /// `RatingType`: `Score | Likes`.
+    pub rating_type: &'static str,
+}
+
+/// `RemoteImageResult` — response for `GET /Items/{id}/RemoteImages`.
+#[derive(Debug, Serialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct RemoteImageResult {
+    pub images: Vec<RemoteImageInfo>,
+    pub total_record_count: i32,
+    pub providers: Vec<String>,
+}
+
+/// `ImageProviderInfo` — one entry in the response to
+/// `GET /Items/{id}/RemoteImages/Providers`. `SupportedImages` names
+/// the `ImageType` values this provider can supply for this item.
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub struct ImageProviderInfo {
+    pub name: String,
+    pub supported_images: Vec<&'static str>,
+}
