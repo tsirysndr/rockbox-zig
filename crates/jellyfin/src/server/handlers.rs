@@ -1890,6 +1890,184 @@ async fn update_user_data_impl(
     HttpResponse::Ok().json(user_data_dto_from(guid, is_favorite, ud))
 }
 
+// ── InstantMix ──────────────────────────────────────────────────────────────
+
+fn instant_mix_limit(req: &HttpRequest) -> usize {
+    let query = collect_query(req);
+    query
+        .get("limit")
+        .or_else(|| query.get("Limit"))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(super::instant_mix::DEFAULT_LIMIT)
+}
+
+async fn build_instant_mix_response(
+    state: &JellyfinState,
+    kind: &'static str,
+    native: String,
+    limit: usize,
+) -> HttpResponse {
+    let tracks =
+        super::instant_mix::generate(&state.pool, &state.playlist_store, kind, &native, limit)
+            .await;
+    let mut dtos = Vec::with_capacity(tracks.len());
+    for t in &tracks {
+        dtos.push(track_to_dto(state, t).await);
+    }
+    let total = dtos.len() as i32;
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: 0,
+    })
+}
+
+/// `GET /Items/{itemId}/InstantMix` — spec's generic dispatcher.
+/// Peeks at the item kind and delegates to the appropriate seed
+/// algorithm.
+pub async fn instant_mix_by_item(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    let Some((kind, native)) = resolve_favorite_target(&state, &guid).await else {
+        return HttpResponse::NotFound().finish();
+    };
+    build_instant_mix_response(&state, kind, native, instant_mix_limit(&req)).await
+}
+
+/// `GET /Songs/{itemId}/InstantMix` — legacy pre-10.9 path. Rejects
+/// non-track ids so clients don't accidentally build a mix from
+/// mismatched kinds.
+pub async fn instant_mix_songs(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_TRACK, native)) => {
+            build_instant_mix_response(&state, mapping::KIND_TRACK, native, instant_mix_limit(&req))
+                .await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+pub async fn instant_mix_albums(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ALBUM, native)) => {
+            build_instant_mix_response(&state, mapping::KIND_ALBUM, native, instant_mix_limit(&req))
+                .await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+pub async fn instant_mix_artists(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ARTIST, native)) => {
+            build_instant_mix_response(
+                &state,
+                mapping::KIND_ARTIST,
+                native,
+                instant_mix_limit(&req),
+            )
+            .await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+pub async fn instant_mix_playlists(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let guid = mapping::normalize_guid(&path.into_inner());
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_PLAYLIST, native)) => {
+            build_instant_mix_response(
+                &state,
+                mapping::KIND_PLAYLIST,
+                native,
+                instant_mix_limit(&req),
+            )
+            .await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+/// `GET /Artists/InstantMix?id=<guid>` — query-string variant used by
+/// some clients (Amcfy, Symfonium) instead of the path form.
+pub async fn instant_mix_artists_query(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let query = collect_query(&req);
+    let Some(id) = query
+        .get("id")
+        .or_else(|| query.get("Id"))
+        .and_then(|v| v.first())
+    else {
+        return HttpResponse::BadRequest().finish();
+    };
+    let guid = mapping::normalize_guid(id);
+    match resolve_favorite_target(&state, &guid).await {
+        Some((mapping::KIND_ARTIST, native)) => {
+            build_instant_mix_response(
+                &state,
+                mapping::KIND_ARTIST,
+                native,
+                instant_mix_limit(&req),
+            )
+            .await
+        }
+        _ => HttpResponse::NotFound().finish(),
+    }
+}
+
+/// `GET /MusicGenres/{name}/InstantMix` — name-keyed genre seed.
+pub async fn instant_mix_music_genre(
+    _user: AuthedUser,
+    state: web::Data<JellyfinState>,
+    path: web::Path<String>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let name = path.into_inner();
+    let limit = instant_mix_limit(&req);
+    let tracks = super::instant_mix::generate_from_genre_name(&state.pool, &name, limit).await;
+    let mut dtos = Vec::with_capacity(tracks.len());
+    for t in &tracks {
+        dtos.push(track_to_dto(&state, t).await);
+    }
+    let total = dtos.len() as i32;
+    HttpResponse::Ok().json(ItemsResult {
+        items: dtos,
+        total_record_count: total,
+        start_index: 0,
+    })
+}
+
 // ── Artists endpoints ───────────────────────────────────────────────────────
 
 pub async fn artists(

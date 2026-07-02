@@ -31,6 +31,7 @@ server = [
   "md-5",
   "if-addrs",
   "mdns-sd",
+  "rand",
 ]
 
 [dependencies]
@@ -57,3 +58,4 @@ urlencoding = { version = "2", optional = true }
 md-5 = { version = "0.10", optional = true }
 if-addrs = { version = "0.13", optional = true }
 mdns-sd = { version = "0.13", optional = true }
+rand = { version = "0.8", optional = true }

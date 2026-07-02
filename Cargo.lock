@@ -9782,6 +9782,7 @@ dependencies = [
  "md-5",
  "mdns-sd 0.13.3",
  "mime_guess",
+ "rand 0.8.5",
  "reqwest",
  "rockbox-library",
  "rockbox-playlists",

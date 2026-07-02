@@ -6,6 +6,7 @@ pub mod discovery;
 pub mod dto;
 pub mod favorites;
 pub mod handlers;
+pub mod instant_mix;
 pub mod mapping;
 pub mod user_data;
 
@@ -227,6 +228,37 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route(
             "/Items/{id}/Download",
             web::get().to(handlers::item_file_stream),
+        )
+        // InstantMix — generic (/Items/{id}/InstantMix) plus the legacy
+        // per-kind aliases. Registered here so they beat the catch-all
+        // /Items/{id} GET below.
+        .route(
+            "/Items/{id}/InstantMix",
+            web::get().to(handlers::instant_mix_by_item),
+        )
+        .route(
+            "/Songs/{id}/InstantMix",
+            web::get().to(handlers::instant_mix_songs),
+        )
+        .route(
+            "/Albums/{id}/InstantMix",
+            web::get().to(handlers::instant_mix_albums),
+        )
+        .route(
+            "/Artists/InstantMix",
+            web::get().to(handlers::instant_mix_artists_query),
+        )
+        .route(
+            "/Artists/{id}/InstantMix",
+            web::get().to(handlers::instant_mix_artists),
+        )
+        .route(
+            "/Playlists/{id}/InstantMix",
+            web::get().to(handlers::instant_mix_playlists),
+        )
+        .route(
+            "/MusicGenres/{name}/InstantMix",
+            web::get().to(handlers::instant_mix_music_genre),
         )
         .route("/Items/{id}", web::get().to(handlers::item_by_id))
         // DELETE /Items/{id} — Jellyfin uses this to delete playlists (they
